@@ -1,0 +1,3495 @@
+<file_map>
+/Users/farazbukhari/Documents/CNG Calculator (Final)
+├── docs.txt
+├── index.html
+├── input.css
+├── package.json
+├── postcss.config.js
+├── readme.md
+├── script.js
+├── styles.css
+└── tailwind.config.js
+
+</file_map>
+
+<file_contents>
+File: docs.txt
+```txt
+High-Level Overview of the Tool
+	1.	Data Inputs & Configuration
+	•	Vehicle Types & Counts: The user specifies how many Light, Medium, and Heavy Duty vehicles they wish to convert.
+	•	Time Horizon: A time range (5, 10, or 15 years) to analyze.
+	•	Deployment Strategy: Multiple ways to allocate vehicles across the analysis timeline, including immediate purchase, phased, aggressive early, deferred, or manual.
+	•	Station Configuration: Fast-fill or time-fill stations, with cost and capacity pre-defined. There’s also a business type selection (AGLC vs CGC) which impacts rates.
+	•	Fuel Prices: Gas, diesel, and CNG prices are user inputs, which all feed into the financial calculations.
+	2.	Key Calculations
+	•	Vehicle Investment: Cost of vehicles purchased each year (or upfront, if the user chooses the immediate strategy).
+	•	Station Investment: The chosen station type determines capacity and cost, with logic to pick an appropriately sized station.
+	•	Annual Savings: Summation of yearly fuel-cost savings (gas/diesel vs CNG) plus maintenance savings.
+	•	Payback Period: Determined by comparing cumulative savings to total costs to find when the project breaks even.
+	•	ROI & Net Cash Flow: ROI is computed as (Net Savings / Total Investment) * 100. Net cash flow is tracked cumulatively, year by year.
+	3.	Visual & Analytical Outputs
+	•	Immediate Strategy View: A dedicated section for the “Immediate Purchase” option, showing up-front costs and a gauge for payback period.
+	•	Timeline-based Analysis: A more detailed section that appears when any strategy other than “immediate” is chosen:
+	•	Vehicle Distribution: Allocating vehicles across multiple years.
+	•	Charts: Cumulative cash flow line chart, cost vs. savings bar chart.
+	•	Yearly Metrics: Investment and savings for each year, culminating in net cash flow.
+	•	Environmental/Operational Impact: A rudimentary CO₂ reduction estimate, cost per mile, and fleet-efficiency improvement.
+	•	Multi-Year Summaries: 10-year and 15-year snapshots (even if the full horizon is 15 years, there’s a 10-year subanalysis to show partial ROI).
+	•	Strategy Insights: Dynamically generated text explaining the chosen strategy’s pros and cons (phased, aggressive, deferred, manual).
+
+    
+```
+
+File: input.css
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for tooltips */
+.tooltip {
+    @apply relative inline-block cursor-help text-gray-500;
+}
+
+.tooltip-text {
+    @apply invisible absolute z-10 w-48 bg-gray-900 text-white text-sm rounded-md py-2 px-3 bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 transition-opacity duration-200;
+}
+
+.tooltip:hover .tooltip-text {
+    @apply visible opacity-100;
+}
+
+/* Custom styles for validation messages */
+.validation-message {
+    @apply text-red-500 text-sm mt-1 hidden;
+}
+
+.validation-message.visible {
+    @apply block;
+}
+
+/* Custom styles for input states */
+.input-error {
+    @apply border-red-500 focus:border-red-500 focus:ring-red-500;
+}
+
+/* Custom styles for timeline */
+.year-block {
+    @apply transition-all duration-200 hover:shadow-lg;
+}
+
+.year-block:hover {
+    @apply transform -translate-y-1;
+}
+
+/* Custom styles for distribution buttons */
+.distribution-btn {
+    @apply px-4 py-2 bg-blue-500 text-white rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
+}
+
+/* Custom styles for metrics */
+.metric-card {
+    @apply bg-white rounded-lg shadow p-4;
+}
+
+.metric-label {
+    @apply text-sm font-medium text-gray-500 flex items-center mb-2;
+}
+
+.metric-value {
+    @apply text-2xl font-bold;
+}
+
+.metric-value.success {
+    @apply text-green-600;
+}
+
+.metric-value.warning {
+    @apply text-yellow-600;
+}
+
+.metric-value.danger {
+    @apply text-red-600;
+}
+
+.metric-value.positive {
+    @apply text-green-600;
+}
+
+.metric-value.negative {
+    @apply text-red-600;
+}
+
+/* Timeline scroll container */
+.timeline-scroll {
+    @apply overflow-x-auto;
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.blue.500') theme('colors.gray.200');
+}
+
+.timeline-scroll::-webkit-scrollbar {
+    @apply h-2;
+}
+
+.timeline-scroll::-webkit-scrollbar-track {
+    @apply bg-gray-200 rounded-full;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb {
+    @apply bg-blue-500 rounded-full;
+}
+
+/* Vehicle type indicators */
+.vehicle-type-light {
+    @apply border-l-4 border-blue-500;
+}
+
+.vehicle-type-medium {
+    @apply border-l-4 border-green-500;
+}
+
+.vehicle-type-heavy {
+    @apply border-l-4 border-red-500;
+}
+```
+
+File: package.json
+```json
+{
+  "name": "cng-calculator-(final)",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tailwindcss -i ./input.css -o ./styles.css",
+    "watch": "tailwindcss -i ./input.css -o ./styles.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15"
+  }
+}
+```
+
+File: postcss.config.js
+```js
+module.exports = {
+    plugins: {
+        tailwindcss: {},
+        autoprefixer: {},
+    }
+}
+```
+
+File: readme.md
+```md
+
+```
+
+File: tailwind.config.js
+```js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./*.html",
+    "./*.js"
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+File: index.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNG Fleet Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <!-- Main Layout Container -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- Side Panel -->
+        <div id="sidePanel" class="w-80 bg-white shadow-lg h-full overflow-y-auto">
+            <!-- Side Panel Header -->
+            <div class="p-4 bg-blue-800 text-white">
+                <h1 class="text-xl font-bold">CNG Fleet Calculator</h1>
+            </div>
+
+            <!-- Collapsible Sections -->
+            <div class="p-4 space-y-4">
+                <!-- Vehicle Parameters Section -->
+                <div class="collapsible-section mb-4">
+                    <button type="button" 
+                            class="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            data-section="vehicleParams"
+                            aria-expanded="false">
+                        <span class="font-medium">Vehicle Parameters</span>
+                        <svg id="vehicleParamsIcon" class="w-5 h-5 transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div id="vehicleParams" class="mt-2 hidden"></div>
+                </div>
+
+                <!-- Station Configuration Section -->
+                <div class="collapsible-section mb-4">
+                    <button type="button" 
+                            class="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            data-section="stationConfig"
+                            aria-expanded="false">
+                        <span class="font-medium">Station Configuration</span>
+                        <svg id="stationConfigIcon" class="w-5 h-5 transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div id="stationConfig" class="mt-2 hidden"></div>
+                </div>
+
+                <!-- Fuel Prices Section -->
+                <div class="collapsible-section mb-4">
+                    <button type="button" 
+                            class="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            data-section="fuelPrices"
+                            aria-expanded="false">
+                        <span class="font-medium">Fuel Prices</span>
+                        <svg id="fuelPricesIcon" class="w-5 h-5 transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div id="fuelPrices" class="mt-2 hidden"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="p-6">
+                <!-- Strategy Header -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 id="strategyTitle" class="text-2xl font-bold text-gray-900"></h1>
+                            <p id="strategyTagline" class="text-gray-600 mt-1"></p>
+                        </div>
+                        <div class="flex items-center">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <span class="mr-3 text-sm font-medium text-gray-700">Show Cashflow</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="cashflowToggle" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Configuration Section (Always Visible) -->
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Vehicle Configuration</h2>
+                    <div class="space-y-4">
+                        <!-- Light Duty Vehicles -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Light Duty Vehicles</label>
+                            <input type="number" 
+                                   id="lightDutyVehicles" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                   min="0"
+                                   value="0">
+                            <div class="validation-message text-sm mt-1"></div>
+                        </div>
+
+                        <!-- Medium Duty Vehicles -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Medium Duty Vehicles</label>
+                            <input type="number" 
+                                   id="mediumDutyVehicles" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                   min="0"
+                                   value="0">
+                            <div class="validation-message text-sm mt-1"></div>
+                        </div>
+
+                        <!-- Heavy Duty Vehicles -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Heavy Duty Vehicles</label>
+                            <input type="number" 
+                                   id="heavyDutyVehicles" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                   min="0"
+                                   value="0">
+                            <div class="validation-message text-sm mt-1"></div>
+                        </div>
+
+                        <!-- Time Horizon Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Time Horizon</label>
+                            <select id="timeHorizon" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="10">10 Years</option>
+                                <option value="15" selected>15 Years</option>
+                            </select>
+                        </div>
+
+                        <!-- Deployment Strategy -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Deployment Strategy</label>
+                            <select id="deploymentStrategy" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="immediate">Immediate Purchase</option>
+                                <option value="phased">Phased Deployment</option>
+                                <option value="aggressive">Aggressive Early Deployment</option>
+                                <option value="deferred">Deferred Deployment</option>
+                                <option value="manual">Manual Custom</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Configuration Summary -->
+                <div id="vehicleConfigSummary"></div>
+
+                <!-- Immediate Purchase Analysis Section -->
+                <div id="immediateAnalysis">
+                    <!-- Up-Front Costs Section -->
+                    <div class="bg-red-50 rounded-lg p-6 mb-6">
+                        <h3 class="text-lg font-medium text-gray-700 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Up-Front Costs
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white rounded-lg shadow p-4">
+                                <div class="text-sm font-medium text-gray-500 flex items-center">
+                                    Vehicle Investment
+                                    <div class="tooltip ml-1">ⓘ
+                                        <span class="tooltip-text">Total cost of purchasing all vehicles</span>
+                                    </div>
+                                </div>
+                                <div id="vehicleInvestment" class="text-2xl font-bold text-red-600">$0</div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow p-4">
+                                <div class="text-sm font-medium text-gray-500 flex items-center">
+                                    Station Investment
+                                    <div class="tooltip ml-1">ⓘ
+                                        <span class="tooltip-text">Cost of building CNG station capacity</span>
+                                    </div>
+                                </div>
+                                <div id="stationInvestment" class="text-2xl font-bold text-red-600">$0</div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow p-4 border-2 border-red-100">
+                                <div class="text-sm font-medium text-gray-500 flex items-center">
+                                    Total Investment
+                                    <div class="tooltip ml-1">ⓘ
+                                        <span class="tooltip-text">Combined vehicle and station investment</span>
+                                    </div>
+                                </div>
+                                <div id="totalInvestment" class="text-2xl font-bold text-red-600">$0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Annual Savings Section -->
+                    <div class="bg-green-50 rounded-lg p-6 mb-6">
+                        <h3 class="text-lg font-medium text-gray-700 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span data-cashflow-text="Annual Cash Flow" data-alternate-text="Annual Benefits">Annual Cash Flow</span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white rounded-lg shadow p-4">
+                                <div class="text-sm font-medium text-gray-500 flex items-center">
+                                    <span data-cashflow-text="Fuel Savings" data-alternate-text="Fuel Benefits">Fuel Savings</span>
+                                    <div class="tooltip ml-1">ⓘ
+                                        <span class="tooltip-text">Yearly savings on fuel costs</span>
+                                    </div>
+                                </div>
+                                <div id="annualFuelSavings" class="text-2xl font-bold text-green-600">$0</div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow p-4">
+                                <div class="text-sm font-medium text-gray-500 flex items-center">
+                                    <span data-cashflow-text="Maintenance Savings" data-alternate-text="Maintenance Benefits">Maintenance Savings</span>
+                                    <div class="tooltip ml-1">ⓘ
+                                        <span class="tooltip-text">Yearly savings on maintenance</span>
+                                    </div>
+                                </div>
+                                <div id="annualMaintenanceSavings" class="text-2xl font-bold text-green-600">$0</div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow p-4 border-2 border-green-100">
+                                <div class="text-sm font-medium text-gray-500 flex items-center">
+                                    <span data-cashflow-text="Total Annual Cash Flow" data-alternate-text="Total Annual Benefits">Total Annual Cash Flow</span>
+                                    <div class="tooltip ml-1">ⓘ
+                                        <span class="tooltip-text">Combined yearly savings</span>
+                                    </div>
+                                </div>
+                                <div id="annualTotalSavings" class="text-2xl font-bold text-green-600">$0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payback Period & Net Total -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-lg font-medium text-gray-700 mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Payback Period
+                            </h3>
+                            <div class="relative h-48">
+                                <canvas id="paybackGauge"></canvas>
+                            </div>
+                        </div>
+
+                        <div id="cashFlowContainer" class="bg-white rounded-lg shadow p-6">
+                            <h3 id="cashFlowChartTitle" class="text-lg font-medium text-gray-700 mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                                </svg>
+                                Cumulative Cash Flow
+                            </h3>
+                            <div class="relative h-48">
+                                <canvas id="cashFlowChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result Highlights -->
+                    <div class="bg-blue-50 rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium text-gray-700 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Result Highlights
+                        </h3>
+                        <div class="space-y-3">
+                            <p id="highlight-investment" class="text-gray-600" data-cashflow-text="Your total up-front cost is {amount}; your yearly cash flow is {savings}." data-alternate-text="Your total up-front cost is {amount}; your yearly benefit is {savings}."></p>
+                            <p id="highlight-payback" class="text-gray-600" data-cashflow-text="At this rate, you'll reach break-even in about {years} years." data-alternate-text="At this rate, you'll see positive returns in about {years} years."></p>
+                            <p id="highlight-outcome" class="text-gray-600" data-cashflow-text="After {years} years, the net cash flow is {amount} (ROI: {roi}%). This indicates that with the current assumptions, the project breaks even and generates positive returns within {years} years." data-alternate-text="After {years} years, the net benefit is {amount} (ROI: {roi}%). This indicates that with the current assumptions, the project becomes beneficial and generates positive returns within {years} years."></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline-based Analysis Section -->
+                <div id="timelineSection" class="hidden">
+                    <!-- Overview Panel -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Overview</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <div class="text-sm font-medium text-gray-500">Total Investment</div>
+                                <div id="timeline-total-investment" class="text-2xl font-bold text-gray-900">$0</div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-500">
+                                    <span data-cashflow-text="Cumulative Savings" data-alternate-text="Total Benefits">Cumulative Savings</span>
+                                </div>
+                                <div id="timeline-cumulative-savings" class="text-2xl font-bold text-green-600">$0</div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-500">Payback Period</div>
+                                <div id="timeline-payback-period" class="text-2xl font-bold">0 years, 0 months</div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-500">Net ROI</div>
+                                <div id="timeline-net-roi" class="text-2xl font-bold text-blue-600">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vehicle Distribution Status -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Vehicle Distribution Status</h3>
+                        <div class="grid grid-cols-3 gap-6">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Light Duty</h4>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-600">Allocated: <span id="lightDutyAllocated" class="font-medium">0</span></p>
+                                    <p class="text-sm text-gray-600">Remaining: <span id="lightDutyRemaining" class="font-medium">0</span></p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Medium Duty</h4>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-600">Allocated: <span id="mediumDutyAllocated" class="font-medium">0</span></p>
+                                    <p class="text-sm text-gray-600">Remaining: <span id="mediumDutyRemaining" class="font-medium">0</span></p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Heavy Duty</h4>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-600">Allocated: <span id="heavyDutyAllocated" class="font-medium">0</span></p>
+                                    <p class="text-sm text-gray-600">Remaining: <span id="heavyDutyRemaining" class="font-medium">0</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <p id="distributionStatus" class="mt-4 text-sm text-gray-600"></p>
+                    </div>
+
+                    <!-- Year-by-Year Timeline -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Yearly Deployment Timeline</h3>
+                            <div class="flex space-x-2">
+                                <button onclick="applyCurrentStrategy()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Apply Strategy</button>
+                                <button onclick="clearAllocation()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Clear All</button>
+                            </div>
+                        </div>
+                        <div id="yearTimelineContainer" class="overflow-x-auto flex space-x-4 pb-4"></div>
+                    </div>
+
+                    <!-- Impact Metrics -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Environmental & Operational Impact</h3>
+                        <div class="grid grid-cols-3 gap-6">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500 flex items-center">
+                                    CO₂ Emission Reduction
+                                    <div class="tooltip ml-1">ⓘ
+                                        <span class="tooltip-text">
+                                            Annual reduction based on EPA emission factors:<br>
+                                            - Gasoline: 8.887 kg CO₂/gal<br>
+                                            - Medium Diesel: 10.180 kg CO₂/gal<br>
+                                            - Heavy Diesel: 10.210 kg CO₂/gal<br>
+                                            - CNG: 5.511 kg CO₂/GGE<br>
+                                            Accounts for efficiency losses:<br>
+                                            - Light Duty: 5%<br>
+                                            - Medium Duty: 7.5%<br>
+                                            - Heavy Duty: 10%
+                                        </span>
+                                    </div>
+                                </h4>
+                                <p id="co2-reduction" class="mt-2 text-xl font-bold text-green-600">0 tons</p>
+                                <p id="co2-equivalent" class="mt-1 text-sm text-gray-600">Equivalent to removing 0 passenger cars per year</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500 flex items-center">
+                                    Cost Per Mile Savings
+                                    <div class="tooltip ml-1">ⓘ
+                                        <span class="tooltip-text">
+                                            Calculated as: (Conventional fuel cost/mile - CNG cost/mile)<br>
+                                            Includes:<br>
+                                            - Fuel efficiency differences<br>
+                                            - CNG efficiency losses<br>
+                                            - Current fuel prices<br>
+                                            - Business rate adjustments
+                                        </span>
+                                    </div>
+                                </h4>
+                                <p id="cost-per-mile" class="mt-2 text-xl font-bold text-blue-600">$0.00/mile</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500 flex items-center">
+                                    Fleet Efficiency Improvement
+                                    <div class="tooltip ml-1">ⓘ
+                                        <span class="tooltip-text">
+                                            Average efficiency improvement across fleet<br>
+                                            Based on CNG conversion factors:<br>
+                                            - Light Duty: 95% of original MPG<br>
+                                            - Medium Duty: 92.5% of original MPG<br>
+                                            - Heavy Duty: 90% of original MPG
+                                        </span>
+                                    </div>
+                                </h4>
+                                <p id="fleet-efficiency" class="mt-2 text-xl font-bold text-purple-600">0%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-Year Analysis Summary -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <!-- 10-Year Analysis -->
+                    <div id="tenYearAnalysis" class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">10-Year Analysis</h3>
+                        <div class="grid grid-cols-1 gap-6">
+                            <!-- Original Metrics -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">Investment</div>
+                                    <div id="tenYearInvestmentSummary" class="text-2xl font-bold text-gray-900">$0</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">
+                                        <span data-cashflow-text="Cumulative Cash Flow" data-alternate-text="Total Benefits">Cumulative Cash Flow</span>
+                                    </div>
+                                    <div id="tenYearSavingsSummary" class="text-2xl font-bold text-green-600">$0</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">ROI</div>
+                                    <div id="tenYearROISummary" class="text-2xl font-bold text-blue-600">0%</div>
+                                </div>
+                            </div>
+
+                            <!-- Investment & Returns Section -->
+                            <div class="border-t pt-4">
+                                <h4 class="text-md font-medium text-gray-700 mb-3">Investment & Returns</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">
+                                            <span data-cashflow-text="Avg. Annual Cash Flow" data-alternate-text="Avg. Annual Benefit">Avg. Annual Cash Flow</span>
+                                        </div>
+                                        <div id="tenYearAvgCostReduction" class="text-xl font-bold text-green-600">$0</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">
+                                            <span data-cashflow-text="Total Operating Cash Flow" data-alternate-text="Total Operating Benefit">Total Operating Cash Flow</span>
+                                        </div>
+                                        <div id="tenYearOpCostDiff" class="text-xl font-bold text-green-600">$0</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Cost Per Mile Reduction</div>
+                                        <div class="space-y-1">
+                                            <div class="text-sm">
+                                                Light Duty: <span id="tenYearLightCPM" class="font-medium text-green-600">$0.00/mi</span>
+                                            </div>
+                                            <div class="text-sm">
+                                                Medium Duty: <span id="tenYearMediumCPM" class="font-medium text-green-600">$0.00/mi</span>
+                                            </div>
+                                            <div class="text-sm">
+                                                Heavy Duty: <span id="tenYearHeavyCPM" class="font-medium text-green-600">$0.00/mi</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 15-Year Analysis -->
+                    <div id="fifteenYearAnalysis" class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">15-Year Analysis</h3>
+                        <div class="grid grid-cols-1 gap-6">
+                            <!-- Original Metrics -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">Investment</div>
+                                    <div id="fifteenYearInvestmentSummary" class="text-2xl font-bold text-gray-900">$0</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">
+                                        <span data-cashflow-text="Cumulative Cash Flow" data-alternate-text="Total Benefits">Cumulative Cash Flow</span>
+                                    </div>
+                                    <div id="fifteenYearSavingsSummary" class="text-2xl font-bold text-green-600">$0</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-500">ROI</div>
+                                    <div id="fifteenYearROISummary" class="text-2xl font-bold text-blue-600">0%</div>
+                                </div>
+                            </div>
+
+                            <!-- Investment & Returns Section -->
+                            <div class="border-t pt-4">
+                                <h4 class="text-md font-medium text-gray-700 mb-3">Investment & Returns</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">
+                                            <span data-cashflow-text="Avg. Annual Cash Flow" data-alternate-text="Avg. Annual Benefit">Avg. Annual Cash Flow</span>
+                                        </div>
+                                        <div id="fifteenYearAvgCostReduction" class="text-xl font-bold text-green-600">$0</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">
+                                            <span data-cashflow-text="Total Operating Cash Flow" data-alternate-text="Total Operating Benefit">Total Operating Cash Flow</span>
+                                        </div>
+                                        <div id="fifteenYearOpCostDiff" class="text-xl font-bold text-green-600">$0</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Cost Per Mile Reduction</div>
+                                        <div class="space-y-1">
+                                            <div class="text-sm">
+                                                Light Duty: <span id="fifteenYearLightCPM" class="font-medium text-green-600">$0.00/mi</span>
+                                            </div>
+                                            <div class="text-sm">
+                                                Medium Duty: <span id="fifteenYearMediumCPM" class="font-medium text-green-600">$0.00/mi</span>
+                                            </div>
+                                            <div class="text-sm">
+                                                Heavy Duty: <span id="fifteenYearHeavyCPM" class="font-medium text-green-600">$0.00/mi</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Analysis Charts -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <!-- Cumulative Cash Flow Chart -->
+                    <div id="timelineCashFlowContainer" class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 id="timelineCashFlowChartTitle" class="text-lg font-medium text-gray-900 mb-4">Cumulative Cash Flow</h3>
+                        <div class="h-80">
+                            <canvas id="timelineCashFlowChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Cost vs Savings Chart -->
+                    <div id="costSavingsContainer" class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 id="costSavingsChartTitle" class="text-lg font-medium text-gray-900 mb-4">Annual Cost vs Savings</h3>
+                        <div class="h-80">
+                            <canvas id="costSavingsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy-Specific Recommendations -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Strategy Insights</h3>
+                    <div id="strategyInsights" class="prose max-w-none">
+                        <!-- Strategy-specific insights will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Disclaimer -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-600 italic">
+                        Disclaimer: Results shown are based on utilization of the Company's CNG station investment tariffs and are intended to provide directional guidance and are subject to additional analysis by customer.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+```
+
+File: styles.css
+```css
+/* Custom styles */
+
+/* Form Controls */
+input[type="number"],
+select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: white;
+}
+
+input[type="number"]:focus,
+select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    ring: 2px;
+    ring-color: #3b82f6;
+}
+
+/* Side Panel */
+#sidePanel {
+    width: 20rem;
+    background-color: white;
+    box-shadow: 4px 0 6px -1px rgba(0, 0, 0, 0.1);
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid #e5e7eb;
+    transition: width 0.3s ease;
+}
+
+/* Collapsible Sections */
+.collapsible-section button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.collapsible-section button:hover {
+    background-color: #f3f4f6;
+}
+
+.collapsible-section svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: transform 0.2s ease;
+}
+
+.collapsible-section.active svg {
+    transform: rotate(180deg);
+}
+
+/* Cards */
+.card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Metrics */
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+
+.metric-value.success {
+    color: #059669;
+}
+
+.metric-value.warning {
+    color: #d97706;
+}
+
+.metric-value.danger {
+    color: #dc2626;
+}
+
+/* Tooltips */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    position: absolute;
+    z-index: 50;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1e293b;
+    color: white;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Validation */
+.validation-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+}
+
+.validation-message.visible {
+    display: block;
+}
+
+/* Charts */
+#paybackGauge,
+#cashFlowChart {
+    width: 100%;
+    height: 100%;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Layout */
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+/* Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+/* Text Colors */
+.text-success {
+    color: #059669;
+}
+
+.text-warning {
+    color: #d97706;
+}
+
+.text-danger {
+    color: #dc2626;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #sidePanel {
+        width: 100%;
+        position: fixed;
+        z-index: 40;
+    }
+}
+
+/* Timeline Styles */
+.year-block {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    min-width: 200px;
+    transition: all 0.2s ease;
+}
+
+.year-block:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.year-block-header {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.year-block-content {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.vehicle-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.vehicle-input input {
+    width: 4rem;
+}
+
+.vehicle-type-light {
+    border-left: 4px solid #3b82f6;
+}
+
+.vehicle-type-medium {
+    border-left: 4px solid #10b981;
+}
+
+.vehicle-type-heavy {
+    border-left: 4px solid #ef4444;
+}
+
+/* Timeline Scroll Container */
+.timeline-scroll {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    margin-bottom: -1rem;
+    scrollbar-width: thin;
+    scrollbar-color: #3b82f6 #e5e7eb;
+}
+
+.timeline-scroll::-webkit-scrollbar {
+    height: 0.5rem;
+}
+
+.timeline-scroll::-webkit-scrollbar-track {
+    background-color: #e5e7eb;
+    border-radius: 9999px;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb {
+    background-color: #3b82f6;
+    border-radius: 9999px;
+}
+
+/* Distribution Status */
+.status-card {
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.status-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.status-value.allocated {
+    color: #3b82f6;
+}
+
+.status-value.remaining {
+    color: #10b981;
+}
+
+/* Distribution Actions */
+.action-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.action-button.primary {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.action-button.primary:hover {
+    background-color: #2563eb;
+}
+
+.action-button.danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.action-button.danger:hover {
+    background-color: #dc2626;
+}
+
+/* Warning Messages */
+.warning-message {
+    background-color: #fef3c7;
+    border: 1px solid #fcd34d;
+    color: #92400e;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+}
+```
+
+File: script.js
+```js
+// Constants that won't be user-adjustable
+const CONSTANTS = {
+    CNG_LOSS: {
+        LIGHT_DUTY: 0.05,
+        MEDIUM_DUTY: 0.075,
+        HEAVY_DUTY: 0.10
+    },
+    MAINTENANCE_COST: {
+        GAS_CNG: 0.47,
+        DIESEL: 0.52
+    },
+    BUSINESS_RATES: {
+        AGLC: 0.18,  // 18.0% per year
+        CGC: 0.192   // 19.2% per year
+    },
+    ELECTRICITY_COST_PER_GGE: 0.08, // Fixed electricity cost per GGE
+    FAST_FILL_STATIONS: [
+        { size: 1, capacity: 100, cost: 1828172 },
+        { size: 2, capacity: 72001, cost: 2150219 },
+        { size: 3, capacity: 192001, cost: 2694453 },
+        { size: 4, capacity: 384001, cost: 2869245 },
+        { size: 5, capacity: 576001, cost: 3080351 }
+    ],
+    TIME_FILL_STATIONS: [
+        { size: 6, capacity: 100, cost: 491333 },
+        { size: 1, capacity: 12961, cost: 1831219 },
+        { size: 2, capacity: 108001, cost: 2218147 },
+        { size: 3, capacity: 288001, cost: 2907603 },
+        { size: 4, capacity: 576001, cost: 3200857 },
+        { size: 5, capacity: 864001, cost: 3506651 }
+    ],
+    EPA_EMISSIONS: {
+        GASOLINE: 8.887,    // kg CO₂/gallon for light duty
+        DIESEL_MEDIUM: 10.180, // kg CO₂/gallon for medium duty
+        DIESEL_HEAVY: 10.210,  // kg CO₂/gallon for heavy duty
+        CNG: 5.511          // kg CO₂/GGE
+    }
+};
+
+// Default parameters for each vehicle type
+const DEFAULT_PARAMS = {
+    LIGHT_DUTY: {
+        cost: 15000,
+        annualMiles: 15000,
+        lifeSpan: 10,
+        mpg: 12
+    },
+    MEDIUM_DUTY: {
+        cost: 15000,
+        annualMiles: 20000,
+        lifeSpan: 10,
+        mpg: 10
+    },
+    HEAVY_DUTY: {
+        cost: 50000,
+        annualMiles: 40000,
+        lifeSpan: 15,
+        mpg: 5
+    }
+};
+
+// Application State
+const AppState = {
+    analysisMode: 'timeline',
+    timeHorizon: 15,
+    deploymentStrategy: 'manual',
+    matrixState: {
+        lightDuty: Array(15).fill(0),
+        mediumDuty: Array(15).fill(0),
+        heavyDuty: Array(15).fill(0),
+        totals: {
+            lightDuty: 0,
+            mediumDuty: 0,
+            heavyDuty: 0
+        },
+        cumulativeFleet: {
+            lightDuty: Array(15).fill(0),
+            mediumDuty: Array(15).fill(0),
+            heavyDuty: Array(15).fill(0)
+        }
+    },
+    timeBasedMetrics: {
+        tenYear: {
+            investment: 0,
+            savings: 0,
+            breakEven: null,
+            roi: 0
+        },
+        fifteenYear: {
+            investment: 0,
+            savings: 0,
+            breakEven: null,
+            roi: 0
+        }
+    },
+    history: {
+        past: [],
+        future: []
+    },
+    chart: null,
+    paybackGauge: null,
+    timelineChart: null,
+    tenYearGauge: null,
+    fifteenYearGauge: null
+};
+
+// Chart initialization and update functions
+function initializeCashFlowChart() {
+    const ctx = document.getElementById('cashFlowChart');
+    if (!ctx) return;
+
+    if (AppState.chart) {
+        AppState.chart.destroy();
+    }
+
+    const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+
+    AppState.chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: timeHorizon + 1}, (_, i) => `Year ${i}`),
+            datasets: [{
+                label: 'Cumulative Net Cash Flow',
+                data: Array(timeHorizon + 1).fill(0),
+                borderColor: 'rgb(59, 130, 246)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: value => formatCurrency(value)
+                    }
+                }
+            },
+            plugins: {
+                annotation: {
+                    annotations: {
+                        breakEvenLine: {
+                            type: 'line',
+                            yMin: 0,
+                            yMax: 0,
+                            borderColor: 'rgba(0, 0, 0, 0.2)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            label: {
+                                content: 'Break Even',
+                                enabled: true,
+                                position: 'start'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateCashFlowChart(totalInvestment, annualSavings) {
+    if (!AppState.chart) {
+        initializeCashFlowChart();
+    }
+
+    const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+    const data = [];
+    let cumulativeValue = -totalInvestment;
+    
+    // Year 0 is just the negative investment
+    data.push(cumulativeValue);
+    
+    // Calculate cumulative values for years 1 to timeHorizon
+    for (let year = 1; year <= timeHorizon; year++) {
+        cumulativeValue += annualSavings;
+        data.push(cumulativeValue);
+    }
+
+    // Update chart data and labels if horizon changed
+    AppState.chart.data.labels = Array.from({length: timeHorizon + 1}, (_, i) => `Year ${i}`);
+    AppState.chart.data.datasets[0].data = data;
+    AppState.chart.update();
+}
+
+// Payback Gauge Functions
+function initializePaybackGauge() {
+    const canvas = document.getElementById('paybackGauge');
+    if (!canvas) return;
+
+    // Set canvas size to match display size
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    // Store canvas and context in AppState
+    AppState.paybackGauge = {
+        canvas: canvas,
+        ctx: canvas.getContext('2d')
+    };
+}
+
+function updatePaybackGauge(paybackPeriod) {
+    if (!AppState.paybackGauge) {
+        initializePaybackGauge();
+        return;
+    }
+
+    const { canvas, ctx } = AppState.paybackGauge;
+    const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Calculate dimensions
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height * 0.6; // Move center down to accommodate text
+    const radius = Math.min(centerX, centerY) * 0.8;
+
+    // Draw gauge background
+    drawGaugeBackground(ctx, centerX, centerY, radius);
+    
+    // Draw color segments
+    drawColorSegments(ctx, centerX, centerY, radius);
+    
+    // Draw tick marks and labels
+    drawTicksAndLabels(ctx, centerX, centerY, radius, timeHorizon);
+    
+    // Draw pointer
+    drawPointer(ctx, centerX, centerY, radius, paybackPeriod, timeHorizon);
+    
+    // Draw payback value
+    drawPaybackValue(ctx, centerX, centerY, radius, paybackPeriod, timeHorizon);
+}
+
+function drawGaugeBackground(ctx, centerX, centerY, radius) {
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI, 2 * Math.PI, false);
+    ctx.lineWidth = radius * 0.2;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.stroke();
+}
+
+function drawColorSegments(ctx, centerX, centerY, radius) {
+    const segmentWidth = radius * 0.2;
+    const segments = [
+        { start: 0, end: 0.47, color: '#22c55e' },    // Green (0-7 years)
+        { start: 0.47, end: 0.8, color: '#eab308' },  // Yellow (7-12 years)
+        { start: 0.8, end: 1, color: '#ef4444' }      // Red (12+ years)
+    ];
+
+    segments.forEach(segment => {
+        ctx.beginPath();
+        ctx.arc(
+            centerX, centerY, radius,
+            Math.PI + segment.start * Math.PI,
+            Math.PI + segment.end * Math.PI,
+            false
+        );
+        ctx.lineWidth = segmentWidth;
+        ctx.strokeStyle = segment.color;
+        ctx.stroke();
+    });
+}
+
+function drawTicksAndLabels(ctx, centerX, centerY, radius, timeHorizon) {
+    const tickValues = [0, 3, 7, 12, timeHorizon];
+    
+    tickValues.forEach(value => {
+        const angle = Math.PI + (value / timeHorizon) * Math.PI;
+        const tickLength = radius * 0.15;
+        
+        // Draw tick
+        const innerRadius = radius - tickLength;
+        const outerRadius = radius + tickLength;
+        ctx.beginPath();
+        ctx.moveTo(
+            centerX + innerRadius * Math.cos(angle),
+            centerY + innerRadius * Math.sin(angle)
+        );
+        ctx.lineTo(
+            centerX + outerRadius * Math.cos(angle),
+            centerY + outerRadius * Math.sin(angle)
+        );
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#9ca3af';
+        ctx.stroke();
+
+        // Draw label
+        ctx.font = '12px Arial';
+        ctx.fillStyle = '#4b5563';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const labelRadius = radius + tickLength * 1.5;
+        ctx.fillText(
+            `${value}y`,
+            centerX + labelRadius * Math.cos(angle),
+            centerY + labelRadius * Math.sin(angle)
+        );
+    });
+}
+
+function drawPointer(ctx, centerX, centerY, radius, paybackPeriod, timeHorizon) {
+    if (paybackPeriod === Infinity) return;
+
+    const angle = Math.PI + Math.min(paybackPeriod / timeHorizon, 1) * Math.PI;
+    const pointerLength = radius * 1.1;
+    
+    // Draw pointer line
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(
+        centerX + pointerLength * Math.cos(angle),
+        centerY + pointerLength * Math.sin(angle)
+    );
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#1e293b';
+    ctx.stroke();
+
+    // Draw center circle
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = '#1e293b';
+    ctx.fill();
+}
+
+// Helper function to format payback period into years and months
+function formatPaybackPeriod(years) {
+    if (years === Infinity || years === null || isNaN(years)) {
+        return { text: 'N/A', tooltip: 'Project does not reach payback' };
+    }
+
+    const wholeYears = Math.floor(years);
+    const months = Math.round((years - wholeYears) * 12);
+    
+    // Handle case where rounding months results in 12
+    let adjustedYears = wholeYears;
+    let adjustedMonths = months;
+    if (months === 12) {
+        adjustedYears += 1;
+        adjustedMonths = 0;
+    }
+
+    const yearsText = adjustedYears === 1 ? 'year' : 'years';
+    const monthsText = adjustedMonths === 1 ? 'month' : 'months';
+    
+    let text = '';
+    if (adjustedYears === 0) {
+        text = `${adjustedMonths} ${monthsText}`;
+    } else if (adjustedMonths === 0) {
+        text = `${adjustedYears} ${yearsText}`;
+    } else {
+        text = `${adjustedYears} ${yearsText}, ${adjustedMonths} ${monthsText}`;
+    }
+
+    return {
+        text,
+        tooltip: `Exact payback period: ${years.toFixed(2)} years`
+    };
+}
+
+// Update the payback period display in immediate analysis
+function updatePaybackDisplay(paybackPeriod) {
+    const paybackElement = document.getElementById('paybackPeriod');
+    if (!paybackElement) return;
+
+    const formattedPayback = formatPaybackPeriod(paybackPeriod);
+    
+    // Create or update the payback period display with tooltip
+    paybackElement.innerHTML = `
+        <div class="tooltip">
+            <span>${formattedPayback.text}</span>
+            <span class="tooltip-text">${formattedPayback.tooltip}</span>
+        </div>
+    `;
+
+    // Set the appropriate color class
+    if (paybackPeriod === Infinity) {
+        paybackElement.className = 'text-2xl font-bold text-red-600';
+    } else {
+        paybackElement.className = `text-2xl font-bold ${
+            paybackPeriod <= 7 ? 'text-green-600' :
+            paybackPeriod <= 10 ? 'text-yellow-600' :
+            'text-red-600'
+        }`;
+    }
+}
+
+// Update the payback gauge drawing function
+function drawPaybackValue(ctx, centerX, centerY, radius, paybackPeriod, timeHorizon) {
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = '#1e293b';
+    ctx.textAlign = 'center';
+    
+    const formattedPayback = formatPaybackPeriod(paybackPeriod);
+    const lines = formattedPayback.text.split(', ');
+    
+    if (paybackPeriod > timeHorizon) {
+        lines.push('*Beyond analysis period');
+    }
+    
+    // Draw each line of text
+    lines.forEach((line, index) => {
+        const yOffset = -radius * 0.3 + (index * 20); // 20 pixels between lines
+        ctx.fillText(line, centerX, centerY + yOffset);
+    });
+    
+    // Add tooltip text in smaller font
+    ctx.font = '10px Arial';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText(formattedPayback.tooltip, centerX, centerY + radius * 0.8);
+}
+
+// Helper function to create SVG arcs
+function describeArc(x, y, radius, startAngle, endAngle) {
+    const start = polarToCartesian(x, y, radius, endAngle);
+    const end = polarToCartesian(x, y, radius, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return [
+        "M", start.x, start.y,
+        "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y
+    ].join(" ");
+}
+
+function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+    return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+    };
+}
+
+// Strategy descriptions for UI
+const STRATEGY_DESCRIPTIONS = {
+    immediate: 'Purchase all vehicles at once in the first year',
+    phased: 'Distribute vehicles evenly across the selected time horizon',
+    aggressive: 'Purchase more vehicles in earlier years',
+    deferred: 'Purchase more vehicles in later years',
+    manual: 'Manually specify vehicle purchases for each year'
+};
+
+// Utility Functions
+function formatCurrency(amount) {
+    if (isNaN(amount) || amount === 0) return '$0';
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+}
+
+function validateNumber(value, min = 0) {
+    const num = parseFloat(value);
+    return !isNaN(num) && num >= min ? num : 0;
+}
+
+function calculateCNGMPG(baseMPG, lossFactor) {
+    return baseMPG * (1 - lossFactor);
+}
+
+function calculateAnnualGGE(vehicleType, count) {
+    const typeKey = vehicleType
+        .replace(/([A-Z])/g, '_$1')
+        .toUpperCase()
+        .replace(/^_/, '');
+    
+    const params = getVehicleParameters(vehicleType);
+    const cngMPG = calculateCNGMPG(params.mpg, CONSTANTS.CNG_LOSS[typeKey]);
+    return (params.annualMiles * count) / cngMPG;
+}
+
+// Input Validation Functions
+function validateInputField(element, min = 0, max = Infinity) {
+    if (!element) return 0;
+    
+    const value = parseFloat(element.value);
+    const isValid = !isNaN(value) && value >= min && value <= max;
+    
+    element.classList.toggle('border-red-500', !isValid);
+    element.classList.toggle('border-gray-300', isValid);
+    
+    const validationMessage = element.parentElement.querySelector('.validation-message');
+    if (validationMessage) {
+        validationMessage.textContent = isValid ? '' : `Please enter a value between ${min} and ${max}`;
+        validationMessage.classList.toggle('hidden', isValid);
+    }
+    
+    return isValid ? value : 0;
+}
+
+// UI State Management
+function toggleAnalysisMode(mode) {
+    const visualTimelineSection = document.getElementById('visualTimelineSection');
+    const immediateAnalysis = document.getElementById('immediateAnalysis');
+    const timeBasedAnalysis = document.getElementById('timeBasedAnalysis');
+    
+    AppState.analysisMode = mode;
+    
+    if (mode === 'immediate') {
+        visualTimelineSection.classList.add('hidden');
+        immediateAnalysis.classList.remove('hidden');
+        timeBasedAnalysis.classList.add('hidden');
+        
+        // Set all vehicles to year 1 in matrix state
+        const vehicles = {
+            lightDuty: parseInt(document.getElementById('lightDutyVehicles').value) || 0,
+            mediumDuty: parseInt(document.getElementById('mediumDutyVehicles').value) || 0,
+            heavyDuty: parseInt(document.getElementById('heavyDutyVehicles').value) || 0
+        };
+        
+        Object.keys(vehicles).forEach(type => {
+            AppState.matrixState[type] = Array(15).fill(0);
+            AppState.matrixState[type][0] = vehicles[type];
+            AppState.matrixState.totals[type] = vehicles[type];
+        });
+    } else {
+        visualTimelineSection.classList.remove('hidden');
+        immediateAnalysis.classList.add('hidden');
+        timeBasedAnalysis.classList.remove('hidden');
+        initializeTimeline();
+        updateRemainingVehicles();
+    }
+}
+
+function updateParameterFieldStates(vehicleType, hasVehicles) {
+    const parameterFields = ['Cost', 'Miles', 'Life', 'MPG'];
+    const messageClass = 'parameter-disabled-message';
+    
+    parameterFields.forEach(param => {
+        const field = document.getElementById(`${vehicleType}${param}`);
+        if (field) {
+            // Remove the disabled state if there are vehicles
+            field.disabled = !hasVehicles;
+            field.classList.toggle('parameter-disabled', !hasVehicles);
+            
+            let message = field.parentElement.querySelector(`.${messageClass}`);
+            if (!hasVehicles) {
+                if (!message) {
+                    message = document.createElement('div');
+                    message.className = `${messageClass} text-sm text-gray-500 mt-1`;
+                    field.parentElement.appendChild(message);
+                }
+                message.textContent = 'Add vehicles of this type to enable parameter adjustment';
+            } else if (message) {
+                message.remove();
+            }
+        }
+    });
+}
+
+// Vehicle Parameter and Calculation Functions
+function getVehicleParameters(type) {
+    if (!type) {
+        console.error('getVehicleParameters called with null/undefined type');
+        return DEFAULT_PARAMS.LIGHT_DUTY;
+    }
+
+    const typeKey = type
+        .replace(/Duty$/, '_DUTY')
+        .replace(/^(light|medium|heavy)/i, match => match.toUpperCase());
+    
+    if (!DEFAULT_PARAMS[typeKey]) {
+        console.error('Invalid vehicle type:', typeKey);
+        return DEFAULT_PARAMS.LIGHT_DUTY;
+    }
+    
+    const prefix = type;
+    const defaultParams = DEFAULT_PARAMS[typeKey];
+    
+    const costElement = document.getElementById(`${prefix}Cost`);
+    const milesElement = document.getElementById(`${prefix}Miles`);
+    const lifeElement = document.getElementById(`${prefix}Life`);
+    const mpgElement = document.getElementById(`${prefix}MPG`);
+    
+    return {
+        cost: costElement ? validateInputField(costElement, 0) || defaultParams.cost : defaultParams.cost,
+        annualMiles: milesElement ? validateInputField(milesElement, 0) || defaultParams.annualMiles : defaultParams.annualMiles,
+        lifeSpan: lifeElement ? validateInputField(lifeElement, 1, 20) || defaultParams.lifeSpan : defaultParams.lifeSpan,
+        mpg: mpgElement ? validateInputField(mpgElement, 0.1) || defaultParams.mpg : defaultParams.mpg
+    };
+}
+
+// Timeline Management Functions
+function initializeTimeline() {
+    const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+    const container = document.getElementById('yearTimelineContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+    
+    // Create year blocks
+    for (let year = 0; year < timeHorizon; year++) {
+        const yearBlock = document.createElement('div');
+        yearBlock.className = 'bg-white rounded-lg shadow p-4 min-w-[200px]';
+        yearBlock.innerHTML = `
+            <div class="text-lg font-medium text-gray-700 mb-3">Year ${year + 1}</div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Light Duty</label>
+                <input type="number" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       min="0"
+                           value="0"
+                           data-year="${year}"
+                           data-type="light"
+                           onchange="updateYearAllocation(this)">
+            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Medium Duty</label>
+                <input type="number"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       min="0"
+                           value="0"
+                           data-year="${year}"
+                           data-type="medium"
+                           onchange="updateYearAllocation(this)">
+            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Heavy Duty</label>
+                <input type="number"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       min="0"
+                           value="0"
+                           data-year="${year}"
+                           data-type="heavy"
+                           onchange="updateYearAllocation(this)">
+            </div>
+        </div>
+    `;
+        container.appendChild(yearBlock);
+    }
+
+    updateDistributionStatus();
+}
+
+function updateYearAllocation(input) {
+    const value = parseInt(input.value) || 0;
+    const year = parseInt(input.dataset.year);
+    const type = input.dataset.type;
+
+    // Ensure non-negative values
+    if (value < 0) {
+        input.value = 0;
+        return;
+    }
+
+    // Get total vehicles for this type
+    const totalVehicles = parseInt(document.getElementById(`${type}DutyVehicles`).value) || 0;
+    
+    // Calculate current total allocation for this type
+    const allInputsForType = document.querySelectorAll(`[data-type="${type}"]`);
+    let totalAllocated = 0;
+    allInputsForType.forEach(inp => {
+        if (inp !== input) {
+            totalAllocated += parseInt(inp.value) || 0;
+        }
+    });
+    totalAllocated += value;
+
+    // Check if allocation exceeds total vehicles
+    if (totalAllocated > totalVehicles) {
+        input.value = Math.max(0, totalVehicles - (totalAllocated - value));
+        input.classList.add('border-red-500');
+        setTimeout(() => input.classList.remove('border-red-500'), 2000);
+    }
+
+    // Update matrix state
+    const typeKey = `${type}Duty`;
+    AppState.matrixState[typeKey][year] = parseInt(input.value) || 0;
+    AppState.matrixState.totals[typeKey] = totalAllocated;
+
+    // Update cumulative fleet
+    updateCumulativeFleet();
+    
+    // Update UI
+    updateDistributionStatus();
+    updateTimelineAnalysis();
+}
+
+function updateCumulativeFleet() {
+    const vehicleTypes = ['lightDuty', 'mediumDuty', 'heavyDuty'];
+    const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+
+    vehicleTypes.forEach(type => {
+        let cumulative = 0;
+        for (let year = 0; year < timeHorizon; year++) {
+            cumulative += AppState.matrixState[type][year];
+            AppState.matrixState.cumulativeFleet[type][year] = cumulative;
+        }
+    });
+}
+
+function updateDistributionStatus() {
+    const lightTotal = parseInt(document.getElementById('lightDutyVehicles').value) || 0;
+    const mediumTotal = parseInt(document.getElementById('mediumDutyVehicles').value) || 0;
+    const heavyTotal = parseInt(document.getElementById('heavyDutyVehicles').value) || 0;
+
+    let lightAllocated = 0;
+    let mediumAllocated = 0;
+    let heavyAllocated = 0;
+
+    // Sum up allocated vehicles
+    document.querySelectorAll('[data-type]').forEach(input => {
+        const value = parseInt(input.value) || 0;
+        switch (input.dataset.type) {
+            case 'light':
+                lightAllocated += value;
+                break;
+            case 'medium':
+                mediumAllocated += value;
+                break;
+            case 'heavy':
+                heavyAllocated += value;
+                break;
+        }
+    });
+
+    // Update status displays
+    document.getElementById('lightDutyAllocated').textContent = lightAllocated;
+    document.getElementById('mediumDutyAllocated').textContent = mediumAllocated;
+    document.getElementById('heavyDutyAllocated').textContent = heavyAllocated;
+
+    document.getElementById('lightDutyRemaining').textContent = lightTotal - lightAllocated;
+    document.getElementById('mediumDutyRemaining').textContent = mediumTotal - mediumAllocated;
+    document.getElementById('heavyDutyRemaining').textContent = heavyTotal - heavyAllocated;
+
+    // Update distribution status message
+    const statusElement = document.getElementById('distributionStatus');
+    if (statusElement) {
+        if (lightAllocated > lightTotal || mediumAllocated > mediumTotal || heavyAllocated > heavyTotal) {
+            statusElement.className = 'mt-4 text-sm text-red-600';
+            statusElement.textContent = 'Warning: Some vehicle types are over-allocated.';
+        } else if (lightAllocated < lightTotal || mediumAllocated < mediumTotal || heavyAllocated < heavyTotal) {
+            statusElement.className = 'mt-4 text-sm text-yellow-600';
+            statusElement.textContent = 'Note: Some vehicles are still unallocated.';
+        } else {
+            statusElement.className = 'mt-4 text-sm text-green-600';
+            statusElement.textContent = 'All vehicles have been allocated.';
+        }
+    }
+}
+
+function applyCurrentStrategy() {
+    const strategy = document.getElementById('deploymentStrategy').value;
+    const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+    
+    const lightTotal = parseInt(document.getElementById('lightDutyVehicles').value) || 0;
+    const mediumTotal = parseInt(document.getElementById('mediumDutyVehicles').value) || 0;
+    const heavyTotal = parseInt(document.getElementById('heavyDutyVehicles').value) || 0;
+
+    clearAllocation();
+        
+        switch (strategy) {
+            case 'phased':
+            applyPhasedStrategy(lightTotal, mediumTotal, heavyTotal, timeHorizon);
+                break;
+            case 'aggressive':
+            applyAggressiveStrategy(lightTotal, mediumTotal, heavyTotal);
+                break;
+            case 'deferred':
+            applyDeferredStrategy(lightTotal, mediumTotal, heavyTotal, timeHorizon);
+                break;
+        // 'manual' strategy doesn't need automatic allocation
+    }
+
+    updateDistributionStatus();
+    updateTimelineAnalysis();
+}
+
+function clearAllocation() {
+    document.querySelectorAll('[data-type]').forEach(input => {
+        input.value = 0;
+    });
+    updateDistributionStatus();
+    updateTimelineAnalysis();
+}
+
+function applyPhasedStrategy(light, medium, heavy, years) {
+    const yearInputs = Array.from(document.querySelectorAll('[data-year]'))
+        .reduce((acc, input) => {
+            const year = parseInt(input.dataset.year);
+            if (!acc[year]) acc[year] = {};
+            acc[year][input.dataset.type] = input;
+            return acc;
+        }, {});
+
+    // Calculate base allocation and remainders
+    const allocations = {
+        light: {
+            base: Math.floor(light / years),
+            remainder: light % years
+        },
+        medium: {
+            base: Math.floor(medium / years),
+            remainder: medium % years
+        },
+        heavy: {
+            base: Math.floor(heavy / years),
+            remainder: heavy % years
+        }
+    };
+
+    // First, distribute base allocations
+    Object.keys(yearInputs).forEach(year => {
+        if (yearInputs[year]) {
+            yearInputs[year].light.value = allocations.light.base;
+            yearInputs[year].medium.value = allocations.medium.base;
+            yearInputs[year].heavy.value = allocations.heavy.base;
+        }
+    });
+
+    // Then distribute remainders one by one across years from the start
+    ['light', 'medium', 'heavy'].forEach(type => {
+        let remainingCount = allocations[type].remainder;
+        let yearIndex = 0;
+        
+        while (remainingCount > 0 && yearIndex < years) {
+            if (yearInputs[yearIndex]) {
+                const currentValue = parseInt(yearInputs[yearIndex][type].value) || 0;
+                yearInputs[yearIndex][type].value = currentValue + 1;
+                remainingCount--;
+            }
+            yearIndex++;
+        }
+    });
+
+    // Trigger updates for each modified input
+    Object.values(yearInputs).forEach(yearInputs => {
+        Object.values(yearInputs).forEach(input => {
+            const value = parseInt(input.value) || 0;
+            if (value > 0) {
+                updateYearAllocation(input);
+            }
+        });
+    });
+}
+
+function applyAggressiveStrategy(light, medium, heavy) {
+    const yearInputs = Array.from(document.querySelectorAll('[data-year]'))
+        .reduce((acc, input) => {
+            const year = parseInt(input.dataset.year);
+            if (!acc[year]) acc[year] = {};
+            acc[year][input.dataset.type] = input;
+            return acc;
+        }, {});
+
+    // Distribute vehicles with a front-loaded pattern
+    // Year 1: 60% of vehicles
+    // Year 2: 20% of vehicles
+    // Year 3: 10% of vehicles
+    // Remaining years: Distribute remaining 10% evenly
+    const distribution = {
+        0: 0.60,  // First year (60%)
+        1: 0.20,  // Second year (20%)
+        2: 0.10,  // Third year (10%)
+    };
+
+    const years = Object.keys(yearInputs).length;
+    const remainingYearPercentage = 0.10 / (years - 3); // Distribute remaining 10% across remaining years
+
+    Object.keys(yearInputs).forEach(year => {
+        const yearIndex = parseInt(year);
+        const percentage = distribution[yearIndex] || remainingYearPercentage;
+
+        if (yearInputs[year]) {
+            // Calculate vehicles for each type, rounding to nearest whole number
+            yearInputs[year].light.value = Math.round(light * percentage);
+            yearInputs[year].medium.value = Math.round(medium * percentage);
+            yearInputs[year].heavy.value = Math.round(heavy * percentage);
+        }
+    });
+
+    // Handle any remaining vehicles due to rounding (add to first year)
+    if (yearInputs[0]) {
+        const totalLight = Object.values(yearInputs).reduce((sum, year) => sum + (parseInt(year.light.value) || 0), 0);
+        const totalMedium = Object.values(yearInputs).reduce((sum, year) => sum + (parseInt(year.medium.value) || 0), 0);
+        const totalHeavy = Object.values(yearInputs).reduce((sum, year) => sum + (parseInt(year.heavy.value) || 0), 0);
+
+        yearInputs[0].light.value = parseInt(yearInputs[0].light.value) + (light - totalLight);
+        yearInputs[0].medium.value = parseInt(yearInputs[0].medium.value) + (medium - totalMedium);
+        yearInputs[0].heavy.value = parseInt(yearInputs[0].heavy.value) + (heavy - totalHeavy);
+    }
+}
+
+function applyDeferredStrategy(light, medium, heavy, years) {
+    const yearInputs = Array.from(document.querySelectorAll('[data-year]'))
+        .reduce((acc, input) => {
+            const year = parseInt(input.dataset.year);
+            if (!acc[year]) acc[year] = {};
+            acc[year][input.dataset.type] = input;
+            return acc;
+        }, {});
+
+    const startYear = Math.floor(years / 2);
+    const remainingYears = years - startYear;
+
+    // Distribute vehicles evenly across remaining years
+    for (let year = startYear; year < years; year++) {
+        if (yearInputs[year]) {
+            yearInputs[year].light.value = Math.round(light / remainingYears);
+            yearInputs[year].medium.value = Math.round(medium / remainingYears);
+            yearInputs[year].heavy.value = Math.round(heavy / remainingYears);
+        }
+    }
+
+    // Handle remainders in the first applicable year
+    if (yearInputs[startYear]) {
+        yearInputs[startYear].light.value = parseInt(yearInputs[startYear].light.value) + (light % remainingYears);
+        yearInputs[startYear].medium.value = parseInt(yearInputs[startYear].medium.value) + (medium % remainingYears);
+        yearInputs[startYear].heavy.value = parseInt(yearInputs[startYear].heavy.value) + (heavy % remainingYears);
+    }
+}
+
+function calculateYearInvestment(year) {
+    const yearInputs = document.querySelectorAll(`[data-year="${year}"]`);
+    let totalInvestment = 0;
+
+    yearInputs.forEach(input => {
+        const count = parseInt(input.value) || 0;
+        if (count === 0) return;
+
+        const type = input.dataset.type + 'Duty';
+        const params = getVehicleParameters(type);
+        totalInvestment += count * params.cost;
+    });
+
+    // Add station investment for the first year only
+    if (year === 0) {
+        const stationInvestment = calculateStationInvestment();
+        console.log(`Year ${year} station investment: ${stationInvestment}`);
+        totalInvestment += stationInvestment;
+    }
+
+    console.log(`Year ${year} total investment: ${totalInvestment}`);
+    return totalInvestment;
+}
+
+function calculateStationInvestment() {
+    const stationType = document.getElementById('stationType').value;
+    const totalAnnualGGE = calculateTotalAnnualGGE();
+    const station = selectAppropriateStation(totalAnnualGGE, stationType);
+    return station.cost;
+}
+
+function calculateTotalAnnualGGE() {
+    const yearInputs = document.querySelectorAll('[data-year]');
+    let totalGGE = 0;
+
+    yearInputs.forEach(input => {
+        const count = parseInt(input.value) || 0;
+        if (count === 0) return;
+
+        const type = input.dataset.type + 'Duty';
+        const params = getVehicleParameters(type);
+        const typeKey = type.replace(/([A-Z])/g, '_$1').toUpperCase();
+        const cngMPG = calculateCNGMPG(params.mpg, CONSTANTS.CNG_LOSS[typeKey]);
+        totalGGE += (params.annualMiles * count) / cngMPG;
+    });
+
+    return totalGGE;
+}
+
+function calculateYearSavings(year) {
+    const yearInputs = document.querySelectorAll(`[data-year="${year}"]`);
+    let totalSavings = 0;
+    const prices = updateFuelPrices();
+    const businessType = document.getElementById('business').value;
+    const businessRate = CONSTANTS.BUSINESS_RATES[businessType];
+
+    // Get cumulative vehicle counts up to this year
+    const cumulativeCounts = {
+        light: 0,
+        medium: 0,
+        heavy: 0
+    };
+
+    for (let y = 0; y <= year; y++) {
+        const yearInputs = document.querySelectorAll(`[data-year="${y}"]`);
+        yearInputs.forEach(input => {
+            const count = parseInt(input.value) || 0;
+            cumulativeCounts[input.dataset.type] += count;
+        });
+    }
+
+    // Calculate savings based on cumulative counts
+    Object.entries(cumulativeCounts).forEach(([type, count]) => {
+        if (count === 0) return;
+
+        const vehicleType = type + 'Duty';
+        const params = getVehicleParameters(vehicleType);
+        const typeKey = vehicleType.replace(/([A-Z])/g, '_$1').toUpperCase();
+        
+        // Calculate fuel savings
+        const cngMPG = calculateCNGMPG(params.mpg, CONSTANTS.CNG_LOSS[typeKey]);
+        const annualGGE = (params.annualMiles * count) / cngMPG;
+        const conventionalFuel = type === 'light' ? prices.gasoline : prices.diesel;
+        const fuelSavings = annualGGE * (conventionalFuel - prices.cng);
+        
+        // Calculate maintenance savings
+        const conventionalMaintenance = type === 'lightDuty' ? 
+            CONSTANTS.MAINTENANCE_COST.GAS_CNG : 
+            CONSTANTS.MAINTENANCE_COST.DIESEL;
+        const maintenanceSavings = params.annualMiles * 
+            (conventionalMaintenance - CONSTANTS.MAINTENANCE_COST.GAS_CNG) * count;
+        
+        totalSavings += fuelSavings + maintenanceSavings;
+    });
+
+    console.log(`Year ${year} savings:`, {
+        cumulativeCounts,
+        totalSavings
+    });
+    return totalSavings;
+}
+
+// Price Management Functions
+function updateFuelPrices() {
+    const gasolinePrice = validateInputField(document.getElementById('gasolinePrice'), 0.01);
+    const dieselPrice = validateInputField(document.getElementById('dieselPrice'), 0.01);
+    const deliveredGasCost = validateInputField(document.getElementById('cngRate'), 0.01);
+    const businessType = document.getElementById('business').value;
+    const businessRate = CONSTANTS.BUSINESS_RATES[businessType];
+    
+    // Calculate CNG price with business rate
+    const baseCngPrice = deliveredGasCost || (0.74 + CONSTANTS.ELECTRICITY_COST_PER_GGE);
+    const cngWithRate = baseCngPrice + (baseCngPrice * businessRate);
+    
+    console.log('Fuel Prices:', {
+        gasolinePrice,
+        dieselPrice,
+        baseCngPrice,
+        businessRate,
+        cngWithRate,
+        defaultGasoline: 3.38,
+        defaultDiesel: 3.84,
+        defaultCNG: 0.74 + CONSTANTS.ELECTRICITY_COST_PER_GGE
+    });
+
+    return {
+        gasoline: gasolinePrice || 3.38,
+        diesel: dieselPrice || 3.84,
+        cng: cngWithRate // Now includes business rate adjustment
+    };
+}
+
+// Station Selection Function
+function selectAppropriateStation(totalAnnualGGE, stationType) {
+    const stations = stationType === 'fastFill' ? 
+        CONSTANTS.FAST_FILL_STATIONS : 
+        CONSTANTS.TIME_FILL_STATIONS;
+    
+    if (totalAnnualGGE === 0) return { cost: 0, capacity: 0 };
+
+    const dailyGGE = totalAnnualGGE / 365;
+    let selectedStation = null;
+
+    for (const station of stations) {
+        if (station.capacity >= dailyGGE) {
+            selectedStation = station;
+            break;
+        }
+    }
+
+    if (!selectedStation && stations.length > 0) {
+        selectedStation = stations[stations.length - 1];
+        showCapacityWarning(dailyGGE, selectedStation.capacity);
+    } else {
+        hideCapacityWarning();
+    }
+
+    return selectedStation || { cost: 0, capacity: 0 };
+}
+
+// Warning Management
+function showCapacityWarning(required, available) {
+    const warningElement = document.querySelector('.capacity-warning');
+    if (warningElement) {
+        warningElement.textContent = `Warning: Required capacity (${Math.round(required)} GGE/day) exceeds maximum station capacity (${available} GGE/day)`;
+        warningElement.classList.remove('hidden');
+    }
+}
+
+function hideCapacityWarning() {
+    const warningElement = document.querySelector('.capacity-warning');
+    if (warningElement) {
+        warningElement.classList.add('hidden');
+    }
+}
+
+// Analysis Calculation Functions
+function updateImmediateAnalysis() {
+    try {
+        console.log('Running updateImmediateAnalysis');
+        
+        // Get vehicle counts
+        const vehicles = {
+            lightDuty: parseInt(document.getElementById('lightDutyVehicles').value) || 0,
+            mediumDuty: parseInt(document.getElementById('mediumDutyVehicles').value) || 0,
+            heavyDuty: parseInt(document.getElementById('heavyDutyVehicles').value) || 0
+        };
+        console.log('Vehicles:', vehicles);
+
+        // Get vehicle parameters
+        const params = {
+            lightDuty: getVehicleParameters('lightDuty'),
+            mediumDuty: getVehicleParameters('mediumDuty'),
+            heavyDuty: getVehicleParameters('heavyDuty')
+        };
+        console.log('Vehicle Parameters:', params);
+
+        // Get prices and business rate
+        const prices = updateFuelPrices();
+        console.log('Fuel Prices:', prices);
+        
+        const businessType = document.getElementById('business').value;
+        const businessRate = CONSTANTS.BUSINESS_RATES[businessType];
+        console.log('Business Type:', businessType);
+        console.log('Business Rate:', businessRate);
+
+        // Calculate vehicle investments
+        const vehicleInvestments = {
+            lightDuty: vehicles.lightDuty * params.lightDuty.cost,
+            mediumDuty: vehicles.mediumDuty * params.mediumDuty.cost,
+            heavyDuty: vehicles.heavyDuty * params.heavyDuty.cost
+        };
+        const totalVehicleInvestment = Object.values(vehicleInvestments).reduce((sum, val) => sum + val, 0);
+        console.log('Vehicle Investments:', vehicleInvestments);
+        console.log('Total Vehicle Investment:', totalVehicleInvestment);
+
+        // Calculate station investment
+        const stationType = document.getElementById('stationType').value;
+        const totalAnnualGGE = Object.entries(vehicles).reduce((total, [type, count]) => {
+            if (count > 0) {
+                const vehicleParams = params[type];
+                const typeKey = type.replace(/([A-Z])/g, '_$1').toUpperCase().replace(/^_/, '');
+                const cngMPG = calculateCNGMPG(vehicleParams.mpg, CONSTANTS.CNG_LOSS[typeKey]);
+                return total + (vehicleParams.annualMiles * count) / cngMPG;
+            }
+            return total;
+        }, 0);
+        
+        const station = selectAppropriateStation(totalAnnualGGE, stationType);
+        const stationInvestment = station.cost;
+        console.log('Station Investment:', stationInvestment);
+
+        // Calculate annual savings
+        const savings = calculateAnnualSavings(vehicles, params, prices, businessRate);
+        console.log('Annual Savings:', savings);
+
+        // Get time horizon and calculate cumulative metrics
+        const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+        const totalInvestment = totalVehicleInvestment + stationInvestment;
+        const cumulativeSavings = savings.totalAnnual * timeHorizon;
+        const netTotal = cumulativeSavings - totalInvestment;
+        const paybackPeriod = savings.totalAnnual > 0 ? totalInvestment / savings.totalAnnual : Infinity;
+        const roi = (netTotal / totalInvestment) * 100;
+
+        console.log('Financial Metrics:', {
+            timeHorizon,
+            totalInvestment,
+            cumulativeSavings,
+            netTotal,
+            paybackPeriod,
+            roi
+        });
+
+        // Update display
+        document.getElementById('vehicleInvestment').textContent = formatCurrency(totalVehicleInvestment);
+        document.getElementById('stationInvestment').textContent = formatCurrency(stationInvestment);
+        document.getElementById('totalInvestment').textContent = formatCurrency(totalInvestment);
+        document.getElementById('annualFuelSavings').textContent = formatCurrency(savings.fuel);
+        document.getElementById('annualMaintenanceSavings').textContent = formatCurrency(savings.maintenance);
+        document.getElementById('annualTotalSavings').textContent = formatCurrency(savings.totalAnnual);
+
+        // Update payback period display
+        updatePaybackDisplay(paybackPeriod);
+        updatePaybackGauge(paybackPeriod);
+
+        // Update result highlights
+        updateResultHighlights({
+            totalInvestment,
+            annualTotalSavings: savings.totalAnnual,
+            cumulativeSavings,
+            paybackPeriod,
+            netTotal,
+            timeHorizon,
+            roi
+        });
+
+    } catch (error) {
+        console.error('Error in updateImmediateAnalysis:', error);
+    }
+}
+
+function updateResultHighlights(metrics) {
+    const investmentHighlight = document.getElementById('highlight-investment');
+    if (investmentHighlight) {
+        investmentHighlight.textContent = `Your total up-front cost is ${formatCurrency(metrics.totalInvestment)}; your yearly savings are ${formatCurrency(metrics.annualTotalSavings)}.`;
+    }
+
+    const paybackHighlight = document.getElementById('highlight-payback');
+    if (paybackHighlight) {
+        if (metrics.paybackPeriod === Infinity) {
+            paybackHighlight.textContent = `At this rate, the investment will never reach payback.`;
+        } else if (metrics.paybackPeriod > metrics.timeHorizon) {
+            paybackHighlight.textContent = `At this rate, you'll reach payback in about ${metrics.paybackPeriod.toFixed(1)} years, which is beyond the ${metrics.timeHorizon}-year analysis period.`;
+        } else {
+            paybackHighlight.textContent = `At this rate, you'll reach payback in about ${metrics.paybackPeriod.toFixed(1)} years.`;
+        }
+    }
+
+    const outcomeHighlight = document.getElementById('highlight-outcome');
+    if (outcomeHighlight) {
+        if (metrics.netTotal > 0) {
+            outcomeHighlight.textContent = `After ${metrics.timeHorizon} years, the net is ${formatCurrency(metrics.netTotal)} (ROI: ${metrics.roi.toFixed(1)}%). This indicates that with the current assumptions, the project breaks even and generates positive returns within ${metrics.timeHorizon} years.`;
+        } else {
+            outcomeHighlight.textContent = `After ${metrics.timeHorizon} years, the net is ${formatCurrency(metrics.netTotal)} (ROI: ${metrics.roi.toFixed(1)}%). This indicates that with the current assumptions, the project does not fully break even within ${metrics.timeHorizon} years.`;
+        }
+    }
+}
+
+function updateTimelineAnalysis() {
+    try {
+        const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+        const yearlyData = calculateYearlyData(timeHorizon);
+        
+        // Update overview metrics
+        updateTimelineOverview(yearlyData);
+        
+        // Update charts
+        if (AppState.timelineChart && AppState.costSavingsChart) {
+            updateTimelineCharts(yearlyData);
+        }
+        
+        // Update impact metrics
+        updateImpactMetrics(yearlyData);
+        
+        // Update multi-year analysis
+        updateMultiYearAnalysis(yearlyData);
+        
+        // Update strategy insights
+        updateStrategyInsights(yearlyData);
+    } catch (error) {
+        console.error('Error in updateTimelineAnalysis:', error);
+    }
+}
+
+function calculateYearlyData(timeHorizon) {
+    const yearlyData = [];
+    let cumulativeInvestment = 0;
+    let cumulativeSavings = 0;
+    
+    for (let year = 0; year < timeHorizon; year++) {
+        const yearInvestment = calculateYearInvestment(year);
+        const yearSavings = calculateYearSavings(year);
+        
+        cumulativeInvestment += yearInvestment;
+        cumulativeSavings += yearSavings;
+        
+        yearlyData.push({
+            year: year + 1,
+            investment: yearInvestment,
+            savings: yearSavings,
+            cumulativeInvestment,
+        cumulativeSavings,
+            netCashFlow: cumulativeSavings - cumulativeInvestment
+        });
+    }
+    
+    return yearlyData;
+}
+
+function updateTimelineOverview(yearlyData) {
+    const lastYear = yearlyData[yearlyData.length - 1];
+    let totalInvestment = 0;
+    let totalSavings = 0;
+    
+    yearlyData.forEach(data => {
+        totalInvestment += data.investment;
+        totalSavings += data.savings;
+    });
+    
+    const netTotal = totalSavings - totalInvestment;
+    const roi = calculateROI(yearlyData);
+    const paybackPeriod = calculatePaybackPeriod(yearlyData);
+    
+    console.log('Timeline overview:', {
+        totalInvestment,
+        totalSavings,
+        netTotal,
+        roi,
+        paybackPeriod
+    });
+    
+    // Update overview panel
+    document.getElementById('timeline-total-investment').textContent = formatCurrency(totalInvestment);
+    document.getElementById('timeline-cumulative-savings').textContent = formatCurrency(totalSavings);
+    document.getElementById('timeline-net-roi').textContent = `${roi.toFixed(1)}%`;
+    
+    // Update payback period with years and months format
+    const paybackElement = document.getElementById('timeline-payback-period');
+    if (paybackElement) {
+        if (paybackPeriod === Infinity) {
+            paybackElement.textContent = 'Never';
+            paybackElement.className = 'text-2xl font-bold text-red-600';
+        } else {
+            const years = Math.floor(paybackPeriod);
+            // Calculate months by taking the decimal part and multiplying by 12
+            // Then round to nearest integer to avoid floating point issues
+            const decimalPart = paybackPeriod - years;
+            const months = Math.round(decimalPart * 12);
+            
+            // Handle case where rounding months results in 12
+            let displayYears = years;
+            let displayMonths = months;
+            if (months === 12) {
+                displayYears++;
+                displayMonths = 0;
+            }
+            
+            const yearText = displayYears === 1 ? 'year' : 'years';
+            const monthText = displayMonths === 1 ? 'month' : 'months';
+            
+            let paybackText = '';
+            if (displayYears === 0) {
+                paybackText = `${displayMonths} ${monthText}`;
+            } else if (displayMonths === 0) {
+                paybackText = `${displayYears} ${yearText}`;
+            } else {
+                paybackText = `${displayYears} ${yearText}, ${displayMonths} ${monthText}`;
+            }
+            
+            paybackElement.textContent = paybackText;
+            paybackElement.className = `text-2xl font-bold ${
+                paybackPeriod <= 7 ? 'text-green-600' :
+                paybackPeriod <= 10 ? 'text-yellow-600' :
+                'text-red-600'
+            }`;
+        }
+    }
+}
+
+function updateTimelineCharts(yearlyData) {
+    try {
+        // Update cash flow chart
+        const labels = yearlyData.map(data => `Year ${data.year}`);
+        const cashFlowData = yearlyData.map(data => data.netCashFlow);
+        
+        AppState.timelineChart.data.labels = labels;
+        AppState.timelineChart.data.datasets[0].data = cashFlowData;
+        AppState.timelineChart.update();
+        
+        // Update cost vs savings chart
+        AppState.costSavingsChart.data.labels = labels;
+        AppState.costSavingsChart.data.datasets[0].data = yearlyData.map(data => data.investment);
+        AppState.costSavingsChart.data.datasets[1].data = yearlyData.map(data => data.savings);
+        AppState.costSavingsChart.update();
+    } catch (error) {
+        console.error('Error in updateTimelineCharts:', error);
+    }
+}
+
+function updateImpactMetrics(yearlyData) {
+    // Calculate CO2 reduction
+    const co2Reduction = calculateCO2Reduction(yearlyData);
+    document.getElementById('co2-reduction').textContent = `${Math.round(co2Reduction)} tons`;
+    
+    // Calculate equivalent passenger cars using EPA value of 4.6 metric tons CO2/vehicle/year
+    const equivalentCars = Math.round(co2Reduction / 4.6);
+    document.getElementById('co2-equivalent').textContent = `Equivalent to removing ${equivalentCars.toLocaleString()} passenger cars per year`;
+    
+    // Calculate cost per mile savings
+    const costPerMile = calculateCostPerMile(yearlyData);
+    document.getElementById('cost-per-mile').textContent = `$${costPerMile.toFixed(2)}/mile`;
+    
+    // Calculate fleet efficiency improvement
+    const efficiency = calculateFleetEfficiency(yearlyData);
+    document.getElementById('fleet-efficiency').textContent = `${efficiency.toFixed(1)}%`;
+}
+
+function calculateCO2Reduction(yearlyData) {
+    let totalBaselineEmissions = 0;
+    let totalCNGEmissions = 0;
+
+    // Calculate year by year, considering cumulative fleet
+    for (let year = 0; year < yearlyData.length; year++) {
+        const yearInputs = document.querySelectorAll(`[data-year="${year}"]`);
+        const cumulativeCounts = {
+            light: 0,
+            medium: 0,
+            heavy: 0
+        };
+
+        // Get cumulative fleet up to this year
+        for (let y = 0; y <= year; y++) {
+            const inputs = document.querySelectorAll(`[data-year="${y}"]`);
+            inputs.forEach(input => {
+                const count = parseInt(input.value) || 0;
+                cumulativeCounts[input.dataset.type] += count;
+            });
+        }
+
+        // Calculate emissions for each vehicle type
+        Object.entries(cumulativeCounts).forEach(([type, count]) => {
+            if (count === 0) return;
+
+            const vehicleType = type + 'Duty';
+            const params = getVehicleParameters(vehicleType);
+            const typeKey = vehicleType.replace(/([A-Z])/g, '_$1').toUpperCase();
+            const annualMiles = params.annualMiles;
+            const baseMPG = params.mpg;
+            
+            // Calculate baseline emissions (pre-conversion)
+            const baselineEmissionFactor = type === 'light' ? 
+                CONSTANTS.EPA_EMISSIONS.GASOLINE : 
+                (type === 'medium' ? CONSTANTS.EPA_EMISSIONS.DIESEL_MEDIUM : CONSTANTS.EPA_EMISSIONS.DIESEL_HEAVY);
+            
+            const baselineGallons = (annualMiles * count) / baseMPG;
+            const baselineEmissions = baselineGallons * baselineEmissionFactor;
+            totalBaselineEmissions += baselineEmissions;
+
+            // Calculate CNG emissions (post-conversion)
+            const cngMPG = calculateCNGMPG(baseMPG, CONSTANTS.CNG_LOSS[typeKey]);
+            const cngGallons = (annualMiles * count) / cngMPG;
+            const cngEmissions = cngGallons * CONSTANTS.EPA_EMISSIONS.CNG;
+            totalCNGEmissions += cngEmissions;
+        });
+    }
+
+    // Convert kg CO₂ to metric tons
+    const totalReduction = (totalBaselineEmissions - totalCNGEmissions) / 1000;
+
+    console.log('CO2 Reduction calculation:', {
+        baselineEmissions: totalBaselineEmissions,
+        cngEmissions: totalCNGEmissions,
+        reductionTons: totalReduction
+    });
+
+    return totalReduction;
+}
+
+function calculateCostPerMile(yearlyData) {
+    let totalMiles = 0;
+    let totalCosts = 0;
+    let totalSavings = 0;
+    
+    // Calculate year by year, considering cumulative fleet
+    for (let year = 0; year < yearlyData.length; year++) {
+        const yearInputs = document.querySelectorAll(`[data-year="${year}"]`);
+        const cumulativeCounts = {
+            light: 0,
+            medium: 0,
+            heavy: 0
+        };
+
+        // Get cumulative fleet up to this year
+        for (let y = 0; y <= year; y++) {
+            const inputs = document.querySelectorAll(`[data-year="${y}"]`);
+            inputs.forEach(input => {
+                const count = parseInt(input.value) || 0;
+                cumulativeCounts[input.dataset.type] += count;
+            });
+        }
+
+        // Calculate miles and costs for each vehicle type
+        Object.entries(cumulativeCounts).forEach(([type, count]) => {
+            if (count === 0) return;
+
+            const vehicleType = type + 'Duty';
+            const params = getVehicleParameters(vehicleType);
+            
+            // Add to total miles
+            const yearMiles = params.annualMiles * count;
+            totalMiles += yearMiles;
+            
+            // Add to total costs (investment for this year)
+            if (year === 0) {
+                totalCosts += count * params.cost;
+            }
+        });
+
+        // Add savings for this year
+        totalSavings += yearlyData[year].savings;
+    }
+    
+    // Calculate net cost per mile
+    const netCosts = totalCosts - totalSavings;
+    const costPerMile = totalMiles > 0 ? netCosts / totalMiles : 0;
+    
+    console.log('Cost per mile calculation:', {
+        totalMiles,
+        totalCosts,
+        totalSavings,
+        netCosts,
+        costPerMile
+    });
+    
+    return Math.abs(costPerMile);
+}
+
+function calculateFleetEfficiency(yearlyData) {
+    let totalEfficiencyImprovement = 0;
+    let totalVehicles = 0;
+    
+    // Calculate cumulative fleet efficiency improvement
+    for (let year = 0; year < yearlyData.length; year++) {
+        const yearInputs = document.querySelectorAll(`[data-year="${year}"]`);
+        yearInputs.forEach(input => {
+            const count = parseInt(input.value) || 0;
+            if (count === 0) return;
+
+            const type = input.dataset.type + 'Duty';
+            const typeKey = type.replace(/([A-Z])/g, '_$1').toUpperCase();
+            
+            // Calculate efficiency improvement based on CNG conversion
+            const efficiencyImprovement = (1 - CONSTANTS.CNG_LOSS[typeKey]) * 100;
+            totalEfficiencyImprovement += efficiencyImprovement * count;
+            totalVehicles += count;
+        });
+    }
+    
+    // Calculate average fleet efficiency improvement
+    const averageImprovement = totalVehicles > 0 ? totalEfficiencyImprovement / totalVehicles : 0;
+    
+    console.log('Fleet efficiency calculation:', {
+        totalEfficiencyImprovement,
+        totalVehicles,
+        averageImprovement
+    });
+    
+    return averageImprovement;
+}
+
+function updateMultiYearAnalysis(yearlyData) {
+    // Calculate 10-year metrics
+    const tenYearData = yearlyData.slice(0, 10);
+    const tenYearMetrics = calculatePeriodMetrics(tenYearData);
+    
+    // Calculate 15-year metrics
+    const fifteenYearData = yearlyData.slice(0, 15);
+    const fifteenYearMetrics = calculatePeriodMetrics(fifteenYearData);
+    
+    // Update displays
+    updatePeriodDisplay('ten', tenYearMetrics);
+    updatePeriodDisplay('fifteen', fifteenYearMetrics);
+}
+
+function calculatePeriodMetrics(periodData) {
+    if (periodData.length === 0) return null;
+    
+    const lastYear = periodData[periodData.length - 1];
+    const investment = lastYear.cumulativeInvestment;
+    const savings = lastYear.cumulativeSavings;
+    const netTotal = lastYear.netCashFlow;
+    const roi = (netTotal / investment) * 100;
+    const paybackPeriod = calculatePaybackPeriod(periodData);
+    
+    return {
+        investment,
+        savings,
+        netTotal,
+        roi,
+        paybackPeriod,
+        yearlyData: periodData  // Add yearly data to the metrics
+    };
+}
+
+function updatePeriodDisplay(period, metrics) {
+    if (!metrics) return;
+    
+    // Update original metrics
+    document.getElementById(`${period}YearInvestmentSummary`).textContent = formatCurrency(metrics.investment);
+    document.getElementById(`${period}YearSavingsSummary`).textContent = formatCurrency(metrics.savings);
+    document.getElementById(`${period}YearROISummary`).textContent = `${metrics.roi.toFixed(1)}%`;
+    
+    // Calculate operating costs and cost per mile reductions
+    const vehicles = {
+        lightDuty: parseInt(document.getElementById('lightDutyVehicles').value) || 0,
+        mediumDuty: parseInt(document.getElementById('mediumDutyVehicles').value) || 0,
+        heavyDuty: parseInt(document.getElementById('heavyDutyVehicles').value) || 0
+    };
+    
+    const params = {
+        lightDuty: getVehicleParameters('lightDuty'),
+        mediumDuty: getVehicleParameters('mediumDuty'),
+        heavyDuty: getVehicleParameters('heavyDuty')
+    };
+    
+    const prices = updateFuelPrices();
+    
+    // Calculate operating costs
+    const operatingCosts = calculateOperatingCosts(metrics.yearlyData, vehicles, params, prices);
+    const years = metrics.yearlyData.length;
+    
+    // Update average annual cost reduction
+    const avgAnnualReduction = operatingCosts.difference / years;
+    
+    // Update both original and summary elements for avg cost reduction
+    const avgCostReductionElements = [
+        document.getElementById(`${period}YearAvgCostReduction`),
+        document.getElementById(`${period}YearAvgCostReductionSummary`)
+    ];
+    avgCostReductionElements.forEach(element => {
+        if (element) {
+            element.textContent = formatCurrency(avgAnnualReduction);
+        }
+    });
+    
+    // Update both original and summary elements for operating cost difference
+    const opCostDiffElements = [
+        document.getElementById(`${period}YearOpCostDiff`),
+        document.getElementById(`${period}YearOpCostDiffSummary`)
+    ];
+    opCostDiffElements.forEach(element => {
+        if (element) {
+            element.textContent = formatCurrency(operatingCosts.difference);
+        }
+    });
+    
+    // Update cost per mile reductions
+    const cpmReductions = calculateCostPerMileReduction(vehicles, params, prices);
+    
+    // Update both original and summary elements for CPM
+    ['Light', 'Medium', 'Heavy'].forEach(type => {
+        const typeKey = type.toLowerCase() + 'Duty';
+        const elements = [
+            document.getElementById(`${period}Year${type}CPM`),
+            document.getElementById(`${period}Year${type}CPMSummary`)
+        ];
+        elements.forEach(element => {
+            if (element) {
+                element.textContent = `$${cpmReductions[typeKey].toFixed(2)}/mi`;
+            }
+        });
+    });
+}
+
+function updateStrategyInsights(yearlyData) {
+    const strategy = document.getElementById('deploymentStrategy').value;
+    const insights = generateStrategyInsights(strategy, yearlyData);
+    document.getElementById('strategyInsights').innerHTML = insights;
+}
+
+function generateStrategyInsights(strategy, yearlyData) {
+    const lastYear = yearlyData[yearlyData.length - 1];
+    const paybackPeriod = calculatePaybackPeriod(yearlyData);
+    const roi = (lastYear.netCashFlow / lastYear.cumulativeInvestment) * 100;
+    
+    const insights = {
+        phased: `
+            <p class="mb-4">The phased deployment strategy offers a balanced approach to CNG adoption:</p>
+            <ul class="list-disc pl-5 mb-4">
+                <li>Spreads investment of ${formatCurrency(lastYear.cumulativeInvestment)} over ${yearlyData.length} years</li>
+                <li>Achieves break-even in ${paybackPeriod.toFixed(1)} years</li>
+                <li>Generates ${roi.toFixed(1)}% ROI over the analysis period</li>
+            </ul>
+            <p>This strategy is ideal for organizations seeking steady, predictable growth in their CNG fleet.</p>
+        `,
+        aggressive: `
+            <p class="mb-4">The aggressive early deployment strategy maximizes early savings:</p>
+            <ul class="list-disc pl-5 mb-4">
+                <li>Front-loads investment to accelerate savings</li>
+                <li>Achieves break-even in ${paybackPeriod.toFixed(1)} years</li>
+                <li>Generates ${roi.toFixed(1)}% ROI over the analysis period</li>
+            </ul>
+            <p>This strategy is best for organizations with available capital and a strong commitment to rapid CNG adoption.</p>
+        `,
+        deferred: `
+            <p class="mb-4">The deferred deployment strategy minimizes early investment:</p>
+            <ul class="list-disc pl-5 mb-4">
+                <li>Delays major investments to later years</li>
+                <li>Achieves break-even in ${paybackPeriod.toFixed(1)} years</li>
+                <li>Generates ${roi.toFixed(1)}% ROI over the analysis period</li>
+            </ul>
+            <p>This strategy suits organizations needing time for infrastructure preparation and budget allocation.</p>
+        `,
+        manual: `
+            <p class="mb-4">Your custom deployment strategy results:</p>
+            <ul class="list-disc pl-5 mb-4">
+                <li>Total investment: ${formatCurrency(lastYear.cumulativeInvestment)}</li>
+                <li>Break-even point: ${paybackPeriod.toFixed(1)} years</li>
+                <li>ROI: ${roi.toFixed(1)}%</li>
+            </ul>
+            <p>Adjust the yearly vehicle allocations to optimize your deployment strategy.</p>
+        `
+    };
+    
+    return insights[strategy] || '';
+}
+
+function initializeSidePanelSections() {
+    // Vehicle Parameters Section
+    const vehicleParamsSection = document.getElementById('vehicleParams');
+    if (vehicleParamsSection) {
+        const vehicleTypes = ['lightDuty', 'mediumDuty', 'heavyDuty'];
+        const paramLabels = {
+            'Cost': { label: 'Vehicle Cost ($)', tooltip: 'Additional cost compared to diesel/gas vehicle', key: 'cost' },
+            'Miles': { label: 'Annual Miles', tooltip: 'Expected miles driven per year', key: 'annualMiles' },
+            'Life': { label: 'Life Span (years)', tooltip: 'Expected vehicle service life', key: 'lifeSpan' },
+            'MPG': { label: 'Miles per Gallon', tooltip: 'Expected fuel efficiency', key: 'mpg' }
+        };
+
+        vehicleTypes.forEach(type => {
+            const typeLabel = type.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            const section = document.createElement('div');
+            section.className = 'mb-4';
+            section.innerHTML = `<h3 class="font-medium text-gray-700 mb-2">${typeLabel}</h3>`;
+
+            Object.entries(paramLabels).forEach(([param, { label, tooltip, key }]) => {
+                const inputId = `${type}${param}`;
+                const typeKey = type.replace(/([A-Z])/g, '_$1').toUpperCase();
+                const defaultValue = DEFAULT_PARAMS[typeKey][key];
+                
+                section.innerHTML += `
+                    <div class="mb-2">
+                        <label class="block text-sm text-gray-600 flex items-center">
+                            ${label}
+                            <div class="tooltip ml-1">ⓘ
+                                <span class="tooltip-text">${tooltip}</span>
+                            </div>
+                        </label>
+                        <input type="number" 
+                               id="${inputId}" 
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                               value="${defaultValue}"
+                               min="0"
+                               step="any">
+                        <div class="validation-message text-sm mt-1"></div>
+                    </div>
+                `;
+            });
+            
+            vehicleParamsSection.appendChild(section);
+        });
+    }
+
+    // Station Configuration Section
+    const stationConfigSection = document.getElementById('stationConfig');
+    if (stationConfigSection) {
+        stationConfigSection.innerHTML = `
+            <div class="mb-4">
+                <label class="block text-sm text-gray-600 flex items-center">
+                    Station Type
+                    <div class="tooltip ml-1">ⓘ
+                        <span class="tooltip-text">Choose between fast-fill and time-fill stations</span>
+                    </div>
+                </label>
+                <select id="stationType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="fastFill">Fast Fill</option>
+                    <option value="timeFill">Time Fill</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm text-gray-600 flex items-center">
+                    LDC
+                    <div class="tooltip ml-1">ⓘ
+                        <span class="tooltip-text">Select your business type for rate calculation</span>
+                    </div>
+                </label>
+                <select id="business" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="AGLC">AGLC</option>
+                    <option value="CGC">CGC</option>
+                </select>
+            </div>
+            <div class="capacity-warning hidden text-sm text-red-600 mb-4"></div>
+        `;
+    }
+
+    // Fuel Prices Section
+    const fuelPricesSection = document.getElementById('fuelPrices');
+    if (fuelPricesSection) {
+        const fuelInputs = [
+            { id: 'gasolinePrice', label: 'Gasoline Price ($/gal)', default: 3.38, tooltip: 'Current gasoline price per gallon' },
+            { id: 'dieselPrice', label: 'Diesel Price ($/gal)', default: 3.84, tooltip: 'Current diesel price per gallon' },
+            { id: 'cngRate', label: 'CNG Rate ($/GGE)', default: 0.82, tooltip: 'CNG price per gasoline gallon equivalent' }
+        ];
+
+        fuelInputs.forEach(input => {
+            const div = document.createElement('div');
+            div.className = 'mb-4';
+            div.innerHTML = `
+                <label class="block text-sm text-gray-600 flex items-center">
+                    ${input.label}
+                    <div class="tooltip ml-1">ⓘ
+                        <span class="tooltip-text">${input.tooltip}</span>
+                    </div>
+                </label>
+                <input type="number" 
+                       id="${input.id}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       value="${input.default}"
+                       min="0"
+                       step="0.01">
+                <div class="validation-message text-sm mt-1"></div>
+            `;
+            fuelPricesSection.appendChild(div);
+        });
+    }
+
+    // Add click handlers for collapsible sections
+    document.querySelectorAll('.collapsible-section button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const sectionId = this.getAttribute('data-section');
+            const section = document.getElementById(sectionId);
+            const icon = document.getElementById(`${sectionId}Icon`);
+            
+            if (section && icon) {
+                section.classList.toggle('hidden');
+                icon.style.transform = section.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                this.setAttribute('aria-expanded', !section.classList.contains('hidden'));
+            }
+        });
+    });
+}
+
+// Remove the separate toggleCollapsibleSection function since we're handling it directly in the click handler
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Add cashflow toggle functionality
+    const cashflowToggle = document.getElementById('cashflowToggle');
+    if (cashflowToggle) {
+        cashflowToggle.addEventListener('change', function() {
+            const showCashflow = this.checked;
+            toggleCashflowElements(showCashflow);
+        });
+    }
+
+    // Initialize side panel sections
+    initializeSidePanelSections();
+
+    // Initialize charts
+    initializeCashFlowChart();
+    initializePaybackGauge();
+    initializeTimelineCashFlowChart();
+    initializeCostSavingsChart();
+
+    // Add event listeners for vehicle counts
+    ['lightDuty', 'mediumDuty', 'heavyDuty'].forEach(type => {
+        const input = document.getElementById(`${type}Vehicles`);
+        if (input) {
+            input.addEventListener('input', () => {
+                console.log(`${type} vehicle count changed:`, input.value);
+                validateInputField(input);
+                updateVehicleConfigSummary();
+                const strategy = document.getElementById('deploymentStrategy').value;
+                if (strategy === 'immediate') {
+                updateImmediateAnalysis();
+                } else {
+                    updateTimelineAnalysis();
+                }
+            });
+        }
+    });
+
+    // Add event listener for time horizon changes
+    const timeHorizonSelect = document.getElementById('timeHorizon');
+    if (timeHorizonSelect) {
+        timeHorizonSelect.addEventListener('change', () => {
+            console.log('Time horizon changed:', timeHorizonSelect.value);
+            updateVehicleConfigSummary();
+            const strategy = document.getElementById('deploymentStrategy').value;
+            if (strategy === 'immediate') {
+            updateImmediateAnalysis();
+            } else {
+                updateTimelineAnalysis();
+            }
+        });
+    }
+
+    // Function to handle parameter changes
+    function handleParameterChange(event) {
+        console.log('Parameter changed:', event.target.id, event.target.value);
+        if (event.target.type === 'number') {
+            validateInputField(event.target);
+        }
+        const strategy = document.getElementById('deploymentStrategy').value;
+        if (strategy === 'immediate') {
+            updateImmediateAnalysis();
+        } else {
+            updateTimelineAnalysis();
+        }
+    }
+
+    // Add event listeners for all parameter inputs and selects in the side panel
+    const parameterElements = document.querySelectorAll(
+        '#vehicleParams input, #vehicleParams select, ' +
+        '#stationConfig input, #stationConfig select, ' +
+        '#fuelPrices input, #fuelPrices select'
+    );
+    
+    parameterElements.forEach(element => {
+        element.addEventListener('input', handleParameterChange);
+        element.addEventListener('change', handleParameterChange);
+    });
+
+    // Add event listener for deployment strategy changes
+    const deploymentStrategy = document.getElementById('deploymentStrategy');
+    if (deploymentStrategy) {
+        deploymentStrategy.addEventListener('change', function() {
+            const strategy = this.value;
+            console.log('Strategy changed to:', strategy);
+            const immediateSection = document.getElementById('immediateAnalysis');
+            const timelineSection = document.getElementById('timelineSection');
+
+            if (strategy === 'immediate') {
+                immediateSection.classList.remove('hidden');
+                timelineSection.classList.add('hidden');
+                updateImmediateAnalysis();
+            } else {
+                immediateSection.classList.add('hidden');
+                timelineSection.classList.remove('hidden');
+                if (strategy === 'manual') {
+                    // For manual strategy, just initialize the timeline without applying any automatic distribution
+                    initializeTimeline();
+                    updateTimelineAnalysis();
+                } else {
+                    // For other strategies (phased, aggressive, deferred), apply the strategy
+                    initializeTimeline();
+                    applyCurrentStrategy();
+                }
+            }
+
+            updateStrategyView(strategy);
+        });
+    }
+
+    // Initialize with manual strategy
+    console.log('Initializing with manual strategy');
+    document.getElementById('deploymentStrategy').value = 'manual';
+    document.getElementById('deploymentStrategy').dispatchEvent(new Event('change'));
+
+    // Add specific event listeners for station type and business type
+    const stationType = document.getElementById('stationType');
+    const businessType = document.getElementById('business');
+
+    if (stationType) {
+        stationType.addEventListener('change', () => {
+            console.log('Station type changed:', stationType.value);
+            const strategy = document.getElementById('deploymentStrategy').value;
+            if (strategy === 'immediate') {
+                updateImmediateAnalysis();
+            } else {
+                updateTimelineAnalysis();
+            }
+        });
+    }
+
+    if (businessType) {
+        businessType.addEventListener('change', () => {
+            console.log('Business type changed:', businessType.value);
+            console.log('Triggering recalculation with new business rate:', CONSTANTS.BUSINESS_RATES[businessType.value]);
+            const strategy = document.getElementById('deploymentStrategy').value;
+            if (strategy === 'immediate') {
+                updateImmediateAnalysis();
+            } else {
+                updateTimelineAnalysis();
+            }
+        });
+    }
+});
+
+function updateStrategyView(strategy) {
+    const title = document.getElementById('strategyTitle');
+    const tagline = document.getElementById('strategyTagline');
+    
+    if (title && tagline) {
+        if (strategy === 'immediate') {
+            title.textContent = 'Immediate Purchase Analysis';
+            tagline.textContent = 'Calculate the financial impact of purchasing all vehicles at once';
+        } else {
+            const strategyName = strategy.charAt(0).toUpperCase() + strategy.slice(1);
+            title.textContent = `${strategyName} Deployment Analysis`;
+            tagline.textContent = STRATEGY_DESCRIPTIONS[strategy] || '';
+        }
+    }
+}
+
+function updateVehicleConfigSummary() {
+    const summary = document.getElementById('vehicleConfigSummary');
+    if (!summary) return;
+
+    const lightCount = parseInt(document.getElementById('lightDutyVehicles').value) || 0;
+    const mediumCount = parseInt(document.getElementById('mediumDutyVehicles').value) || 0;
+    const heavyCount = parseInt(document.getElementById('heavyDutyVehicles').value) || 0;
+    const totalVehicles = lightCount + mediumCount + heavyCount;
+    const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+
+    if (totalVehicles === 0) {
+        summary.innerHTML = '';
+        return;
+    }
+
+    summary.innerHTML = `
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        Analyzing ${totalVehicles} vehicles over ${timeHorizon} years
+                        ${lightCount > 0 ? `<br>${lightCount} Light Duty` : ''}
+                        ${mediumCount > 0 ? `<br>${mediumCount} Medium Duty` : ''}
+                        ${heavyCount > 0 ? `<br>${heavyCount} Heavy Duty` : ''}
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function calculateAnnualSavings(vehicles, params, prices, businessRate) {
+    let fuelSavings = 0;
+    let maintenanceSavings = 0;
+
+    Object.entries(vehicles).forEach(([type, count]) => {
+        if (count > 0) {
+            // Calculate fuel savings
+            const typeKey = type.replace(/([A-Z])/g, '_$1').toUpperCase();
+            const cngMPG = calculateCNGMPG(params[type].mpg, CONSTANTS.CNG_LOSS[typeKey]);
+            const annualGGE = (params[type].annualMiles * count) / cngMPG;
+            
+            // Calculate fuel cost difference (diesel/gas vs CNG)
+            const conventionalFuel = type === 'lightDuty' ? prices.gasoline : prices.diesel;
+            const fuelCostDiff = conventionalFuel - prices.cng;
+            fuelSavings += annualGGE * fuelCostDiff;
+
+            // Calculate maintenance savings
+            const conventionalMaintenance = type === 'lightDuty' ? 
+                CONSTANTS.MAINTENANCE_COST.GAS_CNG : 
+                CONSTANTS.MAINTENANCE_COST.DIESEL;
+            
+            maintenanceSavings += params[type].annualMiles * 
+                (conventionalMaintenance - CONSTANTS.MAINTENANCE_COST.GAS_CNG) * count;
+        }
+    });
+
+    const totalAnnual = fuelSavings + maintenanceSavings;
+
+    return {
+        fuel: fuelSavings,
+        maintenance: maintenanceSavings,
+        totalAnnual: totalAnnual
+    };
+}
+
+function calculatePaybackPeriod(yearlyData) {
+    if (!yearlyData || yearlyData.length === 0) return Infinity;
+    
+    let cumulativeInvestment = 0;
+    let cumulativeSavings = 0;
+    
+    // Calculate year-by-year cumulative values
+    for (let i = 0; i < yearlyData.length; i++) {
+        const data = yearlyData[i];
+        cumulativeInvestment += data.investment;
+        cumulativeSavings += data.savings;
+        
+        // Check if we've reached break-even
+        if (cumulativeSavings >= cumulativeInvestment) {
+            if (i === 0) return 0;
+            
+            // Interpolate between this year and previous year for more accuracy
+            const prevCumulativeSavings = cumulativeSavings - data.savings;
+            const prevCumulativeInvestment = cumulativeInvestment - data.investment;
+            
+            const prevGap = prevCumulativeInvestment - prevCumulativeSavings;
+            const yearSavings = data.savings;
+            
+            // Calculate the fraction of the year needed to break even
+            const fraction = prevGap / yearSavings;
+            
+            return i + fraction;
+        }
+    }
+    
+    // If we haven't reached break-even, project based on final year's savings
+    if (yearlyData.length > 0) {
+        const lastYear = yearlyData[yearlyData.length - 1];
+        if (lastYear.savings > 0) {
+            const remainingGap = cumulativeInvestment - cumulativeSavings;
+            const additionalYears = remainingGap / lastYear.savings;
+            return yearlyData.length + additionalYears;
+        }
+    }
+    
+    return Infinity;
+}
+
+function calculateROI(yearlyData) {
+    if (!yearlyData || yearlyData.length === 0) return 0;
+    
+    let totalInvestment = 0;
+    let totalSavings = 0;
+    
+    yearlyData.forEach(data => {
+        totalInvestment += data.investment;
+        totalSavings += data.savings;
+    });
+    
+    const netReturn = totalSavings - totalInvestment;
+    const roi = totalInvestment > 0 ? (netReturn / totalInvestment) * 100 : 0;
+    
+    return roi;
+}
+
+function initializeTimelineCashFlowChart() {
+    try {
+        const ctx = document.getElementById('timelineCashFlowChart');
+        if (!ctx) {
+            console.warn('Timeline cash flow chart canvas not found');
+            return;
+        }
+
+        if (AppState.timelineChart) {
+            AppState.timelineChart.destroy();
+        }
+
+        AppState.timelineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Cumulative Net Cash Flow',
+                    data: [],
+                    borderColor: 'rgb(59, 130, 246)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: value => formatCurrency(value)
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return formatCurrency(context.raw);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error initializing timeline cash flow chart:', error);
+    }
+}
+
+function initializeCostSavingsChart() {
+    try {
+        const ctx = document.getElementById('costSavingsChart');
+        if (!ctx) {
+            console.warn('Cost savings chart canvas not found');
+            return;
+        }
+
+        if (AppState.costSavingsChart) {
+            AppState.costSavingsChart.destroy();
+        }
+
+        AppState.costSavingsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Investment Costs',
+                        data: [],
+                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                        borderColor: 'rgb(239, 68, 68)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Annual Savings',
+                        data: [],
+                        backgroundColor: 'rgba(34, 197, 94, 0.5)',
+                        borderColor: 'rgb(34, 197, 94)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: value => formatCurrency(value)
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return formatCurrency(context.raw);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error initializing cost savings chart:', error);
+    }
+}
+
+// Add the toggle function
+function toggleCashflowElements(show) {
+    // Elements to toggle
+    const elementsToToggle = [
+        // Charts
+        'timelineCashFlowChart',    // Cumulative Cash Flow chart
+        'costSavingsChart',         // Annual Cost vs Savings chart
+        'cashFlowChart',            // Immediate analysis cash flow chart
+        
+        // ROI and Break-Even elements
+        'tenYearROI',              // 10-Year ROI
+        'fifteenYearROI',          // 15-Year ROI
+        'tenYearBreakEven',        // 10-Year Break-Even
+        'fifteenYearBreakEven',    // 15-Year Break-Even
+        'timeline-net-roi',        // Net ROI at the top
+    ];
+
+    // Chart containers to toggle
+    const chartContainers = [
+        { chartId: 'timelineCashFlowChart', containerId: 'timelineCashFlowContainer' },
+        { chartId: 'costSavingsChart', containerId: 'costSavingsContainer' },
+        { chartId: 'cashFlowChart', containerId: 'cashFlowContainer' }
+    ];
+
+    // Toggle chart containers
+    chartContainers.forEach(({ chartId, containerId }) => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.style.display = show ? 'block' : 'none';
+        }
+    });
+
+    // Toggle individual elements
+    elementsToToggle.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.style.display = show ? 'block' : 'none';
+        }
+    });
+
+    // Toggle Investment & Returns sections in 10-year and 15-year analyses
+    const investmentReturnsSections = [
+        document.querySelector('#tenYearAnalysis .border-t'),  // 10-year Investment & Returns
+        document.querySelector('#fifteenYearAnalysis .border-t')  // 15-year Investment & Returns
+    ];
+
+    investmentReturnsSections.forEach(section => {
+        if (section) {
+            section.style.display = show ? 'block' : 'none';
+        }
+    });
+
+    // Update terminology and hide/show text references to cash flow
+    const cashflowTextElements = document.querySelectorAll('[data-cashflow-text]');
+    cashflowTextElements.forEach(element => {
+        const originalText = element.getAttribute('data-cashflow-text');
+        const alternateText = element.getAttribute('data-alternate-text');
+        if (show) {
+            element.textContent = originalText;
+        } else {
+            element.textContent = alternateText || 'Total Benefit';
+        }
+    });
+
+    // Update headings that reference cash flow
+    const headingUpdates = [
+        { id: 'cashFlowChartTitle', originalText: 'Cumulative Cash Flow', alternateText: 'Cumulative Benefits' },
+        { id: 'costSavingsChartTitle', originalText: 'Annual Cost vs Savings', alternateText: 'Annual Cost vs Benefits' }
+    ];
+
+    headingUpdates.forEach(({ id, originalText, alternateText }) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = show ? originalText : alternateText;
+        }
+    });
+
+    // Hide/show cash flow related text in highlights
+    const highlightOutcome = document.getElementById('highlight-outcome');
+    if (highlightOutcome) {
+        if (!show) {
+            // Replace cash flow related terms with benefit-focused language
+            highlightOutcome.textContent = highlightOutcome.textContent
+                .replace(/cash flow/gi, 'benefit')
+                .replace(/breaks even/gi, 'becomes beneficial')
+                .replace(/break even/gi, 'become beneficial');
+        }
+    }
+}
+
+// Add new calculation functions
+function calculateOperatingCosts(periodData, vehicles, params, prices) {
+    let conventionalCosts = 0;
+    let cngCosts = 0;
+    let conventionalMaintenance = 0;
+    let cngMaintenance = 0;
+    
+    Object.entries(vehicles).forEach(([type, count]) => {
+        if (count > 0) {
+            const vehicleParams = params[type];
+            const typeKey = type.replace(/([A-Z])/g, '_$1').toUpperCase();
+            const cngMPG = calculateCNGMPG(vehicleParams.mpg, CONSTANTS.CNG_LOSS[typeKey]);
+            const annualMiles = vehicleParams.annualMiles;
+            const years = periodData.length;
+            
+            // Calculate fuel costs
+            const conventionalGallons = (annualMiles * years) / vehicleParams.mpg;
+            const cngGallons = (annualMiles * years) / cngMPG;
+            
+            const conventionalPrice = type === 'lightDuty' ? prices.gasoline : prices.diesel;
+            conventionalCosts += conventionalGallons * conventionalPrice;
+            cngCosts += cngGallons * prices.cng;
+            
+            // Calculate maintenance costs
+            const conventionalRate = type === 'lightDuty' ? 
+                CONSTANTS.MAINTENANCE_COST.GAS_CNG : 
+                CONSTANTS.MAINTENANCE_COST.DIESEL;
+            
+            conventionalMaintenance += annualMiles * years * conventionalRate;
+            cngMaintenance += annualMiles * years * CONSTANTS.MAINTENANCE_COST.GAS_CNG;
+        }
+    });
+    
+    return {
+        conventional: conventionalCosts + conventionalMaintenance,
+        cng: cngCosts + cngMaintenance,
+        difference: (conventionalCosts + conventionalMaintenance) - (cngCosts + cngMaintenance)
+    };
+}
+
+function calculateCostPerMileReduction(vehicles, params, prices) {
+    const reductions = {
+        lightDuty: 0,
+        mediumDuty: 0,
+        heavyDuty: 0
+    };
+    
+    Object.entries(vehicles).forEach(([type, count]) => {
+        if (count > 0) {
+            const vehicleParams = params[type];
+            const typeKey = type.replace(/([A-Z])/g, '_$1').toUpperCase();
+            const cngMPG = calculateCNGMPG(vehicleParams.mpg, CONSTANTS.CNG_LOSS[typeKey]);
+            
+            // Calculate conventional cost per mile
+            const conventionalPrice = type === 'lightDuty' ? prices.gasoline : prices.diesel;
+            const conventionalCPM = conventionalPrice / vehicleParams.mpg;
+            
+            // Calculate CNG cost per mile
+            const cngCPM = prices.cng / cngMPG;
+            
+            // Calculate reduction
+            reductions[type] = conventionalCPM - cngCPM;
+        }
+    });
+    
+    return reductions;
+}
+```
+</file_contents>
+
