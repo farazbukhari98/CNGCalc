@@ -25,6 +25,7 @@ interface CalculatorContextType {
   updateTimeHorizon: (years: number) => void;
   updateDeploymentStrategy: (strategy: DeploymentStrategy) => void;
   setDistributionStrategy: (strategy: DeploymentStrategy) => void;
+  updateManualDistribution: (year: number, vehicle: Partial<VehicleDistribution>) => void;
   calculateResults: () => void;
 }
 
@@ -143,6 +144,60 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Method to update manual distribution
+  const updateManualDistribution = (year: number, vehicle: Partial<VehicleDistribution>) => {
+    if (vehicleDistribution && deploymentStrategy === 'manual') {
+      // Create a copy of the current distribution
+      const newDistribution = [...vehicleDistribution];
+      
+      // Vehicle costs (assumed averages)
+      const VEHICLE_COSTS = {
+        light: 45000,
+        medium: 65000,
+        heavy: 85000
+      };
+      
+      // Update the specified year with the new values
+      const updatedYearData = {
+        ...newDistribution[year - 1],
+        ...vehicle
+      };
+      
+      // Recalculate the investment for this year based on the updated vehicle counts
+      if (vehicle.light !== undefined || vehicle.medium !== undefined || vehicle.heavy !== undefined) {
+        // Get current vehicle counts
+        const light = updatedYearData.light || 0;
+        const medium = updatedYearData.medium || 0;
+        const heavy = updatedYearData.heavy || 0;
+        
+        // Calculate new investment
+        const investment = 
+          (light * VEHICLE_COSTS.light) + 
+          (medium * VEHICLE_COSTS.medium) + 
+          (heavy * VEHICLE_COSTS.heavy);
+        
+        updatedYearData.investment = investment;
+      }
+      
+      // Update the distribution
+      newDistribution[year - 1] = updatedYearData;
+      
+      // Update the distribution state
+      setVehicleDistribution(newDistribution);
+      
+      // Recalculate results with the new distribution
+      const calculationResults = calculateROI(
+        vehicleParameters,
+        stationConfig,
+        fuelPrices,
+        timeHorizon,
+        deploymentStrategy,
+        newDistribution
+      );
+      setResults(calculationResults);
+    }
+  };
+
   // Method to calculate ROI and other metrics
   const calculateResults = () => {
     // First, distribute vehicles based on strategy
@@ -183,6 +238,7 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     updateTimeHorizon,
     updateDeploymentStrategy,
     setDistributionStrategy,
+    updateManualDistribution,
     calculateResults
   };
 

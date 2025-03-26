@@ -229,8 +229,29 @@ export function distributeVehicles(
     
     // Ensure we have distribution entries for all years
     ensureFullTimeHorizon(distribution);
+  } else if (strategy === 'manual') {
+    // For manual distribution, initialize with placeholder values 
+    // that will be updated by the user input
+    for (let i = 0; i < timeHorizon; i++) {
+      // For initial setup, evenly distribute vehicles
+      const lightThisYear = Math.ceil(lightDutyCount / timeHorizon);
+      const mediumThisYear = Math.ceil(mediumDutyCount / timeHorizon);
+      const heavyThisYear = Math.ceil(heavyDutyCount / timeHorizon);
+      
+      const yearInvestment = 
+        (lightThisYear * VEHICLE_COSTS.light) + 
+        (mediumThisYear * VEHICLE_COSTS.medium) + 
+        (heavyThisYear * VEHICLE_COSTS.heavy);
+      
+      distribution.push({
+        light: lightThisYear,
+        medium: mediumThisYear,
+        heavy: heavyThisYear,
+        investment: yearInvestment
+      });
+    }
   } else {
-    // Manual distribution - for now, just set to phased as default
+    // Default to phased strategy if the strategy is unknown
     return distributeVehicles(vehicleParams, timeHorizon, 'phased');
   }
   
