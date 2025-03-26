@@ -40,7 +40,7 @@ export default function MainContent() {
               {strategyTitles[deploymentStrategy]}
             </h1>
             <p className="text-gray-600 mt-1">
-              {strategyTaglines[deploymentStrategy]}
+              {strategyTaglines[deploymentStrategy]} • <span className="text-green-600 text-sm">Auto-updating</span>
             </p>
           </div>
           <div className="flex items-center mt-3 md:mt-0">

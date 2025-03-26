@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, RefreshCw } from "lucide-react";
 import VehicleParameters from "./VehicleParameters";
 import StationConfiguration from "./StationConfiguration";
 import FuelPrices from "./FuelPrices";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useCalculator } from "@/contexts/CalculatorContext";
 
 export default function SidePanel() {
-  const { calculateResults } = useCalculator();
   
   const [openSections, setOpenSections] = useState({
     vehicleParams: true,
@@ -96,13 +95,11 @@ export default function SidePanel() {
           </div>
         </div>
 
-        {/* Calculate Button */}
-        <Button 
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors mt-4"
-          onClick={calculateResults}
-        >
-          Calculate ROI
-        </Button>
+        {/* Auto-update indicator */}
+        <div className="flex items-center justify-center gap-2 p-3 mt-4 bg-gray-100 rounded-lg">
+          <RefreshCw size={18} className="text-green-600 animate-spin animate-once animate-duration-1000" />
+          <span className="text-sm text-gray-600">Calculations update automatically</span>
+        </div>
       </div>
     </div>
   );

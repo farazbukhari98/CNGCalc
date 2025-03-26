@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { 
   VehicleParameters, 
   StationConfig, 
@@ -56,6 +56,30 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
   const [deploymentStrategy, setDeploymentStrategy] = useState<DeploymentStrategy>("phased");
   const [vehicleDistribution, setVehicleDistribution] = useState<VehicleDistribution[] | null>(null);
   const [results, setResults] = useState<CalculationResults | null>(null);
+
+  // Automatically recalculate when any parameter changes
+  useEffect(() => {
+    // First, distribute vehicles based on strategy
+    const distribution = distributeVehicles(
+      vehicleParameters,
+      timeHorizon,
+      deploymentStrategy
+    );
+    setVehicleDistribution(distribution);
+    
+    // Then calculate ROI and other metrics
+    if (distribution) {
+      const calculationResults = calculateROI(
+        vehicleParameters,
+        stationConfig,
+        fuelPrices,
+        timeHorizon,
+        deploymentStrategy,
+        distribution
+      );
+      setResults(calculationResults);
+    }
+  }, [vehicleParameters, stationConfig, fuelPrices, timeHorizon, deploymentStrategy]);
 
   // Method to update vehicle parameters
   const updateVehicleParameters = (params: VehicleParameters) => {

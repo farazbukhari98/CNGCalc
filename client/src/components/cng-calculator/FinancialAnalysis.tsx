@@ -126,7 +126,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
           </div>
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-sm text-gray-500 mb-1">5-Year ROI</div>
+              <div className="text-sm text-gray-500 mb-1">{timeHorizon}-Year ROI</div>
               <div className="text-lg font-bold text-green-600">{Math.round(results.roi)}%</div>
             </div>
             <div className="bg-gray-50 p-3 rounded-lg">
