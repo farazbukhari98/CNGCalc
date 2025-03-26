@@ -1,0 +1,141 @@
+import { useCalculator } from "@/contexts/CalculatorContext";
+import { Card, CardContent } from "@/components/ui/card";
+import { 
+  LineChart, 
+  Line, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from "recharts";
+
+type FinancialAnalysisProps = {
+  showCashflow: boolean;
+};
+
+export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisProps) {
+  const { results, timeHorizon } = useCalculator();
+
+  // If no results yet, don't render anything
+  if (!results) return null;
+
+  // Format currency
+  const formatCurrency = (value: number) => {
+    return `$${value.toLocaleString()}`;
+  };
+
+  // Prepare cash flow chart data
+  const cashFlowData = Array.from({ length: timeHorizon }, (_, i) => {
+    return {
+      year: `Year ${i + 1}`,
+      cumulativeInvestment: results.cumulativeInvestment[i],
+      cumulativeSavings: results.cumulativeSavings[i]
+    };
+  });
+
+  // Prepare cost vs savings chart data
+  const costSavingsData = Array.from({ length: timeHorizon }, (_, i) => {
+    return {
+      year: `Year ${i + 1}`,
+      investment: i === 0 ? results.totalInvestment : (results.vehicleDistribution[i]?.investment || 0),
+      savings: results.yearlySavings[i]
+    };
+  });
+
+  // Format for Recharts tooltips
+  const currencyFormatter = (value: number) => {
+    return `$${value.toLocaleString()}`;
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      {/* Cash Flow Chart */}
+      {showCashflow && (
+        <Card className="bg-white rounded-lg shadow">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Cash Flow Analysis</h2>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={cashFlowData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis tickFormatter={currencyFormatter} />
+                  <RechartsTooltip formatter={currencyFormatter} />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="cumulativeInvestment" 
+                    name="Cumulative Investment"
+                    stroke="#ef4444" 
+                    fill="rgba(239, 68, 68, 0.1)" 
+                    activeDot={{ r: 8 }} 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="cumulativeSavings" 
+                    name="Cumulative Savings"
+                    stroke="#10b981" 
+                    fill="rgba(16, 185, 129, 0.1)" 
+                    activeDot={{ r: 8 }} 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="text-sm text-gray-500 mb-1">Payback Period</div>
+                <div className="text-lg font-bold text-blue-600">{results.paybackPeriod.toFixed(1)} Years</div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="text-sm text-gray-500 mb-1">Net Cash Flow (5yr)</div>
+                <div className="text-lg font-bold text-green-600">{formatCurrency(results.netCashFlow)}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Cost vs Savings Analysis */}
+      <Card className="bg-white rounded-lg shadow">
+        <CardContent className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Cost vs. Savings</h2>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={costSavingsData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis tickFormatter={currencyFormatter} />
+                <RechartsTooltip formatter={currencyFormatter} />
+                <Legend />
+                <Bar 
+                  dataKey="investment" 
+                  name="Investment"
+                  fill="rgba(239, 68, 68, 0.7)" 
+                />
+                <Bar 
+                  dataKey="savings" 
+                  name="Savings"
+                  fill="rgba(16, 185, 129, 0.7)" 
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="text-sm text-gray-500 mb-1">5-Year ROI</div>
+              <div className="text-lg font-bold text-green-600">{Math.round(results.roi)}%</div>
+            </div>
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="text-sm text-gray-500 mb-1">Annual Rate of Return</div>
+              <div className="text-lg font-bold text-blue-600">{results.annualRateOfReturn.toFixed(1)}%</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
