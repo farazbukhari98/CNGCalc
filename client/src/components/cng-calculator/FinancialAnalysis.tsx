@@ -91,7 +91,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                 <div className="text-lg font-bold text-blue-600">{results.paybackPeriod.toFixed(1)} Years</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">Net Cash Flow (5yr)</div>
+                <div className="text-sm text-gray-500 mb-1">Net Cash Flow ({timeHorizon}yr)</div>
                 <div className="text-lg font-bold text-green-600">{formatCurrency(results.netCashFlow)}</div>
               </div>
             </div>
