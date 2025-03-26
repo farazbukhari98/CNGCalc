@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom styles for CNG Calculator */
+.timeline-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.year-block {
+  border-top-width: 4px;
+  transition: all 0.2s ease-in-out;
+}
+
+.year-block:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.vehicle-type-light {
+  border-top-color: #3b82f6; /* blue-500 */
+}
+
+.vehicle-type-medium {
+  border-top-color: #10b981; /* green-500 */
+}
+
+.vehicle-type-heavy {
+  border-top-color: #ef4444; /* red-500 */
+}
+
 @layer base {
   * {
     @apply border-border;

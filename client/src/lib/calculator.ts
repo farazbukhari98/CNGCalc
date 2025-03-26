@@ -44,6 +44,19 @@ export function distributeVehicles(
   const { lightDutyCount, mediumDutyCount, heavyDutyCount } = vehicleParams;
   const distribution: VehicleDistribution[] = [];
   
+  // Ensure distribution has elements for the full time horizon
+  const ensureFullTimeHorizon = (dist: VehicleDistribution[]): VehicleDistribution[] => {
+    while (dist.length < timeHorizon) {
+      dist.push({
+        light: 0,
+        medium: 0,
+        heavy: 0,
+        investment: 0
+      });
+    }
+    return dist;
+  };
+  
   if (strategy === 'immediate') {
     // All vehicles in first year, none in subsequent years
     const firstYearInvestment = 
@@ -154,6 +167,9 @@ export function distributeVehicles(
         });
       }
     }
+    
+    // Ensure we have distribution entries for all years
+    ensureFullTimeHorizon(distribution);
   } else if (strategy === 'deferred') {
     // Back-load: Minimal in early years, 50% in final year
     const finalYearLight = Math.ceil(lightDutyCount * 0.5);
@@ -210,6 +226,9 @@ export function distributeVehicles(
       heavy: finalYearHeavy,
       investment: finalYearInvestment
     });
+    
+    // Ensure we have distribution entries for all years
+    ensureFullTimeHorizon(distribution);
   } else {
     // Manual distribution - for now, just set to phased as default
     return distributeVehicles(vehicleParams, timeHorizon, 'phased');
@@ -239,6 +258,18 @@ export function calculateROI(
   // Total investment
   const totalInvestment = totalVehicleInvestment + stationCost;
   
+  // Ensure the vehicleDistribution array is long enough
+  // (this should be handled already by distributeVehicles, but ensuring it here too)
+  const ensuredDistribution = [...vehicleDistribution];
+  while (ensuredDistribution.length < timeHorizon) {
+    ensuredDistribution.push({
+      light: 0,
+      medium: 0,
+      heavy: 0,
+      investment: 0
+    });
+  }
+  
   // Calculate yearly savings
   const yearlySavings: number[] = [];
   const cumulativeSavings: number[] = [];
@@ -251,10 +282,10 @@ export function calculateROI(
     let mediumInOperation = 0;
     let heavyInOperation = 0;
     
-    for (let i = 0; i <= year; i++) {
-      lightInOperation += vehicleDistribution[i]?.light || 0;
-      mediumInOperation += vehicleDistribution[i]?.medium || 0;
-      heavyInOperation += vehicleDistribution[i]?.heavy || 0;
+    for (let i = 0; i <= year && i < ensuredDistribution.length; i++) {
+      lightInOperation += ensuredDistribution[i].light || 0;
+      mediumInOperation += ensuredDistribution[i].medium || 0;
+      heavyInOperation += ensuredDistribution[i].heavy || 0;
     }
     
     // Factor in annual fuel price increase
@@ -295,7 +326,8 @@ export function calculateROI(
     cumulativeSavings.push(Math.round(prevCumulativeSavings + yearSavings));
     
     // Update cumulative investment
-    cumulativeInvestmentToDate += vehicleDistribution[year]?.investment || 0;
+    const yearInvestment = year < ensuredDistribution.length ? ensuredDistribution[year].investment : 0;
+    cumulativeInvestmentToDate += yearInvestment;
     cumulativeInvestment.push(Math.round(cumulativeInvestmentToDate));
   }
   
@@ -353,6 +385,6 @@ export function calculateROI(
     costPerMileGasoline,
     costPerMileCNG,
     costReduction,
-    vehicleDistribution
+    vehicleDistribution: ensuredDistribution
   };
 }

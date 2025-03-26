@@ -65,10 +65,10 @@ export default function DeploymentTimeline() {
         {/* Timeline Visualization - Only show if we have results */}
         {results && vehicleDistribution && (
           <div className="timeline-scroll overflow-x-auto">
-            <div className={`min-w-max grid grid-cols-${Math.min(timeHorizon, 5)} gap-3`}>
+            <div className="min-w-max grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {years.map((year) => {
-                // Determine which vehicle type is dominant for this year
-                const yearData = vehicleDistribution[year - 1];
+                // Make sure we have data for this year, default to empty values if not
+                const yearData = vehicleDistribution[year - 1] || { light: 0, medium: 0, heavy: 0, investment: 0 };
                 const { light, medium, heavy } = yearData;
                 let borderClass = "vehicle-type-light";
                 
@@ -80,7 +80,8 @@ export default function DeploymentTimeline() {
                 
                 // Calculate year's financial data
                 const yearInvestment = yearData.investment;
-                const yearSavings = results.yearlySavings[year - 1];
+                // Make sure we have savings data for this year
+                const yearSavings = results.yearlySavings[year - 1] || 0;
                 
                 return (
                   <div key={year} className={`year-block bg-white border rounded-lg shadow-sm p-3 ${borderClass}`}>
