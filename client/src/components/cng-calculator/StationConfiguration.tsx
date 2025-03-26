@@ -72,8 +72,8 @@ export default function StationConfiguration() {
             <SelectValue placeholder="Select business type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="aglc">AGLC (Automotive Grade Liquid Cooling)</SelectItem>
-            <SelectItem value="cgc">CGC (Commercial Grade Cooling)</SelectItem>
+            <SelectItem value="aglc">AGLC (Atlanta Gas Light Company)</SelectItem>
+            <SelectItem value="cgc">CGC (Chattanooga Gas Company)</SelectItem>
           </SelectContent>
         </Select>
       </div>
