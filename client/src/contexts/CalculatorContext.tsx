@@ -104,17 +104,31 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
 
   // Method to update deployment strategy
   const updateDeploymentStrategy = (strategy: DeploymentStrategy) => {
+    // Previous strategy
+    const previousStrategy = deploymentStrategy;
+    
+    // Update the strategy state
     setDeploymentStrategy(strategy);
     
-    // If we change to or from immediate, recalculate
-    if (strategy === 'immediate' || deploymentStrategy === 'immediate') {
-      // We need to redistribute vehicles if we're changing to or from immediate
-      const distribution = distributeVehicles(
+    // Always recalculate distribution when strategy changes
+    const distribution = distributeVehicles(
+      vehicleParameters,
+      timeHorizon,
+      strategy
+    );
+    setVehicleDistribution(distribution);
+    
+    // Recalculate results with the new distribution
+    if (distribution) {
+      const calculationResults = calculateROI(
         vehicleParameters,
+        stationConfig,
+        fuelPrices,
         timeHorizon,
-        strategy
+        strategy,
+        distribution
       );
-      setVehicleDistribution(distribution);
+      setResults(calculationResults);
     }
   };
 

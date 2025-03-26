@@ -3,12 +3,14 @@ import { ChevronDown, RefreshCw } from "lucide-react";
 import VehicleParameters from "./VehicleParameters";
 import StationConfiguration from "./StationConfiguration";
 import FuelPrices from "./FuelPrices";
+import GlobalSettings from "./GlobalSettings";
 import { Badge } from "@/components/ui/badge";
 import { useCalculator } from "@/contexts/CalculatorContext";
 
 export default function SidePanel() {
   
   const [openSections, setOpenSections] = useState({
+    globalSettings: true,
     vehicleParams: true,
     stationConfig: false,
     fuelPrices: false,
@@ -31,6 +33,28 @@ export default function SidePanel() {
 
       {/* Collapsible Sections */}
       <div className="p-4 space-y-4">
+        {/* Global Settings Section */}
+        <div className="mb-4">
+          <button
+            type="button"
+            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onClick={() => toggleSection("globalSettings")}
+            aria-expanded={openSections.globalSettings}
+          >
+            <span className="font-medium">Global Settings</span>
+            <ChevronDown
+              className={`w-5 h-5 transition-transform duration-200 ${
+                openSections.globalSettings ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+          <div
+            className={`mt-2 ${openSections.globalSettings ? "" : "hidden"}`}
+          >
+            <GlobalSettings />
+          </div>
+        </div>
+
         {/* Vehicle Parameters Section */}
         <div className="mb-4">
           <button
