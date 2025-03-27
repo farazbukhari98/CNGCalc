@@ -208,55 +208,7 @@ export default function AdditionalMetrics() {
         </CardContent>
       </Card>
     
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Environmental Impact */}
-        <Card className="bg-white rounded-lg shadow">
-          <CardContent className="p-5">
-            <h3 className="text-lg font-semibold mb-3">Environmental Impact</h3>
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">CO₂ Reduction</span>
-                  <span className="text-sm font-medium text-green-600">{results.co2Reduction.toFixed(1)}%</span>
-                </div>
-                <div className="h-2 w-full bg-gray-200 rounded-full">
-                  <div 
-                    className="h-2 bg-green-500 rounded-full" 
-                    style={{ width: `${results.co2Reduction}%` }}
-                  ></div>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">NOx Reduction</span>
-                  <span className="text-sm font-medium text-green-600">85%</span>
-                </div>
-                <div className="h-2 w-full bg-gray-200 rounded-full">
-                  <div className="h-2 bg-green-500 rounded-full" style={{ width: "85%" }}></div>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">Particulate Matter</span>
-                  <span className="text-sm font-medium text-green-600">90%</span>
-                </div>
-                <div className="h-2 w-full bg-gray-200 rounded-full">
-                  <div className="h-2 bg-green-500 rounded-full" style={{ width: "90%" }}></div>
-                </div>
-              </div>
-              
-              <div className="pt-3 border-t">
-                <div className="text-xs text-gray-500">Carbon Offset Equivalent</div>
-                <div className="text-sm font-medium mt-1">
-                  ~{Math.round(totalEmissionsTons / 7.5).toLocaleString()} acres of forest per year
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Operational Metrics */}
         <Card className="bg-white rounded-lg shadow">
           <CardContent className="p-5">
@@ -282,6 +234,10 @@ export default function AdditionalMetrics() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Extended Engine Life</span>
                 <span className="text-sm font-medium text-green-600">~40%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Total CO₂ Reduction</span>
+                <span className="text-sm font-medium text-green-600">{results.co2Reduction.toFixed(1)}%</span>
               </div>
             </div>
           </CardContent>
