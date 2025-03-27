@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useCalculator } from "@/contexts/CalculatorContext";
+import { useComparison } from "@/contexts/ComparisonContext";
 import FleetConfiguration from "./FleetConfiguration";
 import DeploymentTimeline from "./DeploymentTimeline";
 import FinancialAnalysis from "./FinancialAnalysis";
 import AdditionalMetrics from "./AdditionalMetrics";
+import StrategyComparison from "./StrategyComparison";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -68,6 +70,9 @@ export default function MainContent() {
           <FinancialAnalysis showCashflow={showCashflow} />
           
           <AdditionalMetrics />
+          
+          {/* Strategy Comparison */}
+          <StrategyComparison />
           
           {/* Export/Save Actions */}
           <div className="flex flex-wrap justify-end gap-3 mt-6">

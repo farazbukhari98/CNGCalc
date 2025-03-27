@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import { CalculatorProvider } from "./contexts/CalculatorContext";
+import { ComparisonProvider } from "./contexts/ComparisonContext";
 
 function Router() {
   return (
@@ -19,8 +20,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <CalculatorProvider>
-        <Router />
-        <Toaster />
+        <ComparisonProvider>
+          <Router />
+          <Toaster />
+        </ComparisonProvider>
       </CalculatorProvider>
     </QueryClientProvider>
   );

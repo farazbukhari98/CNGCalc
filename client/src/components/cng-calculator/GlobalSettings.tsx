@@ -1,5 +1,6 @@
 import { useCalculator } from "@/contexts/CalculatorContext";
-import { Info } from "lucide-react";
+import { useComparison } from "@/contexts/ComparisonContext";
+import { Info, BarChart3, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
   Tooltip,
@@ -7,14 +8,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 export default function GlobalSettings() {
   const { 
     timeHorizon,
     deploymentStrategy, 
     updateTimeHorizon,
-    updateDeploymentStrategy 
+    updateDeploymentStrategy,
+    results
   } = useCalculator();
+
+  const { 
+    addComparisonItem, 
+    isInComparison,
+    comparisonItems
+  } = useComparison();
 
   // Strategy descriptions
   const strategyDescriptions = {
@@ -25,8 +34,40 @@ export default function GlobalSettings() {
     manual: "Manually distribute vehicles across the timeline."
   };
 
+  const handleAddToComparison = () => {
+    if (results && !isInComparison(deploymentStrategy)) {
+      addComparisonItem(deploymentStrategy, results);
+    }
+  };
+
   return (
     <div className="bg-white rounded-md p-3 space-y-3">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-medium text-gray-700">Calculation Settings</h3>
+        
+        {/* Add to comparison button */}
+        {results && !isInComparison(deploymentStrategy) && comparisonItems.length < 4 && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleAddToComparison}
+            className="flex items-center gap-1 text-xs h-7 px-2"
+          >
+            <Plus className="h-3 w-3" />
+            <span className="hidden sm:inline">Add to Comparison</span>
+            <span className="sm:hidden">Compare</span>
+          </Button>
+        )}
+        
+        {/* Already in comparison indicator */}
+        {results && isInComparison(deploymentStrategy) && (
+          <Badge variant="outline" className="text-xs h-7 flex items-center gap-1 border-blue-500 text-blue-500">
+            <BarChart3 className="h-3 w-3" />
+            <span>In comparison</span>
+          </Badge>
+        )}
+      </div>
+
       {/* Time Horizon */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -80,6 +121,15 @@ export default function GlobalSettings() {
           {strategyDescriptions[deploymentStrategy]}
         </p>
       </div>
+
+      {/* Tip for comparison */}
+      {comparisonItems.length > 0 && (
+        <div className="pt-2 text-xs text-gray-500">
+          <p className="italic">
+            Tip: You can compare up to 4 different strategies to analyze ROI and environmental benefits.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
