@@ -42,6 +42,9 @@ export interface CalculationResults {
   annualRateOfReturn: number;
   netCashFlow: number;
   co2Reduction: number;
+  yearlyEmissionsSaved: number[];
+  cumulativeEmissionsSaved: number[];
+  totalEmissionsSaved: number;
   costPerMileGasoline: number;
   costPerMileCNG: number;
   costReduction: number;

@@ -383,15 +383,91 @@ export function calculateROI(
   // Calculate annual fuel savings (average)
   const annualFuelSavings = finalSavings / timeHorizon;
   
-  // Calculate CO2 reduction
-  // Very simplified: CNG produces about 25-30% less CO2 than gasoline/diesel
-  const co2Reduction = 28;
+  // Calculate CO2 emissions and reduction
+  // Emission factors in kg CO2 per gallon
+  const EMISSION_FACTORS = {
+    gasoline: 8.887,  // kg CO2 per gallon
+    diesel: 10.180,   // kg CO2 per gallon
+    cng: 6.604        // kg CO2 per gallon equivalent
+  };
+  
+  // Emission factors for vehicles (g CO2 per mile) - more precise calculation
+  const VEHICLE_EMISSION_FACTORS = {
+    light: {
+      gasoline: 404, // g CO2 per mile for light-duty gasoline vehicles
+      cng: 303       // g CO2 per mile for light-duty CNG vehicles
+    },
+    medium: {
+      diesel: 690,   // g CO2 per mile for medium-duty diesel vehicles  
+      cng: 520       // g CO2 per mile for medium-duty CNG vehicles
+    },
+    heavy: {
+      diesel: 1550,  // g CO2 per mile for heavy-duty diesel vehicles
+      cng: 1170      // g CO2 per mile for heavy-duty CNG vehicles
+    }
+  };
+
+  // Calculate total emissions for conventional fuels vs CNG
+  let totalConventionalEmissions = 0;
+  let totalCngEmissions = 0;
+  let yearlyEmissionsSaved: number[] = [];
+  let cumulativeEmissionsSaved: number[] = [];
+  let cumulativeEmissionsSavedToDate = 0;
+
+  for (let year = 0; year < timeHorizon; year++) {
+    // Calculate number of each vehicle type in operation this year (cumulative)
+    let lightInOperation = 0;
+    let mediumInOperation = 0;
+    let heavyInOperation = 0;
+    
+    for (let i = 0; i <= year && i < ensuredDistribution.length; i++) {
+      lightInOperation += ensuredDistribution[i].light || 0;
+      mediumInOperation += ensuredDistribution[i].medium || 0;
+      heavyInOperation += ensuredDistribution[i].heavy || 0;
+    }
+
+    // Calculate conventional emissions using g/mile emission factors (more accurate)
+    const lightGasolineEmissions = lightInOperation * ANNUAL_MILEAGE.light * VEHICLE_EMISSION_FACTORS.light.gasoline / 1000; // convert g to kg
+    const mediumDieselEmissions = mediumInOperation * ANNUAL_MILEAGE.medium * VEHICLE_EMISSION_FACTORS.medium.diesel / 1000;
+    const heavyDieselEmissions = heavyInOperation * ANNUAL_MILEAGE.heavy * VEHICLE_EMISSION_FACTORS.heavy.diesel / 1000;
+    
+    const yearConventionalEmissions = lightGasolineEmissions + mediumDieselEmissions + heavyDieselEmissions;
+    
+    // Calculate CNG emissions using g/mile emission factors
+    const lightCngEmissions = lightInOperation * ANNUAL_MILEAGE.light * VEHICLE_EMISSION_FACTORS.light.cng / 1000; // convert g to kg
+    const mediumCngEmissions = mediumInOperation * ANNUAL_MILEAGE.medium * VEHICLE_EMISSION_FACTORS.medium.cng / 1000;
+    const heavyCngEmissions = heavyInOperation * ANNUAL_MILEAGE.heavy * VEHICLE_EMISSION_FACTORS.heavy.cng / 1000;
+    
+    const yearCngEmissions = lightCngEmissions + mediumCngEmissions + heavyCngEmissions;
+    
+    // Calculate emissions savings for this year
+    const yearEmissionsSaved = yearConventionalEmissions - yearCngEmissions;
+    
+    // Update totals
+    totalConventionalEmissions += yearConventionalEmissions;
+    totalCngEmissions += yearCngEmissions;
+    
+    // Track yearly and cumulative emissions saved
+    yearlyEmissionsSaved.push(Math.round(yearEmissionsSaved));
+    cumulativeEmissionsSavedToDate += yearEmissionsSaved;
+    cumulativeEmissionsSaved.push(Math.round(cumulativeEmissionsSavedToDate));
+  }
+  
+  // Calculate total CO2 reduction percentage
+  const co2Reduction = totalConventionalEmissions > 0 
+    ? ((totalConventionalEmissions - totalCngEmissions) / totalConventionalEmissions) * 100 
+    : 0;
   
   // Calculate cost per mile metrics
   const costPerMileGasoline = fuelPrices.gasolinePrice / FUEL_EFFICIENCY.light.gasoline;
   const costPerMileCNG = fuelPrices.cngPrice / FUEL_EFFICIENCY.light.cng;
   const costReduction = ((costPerMileGasoline - costPerMileCNG) / costPerMileGasoline) * 100;
   
+  // Total emissions saved in kg (convert to metric tons for display)
+  const totalEmissionsSaved = cumulativeEmissionsSaved.length > 0 
+    ? cumulativeEmissionsSaved[cumulativeEmissionsSaved.length - 1] 
+    : 0;
+
   return {
     totalInvestment,
     annualFuelSavings,
@@ -403,6 +479,9 @@ export function calculateROI(
     annualRateOfReturn,
     netCashFlow,
     co2Reduction,
+    yearlyEmissionsSaved,
+    cumulativeEmissionsSaved,
+    totalEmissionsSaved,
     costPerMileGasoline,
     costPerMileCNG,
     costReduction,
