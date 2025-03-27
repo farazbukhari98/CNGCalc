@@ -152,7 +152,7 @@ export default function FleetConfiguration() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-600">CO₂ Reduction</span>
               <span className="text-sm font-medium text-green-600">
-                {results ? `${results.co2Reduction}%` : '-'}
+                {results ? `${results.co2Reduction.toFixed(1)}%` : '-'}
               </span>
             </div>
           </div>
