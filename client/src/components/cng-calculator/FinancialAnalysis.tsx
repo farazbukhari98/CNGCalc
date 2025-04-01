@@ -39,9 +39,14 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
 
   // Prepare cost vs savings chart data
   const costSavingsData = Array.from({ length: timeHorizon }, (_, i) => {
+    // For year 1, separate station cost and vehicle investment
+    const vehicleInvestment = results.vehicleDistribution[i]?.investment || 0;
+    const stationCost = i === 0 ? (results.cumulativeInvestment[0] - vehicleInvestment) : 0;
+    
     return {
       year: `Year ${i + 1}`,
-      investment: i === 0 ? results.totalInvestment : (results.vehicleDistribution[i]?.investment || 0),
+      vehicleInvestment: vehicleInvestment,
+      stationInvestment: stationCost,
       savings: results.yearlySavings[i]
     };
   });
@@ -112,9 +117,16 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                 <RechartsTooltip formatter={currencyFormatter} />
                 <Legend />
                 <Bar 
-                  dataKey="investment" 
-                  name="Investment"
+                  dataKey="vehicleInvestment" 
+                  name="Vehicle Investment"
                   fill="rgba(239, 68, 68, 0.7)" 
+                  stackId="investment"
+                />
+                <Bar 
+                  dataKey="stationInvestment" 
+                  name="Station Investment"
+                  fill="rgba(59, 130, 246, 0.7)" 
+                  stackId="investment"
                 />
                 <Bar 
                   dataKey="savings" 

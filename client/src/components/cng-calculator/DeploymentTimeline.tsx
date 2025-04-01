@@ -107,7 +107,13 @@ export default function DeploymentTimeline() {
                 }
                 
                 // Calculate year's financial data
-                const yearInvestment = yearData.investment;
+                const vehicleInvestment = yearData.investment || 0;
+                
+                // For year 1, also show station cost separately
+                const isFirstYear = year === 1;
+                const stationCost = isFirstYear ? (results.cumulativeInvestment[0] - vehicleInvestment) : 0;
+                const totalYearInvestment = vehicleInvestment + (isFirstYear ? stationCost : 0);
+                
                 // Make sure we have savings data for this year
                 const yearSavings = results.yearlySavings[year - 1] || 0;
                 
@@ -168,11 +174,29 @@ export default function DeploymentTimeline() {
                     </div>
                     
                     <div className="border-t pt-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">Investment</span>
-                        <span className="text-xs font-medium">{formatCurrency(yearInvestment)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
+                      {isFirstYear && stationCost > 0 && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Vehicles</span>
+                            <span className="text-xs font-medium">{formatCurrency(vehicleInvestment)}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Station</span>
+                            <span className="text-xs font-medium">{formatCurrency(stationCost)}</span>
+                          </div>
+                          <div className="flex items-center justify-between border-t pt-1 mt-1">
+                            <span className="text-xs text-gray-500 font-medium">Total Inv.</span>
+                            <span className="text-xs font-medium">{formatCurrency(totalYearInvestment)}</span>
+                          </div>
+                        </>
+                      )}
+                      {(!isFirstYear || stationCost === 0) && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Investment</span>
+                          <span className="text-xs font-medium">{formatCurrency(vehicleInvestment)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between mt-1">
                         <span className="text-xs text-gray-500">Savings</span>
                         <span className="text-xs font-medium text-green-600">{formatCurrency(yearSavings)}</span>
                       </div>

@@ -25,9 +25,7 @@ export default function StationConfiguration() {
   const getStationCost = () => {
     const baseCost = stationConfig.stationType === 'fast' ? 750000 : 550000;
     const businessMultiplier = stationConfig.businessType === 'aglc' ? 1.0 : 0.9;
-    const cost = Math.round(baseCost * businessMultiplier);
-    console.log(`StationConfiguration component: type=${stationConfig.stationType}, base=${baseCost}, cost=${cost}`);
-    return cost;
+    return Math.round(baseCost * businessMultiplier);
   };
 
   return (
