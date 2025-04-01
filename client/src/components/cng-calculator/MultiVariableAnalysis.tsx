@@ -185,9 +185,10 @@ const HeatMapVisualization = ({
         {/* Heat map grid */}
         <div className="heat-map ml-16 mt-2 mb-8 grid gap-0.5"
           style={{
-            gridTemplateColumns: `repeat(${xValues.length}, 1fr)`,
-            gridTemplateRows: `repeat(${yValues.length}, 1fr)`,
-            aspectRatio: xValues.length / yValues.length
+            gridTemplateColumns: `repeat(${xValues.length || 1}, 1fr)`,
+            gridTemplateRows: `repeat(${yValues.length || 1}, 1fr)`,
+            width: "100%",
+            height: "300px"
           }}>
           {heatMapData.map((row, rowIdx) => (
             row.map((value, colIdx) => (
@@ -637,29 +638,35 @@ export default function MultiVariableAnalysis() {
               <div className="bg-gray-50 p-4 rounded-lg col-span-1 md:col-span-2">
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-sm font-medium text-gray-700">Variable Interaction Heat Map</h3>
-                  <TabsList className="bg-gray-200">
-                    <TabsTrigger 
-                      value="payback" 
-                      className={`text-xs ${activeMetric === 'payback' ? 'bg-white' : ''}`}
-                      onClick={() => setActiveMetric('payback')}
+                  <div className="flex border rounded-md overflow-hidden">
+                    <button 
+                      className={`px-3 py-1 text-xs ${activeMetric === 'payback' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveMetric('payback');
+                      }}
                     >
                       Payback
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="roi" 
-                      className={`text-xs ${activeMetric === 'roi' ? 'bg-white' : ''}`}
-                      onClick={() => setActiveMetric('roi')}
+                    </button>
+                    <button 
+                      className={`px-3 py-1 text-xs ${activeMetric === 'roi' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveMetric('roi');
+                      }}
                     >
                       ROI
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="netCashFlow" 
-                      className={`text-xs ${activeMetric === 'netCashFlow' ? 'bg-white' : ''}`}
-                      onClick={() => setActiveMetric('netCashFlow')}
+                    </button>
+                    <button 
+                      className={`px-3 py-1 text-xs ${activeMetric === 'netCashFlow' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveMetric('netCashFlow');
+                      }}
                     >
                       Cash Flow
-                    </TabsTrigger>
-                  </TabsList>
+                    </button>
+                  </div>
                 </div>
                 
                 <HeatMapVisualization
