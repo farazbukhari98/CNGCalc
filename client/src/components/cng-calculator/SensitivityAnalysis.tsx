@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCalculator } from "@/contexts/CalculatorContext";
+import { formatPaybackPeriod } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
 
 // Type for sensitivity variable
@@ -206,7 +207,7 @@ export default function SensitivityAnalysis() {
   // Format for chart tooltips
   const formatTooltipValue = (value: number, name: string) => {
     if (name === "payback") {
-      return `${value.toFixed(1)} Years`;
+      return formatPaybackPeriod(value);
     } else if (name === "roi") {
       return `${Math.round(value)}%`;
     } else if (name === "netCashFlow") {
@@ -226,7 +227,7 @@ export default function SensitivityAnalysis() {
           ? curr : prev, sensitivityData[0]);
           
     return {
-      payback: closestData?.payback?.toFixed(1) + " Years",
+      payback: formatPaybackPeriod(closestData?.payback || 0),
       roi: Math.round(closestData?.roi || 0) + "%",
       netCashFlow: formatCurrency(closestData?.netCashFlow || 0)
     };
@@ -301,7 +302,7 @@ export default function SensitivityAnalysis() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-600">Payback Period</span>
-                      <span className="text-xs font-medium">{results.paybackPeriod.toFixed(1)} Years</span>
+                      <span className="text-xs font-medium">{formatPaybackPeriod(results.paybackPeriod)}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-600">ROI ({timeHorizon} Years)</span>
@@ -334,7 +335,7 @@ export default function SensitivityAnalysis() {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="label" />
                           <YAxis 
-                            label={{ value: 'Payback Period (Years)', angle: -90, position: 'insideLeft' }} 
+                            label={{ value: 'Payback Period (Years, Months)', angle: -90, position: 'insideLeft' }} 
                             domain={['auto', 'auto']}
                           />
                           <RechartsTooltip formatter={formatTooltipValue} />

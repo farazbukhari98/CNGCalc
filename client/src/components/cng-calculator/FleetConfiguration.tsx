@@ -1,5 +1,6 @@
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatPaybackPeriod } from "@/lib/utils";
 
 export default function FleetConfiguration() {
   const { 
@@ -134,7 +135,7 @@ export default function FleetConfiguration() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-600">Payback Period</span>
               <span className="text-sm font-medium text-blue-600">
-                {results ? `${results.paybackPeriod.toFixed(1)} Years` : '-'}
+                {results ? formatPaybackPeriod(results.paybackPeriod) : '-'}
               </span>
             </div>
             <div className="flex items-center justify-between mb-2">

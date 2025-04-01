@@ -4,6 +4,7 @@ import { useComparison } from "@/contexts/ComparisonContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatPaybackPeriod } from "@/lib/utils";
 import { 
   AreaChart, 
   Area, 
@@ -415,7 +416,7 @@ export default function StrategyComparison() {
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Payback:</span>
-                  <span className="font-medium">{item.results.paybackPeriod.toFixed(1)} years</span>
+                  <span className="font-medium">{formatPaybackPeriod(item.results.paybackPeriod)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">ROI:</span>
