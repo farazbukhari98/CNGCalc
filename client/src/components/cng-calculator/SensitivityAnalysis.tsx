@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCalculator } from "@/contexts/CalculatorContext";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
 
 // Type for sensitivity variable
 type SensitivityVariable = 
@@ -100,7 +100,7 @@ export default function SensitivityAnalysis() {
     // Generate data points for sensitivity analysis
     const dataPoints = [];
     
-    // Create 11 points from -50% to +50% (or the configured range)
+    // Create points from min to max based on step size
     const config = variableConfig[selectedVariable];
     const steps = Math.floor((config.max - config.min) / config.step) + 1;
     
@@ -119,7 +119,11 @@ export default function SensitivityAnalysis() {
     }
     
     setSensitivityData(dataPoints);
-  }, [selectedVariable, variationPercentage, results]);
+    
+    // Highlight the current selected variation
+    setVariationPercentage(Math.min(Math.max(variationPercentage, config.min), config.max));
+    
+  }, [selectedVariable, results, fuelPrices]);
 
   // Calculate the modified value based on the selected variable and percentage
   const calculateModifiedValue = (variable: SensitivityVariable, percentage: number) => {
@@ -210,6 +214,26 @@ export default function SensitivityAnalysis() {
     }
     return value;
   };
+  
+  // Get the calculated values at current variation
+  const getCurrentValueForVariable = () => {
+    if (!results || sensitivityData.length === 0) return null;
+    
+    // Find the closest data point to the current variation
+    const closestData = sensitivityData.find(d => d.percentage === variationPercentage) ||
+      sensitivityData.reduce((prev, curr) => 
+        Math.abs(curr.percentage - variationPercentage) < Math.abs(prev.percentage - variationPercentage) 
+          ? curr : prev, sensitivityData[0]);
+          
+    return {
+      payback: closestData?.payback?.toFixed(1) + " Years",
+      roi: Math.round(closestData?.roi || 0) + "%",
+      netCashFlow: formatCurrency(closestData?.netCashFlow || 0)
+    };
+  }
+  
+  // Get the impact values
+  const variationImpact = getCurrentValueForVariable();
 
   return (
     <Card className="bg-white rounded-lg shadow mb-6">
@@ -254,7 +278,14 @@ export default function SensitivityAnalysis() {
                     min={variableConfig[selectedVariable].min}
                     max={variableConfig[selectedVariable].max}
                     step={variableConfig[selectedVariable].step}
-                    onValueChange={(values) => setVariationPercentage(values[0])}
+                    onValueChange={(values) => {
+                      setVariationPercentage(values[0]);
+                      // Highlight the closest data point to the current variation in the chart
+                      const closestData = sensitivityData.find(d => d.percentage === values[0]) ||
+                                         sensitivityData.reduce((prev, curr) => 
+                                           Math.abs(curr.percentage - values[0]) < Math.abs(prev.percentage - values[0]) 
+                                           ? curr : prev, sensitivityData[0]);
+                    }}
                     className="mb-2"
                   />
                   <div className="flex items-center justify-between text-xs text-gray-500">
@@ -315,6 +346,12 @@ export default function SensitivityAnalysis() {
                             stroke="#3b82f6" 
                             activeDot={{ r: 8 }} 
                           />
+                          <ReferenceLine 
+                            x={variationPercentage > 0 ? `+${variationPercentage}%` : `${variationPercentage}%`} 
+                            stroke="red" 
+                            strokeDasharray="3 3" 
+                            label={{ value: "Selected", position: "top", fill: "red", fontSize: 10 }}
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -338,6 +375,12 @@ export default function SensitivityAnalysis() {
                             name="ROI %" 
                             stroke="#10b981" 
                             activeDot={{ r: 8 }} 
+                          />
+                          <ReferenceLine 
+                            x={variationPercentage > 0 ? `+${variationPercentage}%` : `${variationPercentage}%`} 
+                            stroke="red" 
+                            strokeDasharray="3 3" 
+                            label={{ value: "Selected", position: "top", fill: "red", fontSize: 10 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>
@@ -364,11 +407,40 @@ export default function SensitivityAnalysis() {
                             stroke="#6366f1" 
                             activeDot={{ r: 8 }} 
                           />
+                          <ReferenceLine 
+                            x={variationPercentage > 0 ? `+${variationPercentage}%` : `${variationPercentage}%`} 
+                            stroke="red" 
+                            strokeDasharray="3 3" 
+                            label={{ value: "Selected", position: "top", fill: "red", fontSize: 10 }}
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
                   </TabsContent>
                 </Tabs>
+                
+                {/* Impact Values Display */}
+                {variationImpact && variationPercentage !== 0 && (
+                  <div className="mt-4 bg-blue-50 p-4 rounded-md border border-blue-100">
+                    <h3 className="text-sm font-medium text-blue-800 mb-2">
+                      Impact at {variationPercentage > 0 ? '+' : ''}{variationPercentage}% {variableConfig[selectedVariable].label}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <div className="text-gray-600">Payback Period</div>
+                        <div className="font-medium text-blue-600">{variationImpact.payback}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">ROI ({timeHorizon} Years)</div>
+                        <div className="font-medium text-green-600">{variationImpact.roi}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">Net Cash Flow</div>
+                        <div className="font-medium text-purple-600">{variationImpact.netCashFlow}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="mt-4 text-xs text-gray-500 leading-relaxed">
                   <p>This analysis shows how changes in {variableConfig[selectedVariable].label} affect your financial outcomes. The current position (0%) represents your baseline scenario.</p>
