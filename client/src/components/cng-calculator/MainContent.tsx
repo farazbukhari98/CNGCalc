@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, Download } from "lucide-react";
+import { Save, Download, PanelLeft, PanelRight } from "lucide-react";
 
 export default function MainContent() {
   const { deploymentStrategy, results } = useCalculator();
@@ -35,18 +35,35 @@ export default function MainContent() {
     manual: "Customized deployment based on your specific needs"
   };
 
+  const { toggleSidebar, sidebarCollapsed } = useCalculator();
+
   return (
     <div className="flex-1 overflow-y-auto p-6">
       {/* Strategy Header */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {strategyTitles[deploymentStrategy]}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              {strategyTaglines[deploymentStrategy]} • <span className="text-green-600 text-sm">Auto-updating</span>
-            </p>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="h-8 w-8 bg-transparent"
+              onClick={toggleSidebar}
+              title={sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
+            >
+              {sidebarCollapsed ? (
+                <PanelRight className="h-4 w-4" />
+              ) : (
+                <PanelLeft className="h-4 w-4" />
+              )}
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {strategyTitles[deploymentStrategy]}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {strategyTaglines[deploymentStrategy]} • <span className="text-green-600 text-sm">Auto-updating</span>
+              </p>
+            </div>
           </div>
           <div className="flex items-center mt-3 md:mt-0">
             <div className="flex items-center space-x-2">

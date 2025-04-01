@@ -18,6 +18,7 @@ interface CalculatorContextType {
   deploymentStrategy: DeploymentStrategy;
   vehicleDistribution: VehicleDistribution[] | null;
   results: CalculationResults | null;
+  sidebarCollapsed: boolean;
   
   updateVehicleParameters: (params: VehicleParameters) => void;
   updateStationConfig: (config: StationConfig) => void;
@@ -27,6 +28,7 @@ interface CalculatorContextType {
   setDistributionStrategy: (strategy: DeploymentStrategy) => void;
   updateManualDistribution: (year: number, vehicle: Partial<VehicleDistribution>) => void;
   calculateResults: () => void;
+  toggleSidebar: () => void;
 }
 
 // Create the context
@@ -57,6 +59,7 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
   const [deploymentStrategy, setDeploymentStrategy] = useState<DeploymentStrategy>("phased");
   const [vehicleDistribution, setVehicleDistribution] = useState<VehicleDistribution[] | null>(null);
   const [results, setResults] = useState<CalculationResults | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
 
   // Automatically recalculate when any parameter changes
   useEffect(() => {
@@ -235,6 +238,11 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
       setResults(calculationResults);
     }
   };
+  
+  // Method to toggle the sidebar
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => !prev);
+  };
 
   // Context value
   const value = {
@@ -245,6 +253,7 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     deploymentStrategy,
     vehicleDistribution,
     results,
+    sidebarCollapsed,
     
     updateVehicleParameters,
     updateStationConfig,
@@ -253,7 +262,8 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     updateDeploymentStrategy,
     setDistributionStrategy,
     updateManualDistribution,
-    calculateResults
+    calculateResults,
+    toggleSidebar
   };
 
   return (
