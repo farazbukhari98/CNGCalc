@@ -183,12 +183,14 @@ const HeatMapVisualization = ({
         </div>
         
         {/* Heat map grid */}
-        <div className="heat-map ml-16 mt-2 mb-8 grid gap-0.5"
+        <div className="heat-map ml-16 mt-2 mb-8 grid gap-0.5 overflow-hidden"
           style={{
-            gridTemplateColumns: `repeat(${xValues.length || 1}, 1fr)`,
-            gridTemplateRows: `repeat(${yValues.length || 1}, 1fr)`,
-            width: "100%",
-            height: "300px"
+            gridTemplateColumns: `repeat(${xValues.length || 1}, minmax(20px, 1fr))`,
+            gridTemplateRows: `repeat(${yValues.length || 1}, minmax(20px, 1fr))`,
+            width: "calc(100% - 16px)",
+            height: "350px",
+            aspectRatio: (xValues.length || 1) / (yValues.length || 1) > 0 ? (xValues.length || 1) / (yValues.length || 1) : 1,
+            maxWidth: "100%"
           }}>
           {heatMapData.map((row, rowIdx) => (
             row.map((value, colIdx) => (
@@ -198,7 +200,7 @@ const HeatMapVisualization = ({
                 style={{
                   backgroundColor: getColorForValue(value),
                   width: '100%',
-                  height: '24px',
+                  height: '100%',
                 }}
                 onClick={() => setSelectedCell({
                   x: colIdx,
