@@ -37,11 +37,13 @@ export default function FleetConfiguration() {
     (vehicleParameters.mediumDutyCount * mediumDutyCost) +
     (vehicleParameters.heavyDutyCount * heavyDutyCost);
 
-  // Station cost based on configuration
+  // Station cost based on configuration - with logging for debugging
   const getStationCost = () => {
     const baseCost = stationConfig.stationType === 'fast' ? 750000 : 550000;
     const businessMultiplier = stationConfig.businessType === 'aglc' ? 1.0 : 0.9;
-    return Math.round(baseCost * businessMultiplier);
+    const cost = Math.round(baseCost * businessMultiplier);
+    console.log(`Station cost calculation: type=${stationConfig.stationType}, base=${baseCost}, multiplier=${businessMultiplier}, final=${cost}`);
+    return cost;
   };
 
   const stationCost = getStationCost();

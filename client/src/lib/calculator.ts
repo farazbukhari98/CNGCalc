@@ -32,7 +32,9 @@ const FUEL_EFFICIENCY = {
 export function calculateStationCost(config: StationConfig): number {
   const baseCost = config.stationType === 'fast' ? 750000 : 550000;
   const businessMultiplier = config.businessType === 'aglc' ? 1.0 : 0.9;
-  return Math.round(baseCost * businessMultiplier);
+  const cost = Math.round(baseCost * businessMultiplier);
+  console.log(`Calculator.ts: calculateStationCost - type=${config.stationType}, business=${config.businessType}, cost=${cost}`);
+  return cost;
 }
 
 // Distribute vehicles across years based on strategy
@@ -296,6 +298,7 @@ export function calculateROI(
   const cumulativeSavings: number[] = [];
   const cumulativeInvestment: number[] = [];
   let cumulativeInvestmentToDate = stationCost; // Station cost is applied on year 1
+  console.log(`Calculator.ts: Initial cumulative investment = ${stationCost} (station cost)`)
   
   for (let year = 0; year < timeHorizon; year++) {
     // Calculate number of each vehicle type in operation this year (cumulative)
