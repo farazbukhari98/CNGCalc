@@ -1,0 +1,82 @@
+Sensitivity Analysis Feature Plan
+1. Feature Overview
+The sensitivity analysis feature would allow users to see how changes in key variables affect their financial outcomes without having to manually change each input value. This provides a more dynamic understanding of which factors most significantly impact the ROI and payback period.
+2. Key Variables to Include
+Based on the CNG Fleet Calculator's functionality, these variables would be most valuable for sensitivity analysis:
+Fuel Prices
+Gasoline price ($/gallon)
+Diesel price ($/gallon)
+CNG price ($/GGE)
+Vehicle Parameters
+Vehicle acquisition costs
+Annual miles driven
+Fuel efficiency (MPG)
+Maintenance costs
+Operational Parameters
+Station type and costs
+Time horizon (analysis period)
+3. User Interface Design
+Main Sensitivity Panel
+A dedicated "Sensitivity Analysis" tab or expandable section in the main interface
+Introduction text explaining the purpose and how to use the feature
+Variable Selection
+Dropdown menu allowing users to select which variable they want to analyze
+Option to analyze multiple variables simultaneously for advanced users
+Range Controls
+For each selected variable, provide a slider with:
+Minimum value (e.g., -30% of current value)
+Maximum value (e.g., +30% of current value)
+Current value clearly marked
+Incremental steps (e.g., 5% changes)
+Results Display
+Real-time updating graph showing how the selected variable affects:
+Payback period (primary y-axis)
+ROI percentage (secondary y-axis)
+Net savings over the analysis period (tertiary y-axis or separate graph)
+X-axis would represent the range of the variable being analyzed
+Threshold Indicators
+Visual markers showing critical thresholds:
+Break-even point (where payback period equals analysis period)
+Target ROI thresholds (e.g., 10%, 15%, 20%)
+Current value position
+4. Interaction Flow
+User selects "Sensitivity Analysis" from the main navigation
+System pre-populates current values from the main calculator
+User selects which variable(s) to analyze
+System generates initial sensitivity graph
+User can:
+Move sliders to see different ranges
+Toggle between different result metrics (payback, ROI, net savings)
+Add or remove variables from analysis
+Export or save the analysis
+5. Advanced Features
+Multi-Variable Analysis
+2D heat map showing how two variables interact (e.g., fuel price vs. miles driven)
+Color gradient representing payback period or ROI
+Scenario Comparison
+Ability to save specific points on the sensitivity curve as named scenarios
+Side-by-side comparison of these scenarios
+Critical Value Calculation
+Automatically calculate and highlight the "critical value" where the project becomes financially viable (e.g., minimum CNG-diesel price differential needed)
+Probability Weighting
+Allow users to assign probability distributions to variables (e.g., fuel prices)
+Generate Monte Carlo simulation results showing probability of different outcomes
+6. Implementation Approach
+Phase 1: Basic Sensitivity Analysis
+Single variable analysis with sliders
+Real-time updating line graph
+Focus on the three most impactful variables: fuel prices, vehicle costs, and annual miles
+Phase 2: Enhanced Visualization
+Multi-variable analysis
+Threshold indicators
+Scenario saving and comparison
+Phase 3: Advanced Analysis
+Probability weighting
+Monte Carlo simulations
+Export and reporting features
+7. User Experience Considerations
+Ensure real-time updates are smooth and responsive
+Provide clear visual cues when values change
+Include help text explaining how to interpret results
+Use consistent color coding across all visualizations
+Ensure mobile compatibility with touch-friendly controls

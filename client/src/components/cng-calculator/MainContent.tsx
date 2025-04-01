@@ -6,9 +6,11 @@ import DeploymentTimeline from "./DeploymentTimeline";
 import FinancialAnalysis from "./FinancialAnalysis";
 import AdditionalMetrics from "./AdditionalMetrics";
 import StrategyComparison from "./StrategyComparison";
+import SensitivityAnalysis from "./SensitivityAnalysis";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Save, Download } from "lucide-react";
 
 export default function MainContent() {
@@ -71,8 +73,23 @@ export default function MainContent() {
           
           <AdditionalMetrics />
           
-          {/* Strategy Comparison */}
-          <StrategyComparison />
+          {/* Advanced Analysis Tabs */}
+          <div className="mb-6">
+            <Tabs defaultValue="comparison" className="w-full">
+              <TabsList className="w-full bg-gray-100 p-1 mb-4">
+                <TabsTrigger value="comparison" className="flex-1 py-2">Strategy Comparison</TabsTrigger>
+                <TabsTrigger value="sensitivity" className="flex-1 py-2">Sensitivity Analysis</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="comparison" className="mt-0">
+                <StrategyComparison />
+              </TabsContent>
+              
+              <TabsContent value="sensitivity" className="mt-0">
+                <SensitivityAnalysis />
+              </TabsContent>
+            </Tabs>
+          </div>
           
           {/* Export/Save Actions */}
           <div className="flex flex-wrap justify-end gap-3 mt-6">
