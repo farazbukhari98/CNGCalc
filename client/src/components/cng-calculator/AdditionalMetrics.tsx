@@ -232,10 +232,6 @@ export default function AdditionalMetrics() {
                 <span className="text-sm font-medium text-green-600">10-15%</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Extended Engine Life</span>
-                <span className="text-sm font-medium text-green-600">~40%</span>
-              </div>
-              <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Total CO₂ Reduction</span>
                 <span className="text-sm font-medium text-green-600">{results.co2Reduction.toFixed(1)}%</span>
               </div>
