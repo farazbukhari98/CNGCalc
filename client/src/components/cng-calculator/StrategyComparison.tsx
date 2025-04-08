@@ -403,17 +403,62 @@ export default function StrategyComparison() {
         </Tabs>
 
         {/* Comparison Summary */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {comparisonItems.map((item, index) => (
             <div 
               key={item.id} 
-              className="bg-gray-50 p-3 rounded-lg border-t-4" 
+              className="bg-gray-50 p-4 rounded-lg border-t-4" 
               style={{ borderColor: getStrategyColor(index) }}
             >
               <div className="text-sm font-medium mb-2" style={{ color: getStrategyColor(index) }}>
                 {item.strategyName}
               </div>
               <div className="space-y-2 text-xs">
+                {/* Vehicle Counts - First show total counts */}
+                <div className="border-b border-gray-200 pb-1 mb-1">
+                  <div className="font-medium text-gray-700 mb-1">Vehicle Counts:</div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <div>
+                      <span className="text-gray-500">Light:</span>
+                      <span className="font-medium ml-1">
+                        {item.results.vehicleDistribution.reduce((sum, year) => sum + year.light, 0)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Med:</span>
+                      <span className="font-medium ml-1">
+                        {item.results.vehicleDistribution.reduce((sum, year) => sum + year.medium, 0)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Heavy:</span>
+                      <span className="font-medium ml-1">
+                        {item.results.vehicleDistribution.reduce((sum, year) => sum + year.heavy, 0)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Strategy-specific parameters if available */}
+                {item.strategy === 'phased' && (
+                  <div className="flex justify-between mb-1">
+                    <span className="text-gray-500">Phased:</span>
+                    <span className="font-medium">25% per year</span>
+                  </div>
+                )}
+                {item.strategy === 'aggressive' && (
+                  <div className="flex justify-between mb-1">
+                    <span className="text-gray-500">Aggressive:</span>
+                    <span className="font-medium">50% year 1</span>
+                  </div>
+                )}
+                {item.strategy === 'deferred' && (
+                  <div className="flex justify-between mb-1">
+                    <span className="text-gray-500">Deferred:</span>
+                    <span className="font-medium">Starts year 3</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between">
                   <span className="text-gray-500">Payback:</span>
                   <span className="font-medium">{formatPaybackPeriod(item.results.paybackPeriod)}</span>
