@@ -31,6 +31,11 @@
   border-top-color: #ef4444; /* red-500 */
 }
 
+/* Dark mode transitions */
+.dark-mode-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -38,5 +43,78 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+  
+  /* Dark mode styles */
+  .dark {
+    color-scheme: dark;
+  }
+  
+  .dark body {
+    @apply bg-gray-900 text-gray-100;
+  }
+  
+  /* Dark mode card styles */
+  .dark .bg-white {
+    @apply bg-gray-800;
+  }
+  
+  .dark .text-gray-700, 
+  .dark .text-gray-800, 
+  .dark .text-gray-900 {
+    @apply text-gray-200;
+  }
+  
+  .dark .text-gray-600 {
+    @apply text-gray-400;
+  }
+  
+  .dark .text-gray-500 {
+    @apply text-gray-400;
+  }
+  
+  .dark .bg-gray-50, 
+  .dark .bg-gray-100 {
+    @apply bg-gray-700;
+  }
+  
+  .dark .shadow {
+    @apply shadow-gray-950;
+  }
+  
+  .dark .border-gray-200 {
+    @apply border-gray-700;
+  }
+  
+  /* Chart backgrounds */
+  .dark .recharts-cartesian-grid-bg {
+    @apply fill-gray-800;
+  }
+  
+  .dark .recharts-cartesian-grid line {
+    @apply stroke-gray-700;
+  }
+  
+  .dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+    @apply bg-gray-800 border-gray-700 text-gray-200;
+  }
+  
+  /* Alert colors */
+  .dark .bg-amber-50 {
+    @apply bg-amber-900/30;
+  }
+  
+  .dark .text-amber-700, 
+  .dark .text-amber-800 {
+    @apply text-amber-300;
+  }
+  
+  .dark .border-amber-200 {
+    @apply border-amber-700;
+  }
+  
+  /* Focus and hover states */
+  .dark .hover\:bg-gray-200:hover {
+    @apply hover:bg-gray-700;
   }
 }

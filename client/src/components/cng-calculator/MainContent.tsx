@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { useComparison } from "@/contexts/ComparisonContext";
+import { useDarkMode } from "@/contexts/DarkModeContext";
 import FleetConfiguration from "./FleetConfiguration";
 import DeploymentTimeline from "./DeploymentTimeline";
 import FinancialAnalysis from "./FinancialAnalysis";
@@ -11,10 +12,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, Download, PanelLeft, PanelRight } from "lucide-react";
+import { Save, Download, PanelLeft, PanelRight, Moon, Sun } from "lucide-react";
 
 export default function MainContent() {
   const { deploymentStrategy, results } = useCalculator();
+  const { darkMode, toggleDarkMode } = useDarkMode();
   const [showCashflow, setShowCashflow] = useState(true);
 
   // Strategy titles and taglines
@@ -64,7 +66,7 @@ export default function MainContent() {
               </p>
             </div>
           </div>
-          <div className="flex items-center mt-3 md:mt-0">
+          <div className="flex items-center mt-3 md:mt-0 space-x-6">
             <div className="flex items-center space-x-2">
               <Label htmlFor="cashflowToggle" className="mr-3 text-sm font-medium text-gray-700">
                 Show Cash Flow
@@ -74,6 +76,24 @@ export default function MainContent() {
                 checked={showCashflow}
                 onCheckedChange={setShowCashflow}
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="darkModeToggle" className="mr-3 text-sm font-medium text-gray-700">
+                {darkMode ? "Light Mode" : "Dark Mode"}
+              </Label>
+              <Switch
+                id="darkModeToggle"
+                checked={darkMode}
+                onCheckedChange={toggleDarkMode}
+                className="dark-mode-transition"
+              />
+              <span className="ml-1">
+                {darkMode ? (
+                  <Sun size={18} className="text-amber-500" />
+                ) : (
+                  <Moon size={18} className="text-blue-800" />
+                )}
+              </span>
             </div>
           </div>
         </div>

@@ -24,9 +24,9 @@ export default function SidePanel() {
   };
 
   return (
-    <div className="w-full md:w-80 bg-white shadow-lg md:h-full overflow-y-auto">
+    <div className="w-full md:w-80 bg-white shadow-lg md:h-full overflow-y-auto dark-mode-transition dark:bg-gray-800">
       {/* Side Panel Header */}
-      <div className="p-4 bg-blue-800 text-white">
+      <div className="p-4 bg-blue-800 text-white dark:bg-blue-900">
         <h1 className="text-xl font-bold">CNG Fleet Calculator</h1>
         <p className="text-sm text-blue-100 mt-1">Optimize your fleet conversion strategy</p>
       </div>
@@ -37,7 +37,7 @@ export default function SidePanel() {
         <div className="mb-4">
           <button
             type="button"
-            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark-mode-transition"
             onClick={() => toggleSection("globalSettings")}
             aria-expanded={openSections.globalSettings}
           >
@@ -59,7 +59,7 @@ export default function SidePanel() {
         <div className="mb-4">
           <button
             type="button"
-            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark-mode-transition"
             onClick={() => toggleSection("vehicleParams")}
             aria-expanded={openSections.vehicleParams}
           >
@@ -81,7 +81,7 @@ export default function SidePanel() {
         <div className="mb-4">
           <button
             type="button"
-            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark-mode-transition"
             onClick={() => toggleSection("stationConfig")}
             aria-expanded={openSections.stationConfig}
           >
@@ -103,7 +103,7 @@ export default function SidePanel() {
         <div className="mb-4">
           <button
             type="button"
-            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark-mode-transition"
             onClick={() => toggleSection("fuelPrices")}
             aria-expanded={openSections.fuelPrices}
           >
@@ -120,9 +120,9 @@ export default function SidePanel() {
         </div>
 
         {/* Auto-update indicator */}
-        <div className="flex items-center justify-center gap-2 p-3 mt-4 bg-gray-100 rounded-lg">
+        <div className="flex items-center justify-center gap-2 p-3 mt-4 bg-gray-100 rounded-lg dark:bg-gray-700 dark-mode-transition">
           <RefreshCw size={18} className="text-green-600 animate-spin animate-once animate-duration-1000" />
-          <span className="text-sm text-gray-600">Calculations update automatically</span>
+          <span className="text-sm text-gray-600 dark:text-gray-300">Calculations update automatically</span>
         </div>
       </div>
     </div>

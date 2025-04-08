@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import { CalculatorProvider } from "./contexts/CalculatorContext";
 import { ComparisonProvider } from "./contexts/ComparisonContext";
+import { DarkModeProvider } from "./contexts/DarkModeContext";
 
 function Router() {
   return (
@@ -19,12 +20,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <CalculatorProvider>
-        <ComparisonProvider>
-          <Router />
-          <Toaster />
-        </ComparisonProvider>
-      </CalculatorProvider>
+      <DarkModeProvider>
+        <CalculatorProvider>
+          <ComparisonProvider>
+            <Router />
+            <Toaster />
+          </ComparisonProvider>
+        </CalculatorProvider>
+      </DarkModeProvider>
     </QueryClientProvider>
   );
 }
