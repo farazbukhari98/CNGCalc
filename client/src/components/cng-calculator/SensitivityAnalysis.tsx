@@ -279,7 +279,7 @@ export default function SensitivityAnalysis() {
   const variationImpact = getCurrentValueForVariable();
 
   return (
-    <Card className="bg-white rounded-lg shadow mb-6">
+    <Card className="bg-white rounded-lg shadow mb-6 sensitivity-analysis">
       <CardContent className="p-6">
         <h2 className="text-xl font-semibold mb-4">Sensitivity Analysis</h2>
         
