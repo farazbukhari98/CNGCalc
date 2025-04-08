@@ -100,7 +100,7 @@ export default function MainContent() {
       </div>
 
       {/* Main content sections */}
-      <FleetConfiguration />
+      <FleetConfiguration showCashflow={showCashflow} />
       
       <DeploymentTimeline />
       
