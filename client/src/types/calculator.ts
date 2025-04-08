@@ -3,6 +3,9 @@ export interface VehicleParameters {
   lightDutyCount: number;
   mediumDutyCount: number;
   heavyDutyCount: number;
+  lightDutyCost: number;
+  mediumDutyCost: number;
+  heavyDutyCost: number;
 }
 
 // Station configuration

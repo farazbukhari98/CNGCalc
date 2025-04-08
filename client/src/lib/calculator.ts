@@ -7,11 +7,13 @@ import {
   CalculationResults 
 } from "@/types/calculator";
 
-// Vehicle costs (CNG conversion costs)
-const VEHICLE_COSTS = {
-  light: 15000, // CNG conversion cost for light duty vehicles
-  medium: 15000, // CNG conversion cost for medium duty vehicles
-  heavy: 50000   // CNG conversion cost for heavy duty vehicles
+// Get vehicle costs from vehicleParameters (for compatibility with old code we'll create a helper function)
+const getVehicleCosts = (vehicleParams: VehicleParameters) => {
+  return {
+    light: vehicleParams.lightDutyCost, // CNG conversion cost for light duty vehicles
+    medium: vehicleParams.mediumDutyCost, // CNG conversion cost for medium duty vehicles
+    heavy: vehicleParams.heavyDutyCost   // CNG conversion cost for heavy duty vehicles
+  };
 };
 
 // Annual mileage assumptions
@@ -137,6 +139,7 @@ export function distributeVehicles(
   strategy: DeploymentStrategy
 ): VehicleDistribution[] {
   const { lightDutyCount, mediumDutyCount, heavyDutyCount } = vehicleParams;
+  const vehicleCosts = getVehicleCosts(vehicleParams);
   const distribution: VehicleDistribution[] = [];
   
   // Ensure distribution has elements for the full time horizon
@@ -155,9 +158,9 @@ export function distributeVehicles(
   if (strategy === 'immediate') {
     // All vehicles in first year, none in subsequent years
     const firstYearInvestment = 
-      (lightDutyCount * VEHICLE_COSTS.light) + 
-      (mediumDutyCount * VEHICLE_COSTS.medium) + 
-      (heavyDutyCount * VEHICLE_COSTS.heavy);
+      (lightDutyCount * vehicleCosts.light) + 
+      (mediumDutyCount * vehicleCosts.medium) + 
+      (heavyDutyCount * vehicleCosts.heavy);
     
     distribution.push({
       light: lightDutyCount,
@@ -195,9 +198,9 @@ export function distributeVehicles(
       remainingHeavy -= heavyThisYear;
       
       const yearInvestment = 
-        (lightThisYear * VEHICLE_COSTS.light) + 
-        (mediumThisYear * VEHICLE_COSTS.medium) + 
-        (heavyThisYear * VEHICLE_COSTS.heavy);
+        (lightThisYear * vehicleCosts.light) + 
+        (mediumThisYear * vehicleCosts.medium) + 
+        (heavyThisYear * vehicleCosts.heavy);
       
       distribution.push({
         light: lightThisYear,
@@ -213,9 +216,9 @@ export function distributeVehicles(
     const firstYearHeavy = Math.ceil(heavyDutyCount * 0.5);
     
     const firstYearInvestment = 
-      (firstYearLight * VEHICLE_COSTS.light) + 
-      (firstYearMedium * VEHICLE_COSTS.medium) + 
-      (firstYearHeavy * VEHICLE_COSTS.heavy);
+      (firstYearLight * vehicleCosts.light) + 
+      (firstYearMedium * vehicleCosts.medium) + 
+      (firstYearHeavy * vehicleCosts.heavy);
     
     distribution.push({
       light: firstYearLight,
@@ -250,9 +253,9 @@ export function distributeVehicles(
         rHeavy -= heavyThisYear;
         
         const yearInvestment = 
-          (lightThisYear * VEHICLE_COSTS.light) + 
-          (mediumThisYear * VEHICLE_COSTS.medium) + 
-          (heavyThisYear * VEHICLE_COSTS.heavy);
+          (lightThisYear * vehicleCosts.light) + 
+          (mediumThisYear * vehicleCosts.medium) + 
+          (heavyThisYear * vehicleCosts.heavy);
         
         distribution.push({
           light: lightThisYear,
@@ -296,9 +299,9 @@ export function distributeVehicles(
         rHeavy -= heavyThisYear;
         
         const yearInvestment = 
-          (lightThisYear * VEHICLE_COSTS.light) + 
-          (mediumThisYear * VEHICLE_COSTS.medium) + 
-          (heavyThisYear * VEHICLE_COSTS.heavy);
+          (lightThisYear * vehicleCosts.light) + 
+          (mediumThisYear * vehicleCosts.medium) + 
+          (heavyThisYear * vehicleCosts.heavy);
         
         distribution.push({
           light: lightThisYear,
@@ -311,9 +314,9 @@ export function distributeVehicles(
     
     // Add the final year with the heavy investment
     const finalYearInvestment = 
-      (finalYearLight * VEHICLE_COSTS.light) + 
-      (finalYearMedium * VEHICLE_COSTS.medium) + 
-      (finalYearHeavy * VEHICLE_COSTS.heavy);
+      (finalYearLight * vehicleCosts.light) + 
+      (finalYearMedium * vehicleCosts.medium) + 
+      (finalYearHeavy * vehicleCosts.heavy);
     
     distribution.push({
       light: finalYearLight,
@@ -334,9 +337,9 @@ export function distributeVehicles(
       const heavyThisYear = Math.ceil(heavyDutyCount / timeHorizon);
       
       const yearInvestment = 
-        (lightThisYear * VEHICLE_COSTS.light) + 
-        (mediumThisYear * VEHICLE_COSTS.medium) + 
-        (heavyThisYear * VEHICLE_COSTS.heavy);
+        (lightThisYear * vehicleCosts.light) + 
+        (mediumThisYear * vehicleCosts.medium) + 
+        (heavyThisYear * vehicleCosts.heavy);
       
       distribution.push({
         light: lightThisYear,
@@ -363,10 +366,11 @@ export function calculateROI(
   vehicleDistribution: VehicleDistribution[]
 ): CalculationResults {
   // Calculate total vehicle investment
+  const vehicleCosts = getVehicleCosts(vehicleParams);
   const totalVehicleInvestment = 
-    (vehicleParams.lightDutyCount * VEHICLE_COSTS.light) + 
-    (vehicleParams.mediumDutyCount * VEHICLE_COSTS.medium) + 
-    (vehicleParams.heavyDutyCount * VEHICLE_COSTS.heavy);
+    (vehicleParams.lightDutyCount * vehicleCosts.light) + 
+    (vehicleParams.mediumDutyCount * vehicleCosts.medium) + 
+    (vehicleParams.heavyDutyCount * vehicleCosts.heavy);
   
   // Calculate station cost based on vehicle parameters
   const stationCost = calculateStationCost(stationConfig, vehicleParams);

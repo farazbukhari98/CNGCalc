@@ -40,7 +40,10 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
   const [vehicleParameters, setVehicleParameters] = useState<VehicleParameters>({
     lightDutyCount: 10,
     mediumDutyCount: 5,
-    heavyDutyCount: 2
+    heavyDutyCount: 2,
+    lightDutyCost: 15000,
+    mediumDutyCost: 15000,
+    heavyDutyCost: 50000
   });
 
   const [stationConfig, setStationConfig] = useState<StationConfig>({
@@ -168,13 +171,6 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
       // Create a copy of the current distribution
       const newDistribution = [...vehicleDistribution];
       
-      // Vehicle costs (new specifications)
-      const VEHICLE_COSTS = {
-        light: 15000,
-        medium: 15000,
-        heavy: 50000
-      };
-      
       // Update the specified year with the new values
       const updatedYearData = {
         ...newDistribution[year - 1],
@@ -188,11 +184,11 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
         const medium = updatedYearData.medium || 0;
         const heavy = updatedYearData.heavy || 0;
         
-        // Calculate new investment
+        // Calculate new investment using vehicle costs from parameters
         const investment = 
-          (light * VEHICLE_COSTS.light) + 
-          (medium * VEHICLE_COSTS.medium) + 
-          (heavy * VEHICLE_COSTS.heavy);
+          (light * vehicleParameters.lightDutyCost) + 
+          (medium * vehicleParameters.mediumDutyCost) + 
+          (heavy * vehicleParameters.heavyDutyCost);
         
         updatedYearData.investment = investment;
       }

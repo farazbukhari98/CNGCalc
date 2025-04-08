@@ -1,6 +1,6 @@
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { useComparison } from "@/contexts/ComparisonContext";
-import { Info, BarChart3, Plus } from "lucide-react";
+import { Info, BarChart3, Plus, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
   Tooltip,
@@ -14,8 +14,10 @@ export default function GlobalSettings() {
   const { 
     timeHorizon,
     deploymentStrategy, 
+    vehicleParameters,
     updateTimeHorizon,
     updateDeploymentStrategy,
+    updateVehicleParameters,
     results
   } = useCalculator();
 
@@ -39,6 +41,9 @@ export default function GlobalSettings() {
       addComparisonItem(deploymentStrategy, results);
     }
   };
+
+  // Check if manual deployment is selected
+  const isManualMode = deploymentStrategy === 'manual';
 
   return (
     <div className="bg-white rounded-md p-3 space-y-3">
@@ -68,8 +73,84 @@ export default function GlobalSettings() {
         )}
       </div>
 
+      {/* Vehicle Counts Section */}
+      <div className="border-b border-gray-200 pb-3">
+        <div className="flex items-center mb-2">
+          <Truck className="h-4 w-4 mr-1 text-gray-600" />
+          <h4 className="text-sm font-medium text-gray-700">Fleet Configuration</h4>
+        </div>
+        
+        {/* Notice for manual mode */}
+        {isManualMode && (
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-2 mb-3">
+            <p className="text-xs text-amber-700">
+              In Manual Distribution Mode, vehicle counts are managed in the Deployment Timeline section.
+            </p>
+          </div>
+        )}
+
+        {/* Vehicle Counts - Hidden in manual mode */}
+        {!isManualMode && (
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Light Duty
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="number"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                  min="0"
+                  value={vehicleParameters.lightDutyCount}
+                  onChange={(e) => updateVehicleParameters({ 
+                    ...vehicleParameters, 
+                    lightDutyCount: parseInt(e.target.value) || 0 
+                  })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Medium Duty
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="number"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                  min="0"
+                  value={vehicleParameters.mediumDutyCount}
+                  onChange={(e) => updateVehicleParameters({ 
+                    ...vehicleParameters, 
+                    mediumDutyCount: parseInt(e.target.value) || 0 
+                  })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Heavy Duty
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="number"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                  min="0"
+                  value={vehicleParameters.heavyDutyCount}
+                  onChange={(e) => updateVehicleParameters({ 
+                    ...vehicleParameters, 
+                    heavyDutyCount: parseInt(e.target.value) || 0 
+                  })}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Time Horizon */}
-      <div>
+      <div className="pt-2">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Time Horizon
         </label>
