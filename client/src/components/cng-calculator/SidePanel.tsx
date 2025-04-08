@@ -11,7 +11,7 @@ export default function SidePanel() {
   
   const [openSections, setOpenSections] = useState({
     globalSettings: true,
-    vehicleParams: true,
+    vehicleParams: false,
     stationConfig: false,
     fuelPrices: false,
   });
