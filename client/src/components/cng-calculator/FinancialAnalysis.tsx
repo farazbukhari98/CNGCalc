@@ -152,8 +152,12 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                   <RechartsTooltip 
                     formatter={(value, name) => {
                       if (name === 'investment') return [formatCurrency(value as number), 'Investment'];
-                      return [value, name === 'light' ? 'Light-Duty' : name === 'medium' ? 'Medium-Duty' : 'Heavy-Duty'];
+                      if (name === 'light') return [value, 'Light-Duty'];
+                      if (name === 'medium') return [value, 'Medium-Duty']; 
+                      if (name === 'heavy') return [value, 'Heavy-Duty'];
+                      return [value, name];
                     }}
+                    labelFormatter={(label) => `${label}`}
                   />
                   <Legend />
                   <Bar 
