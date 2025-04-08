@@ -1,0 +1,71 @@
+Impact of "Turnkey" Station Payment Option on Features, Charts, and Metrics
+
+----------------------------------------------------------------------------------
+Feature / Metric / Chart        | Turnkey = Yes (Upfront)             | Turnkey = No (Financed)
+----------------------------------------------------------------------------------
+
+**I. Investment & Costs:**
+
+1. Station Investment (Displayed)
+   - Location: "Up-Front Costs" (Immediate View) / Basis for "Total Investment" (Timeline View)
+   - Turnkey = Yes:   Shows the full calculated cost of the selected station.
+   - Turnkey = No:    Shows $0 in the upfront cost display.
+
+2. Total Investment (Displayed)
+   - Location: "Up-Front Costs" (Immediate View) / "Overview Panel" (Timeline View) / Multi-Year Summaries
+   - Turnkey = Yes:   Includes the full station cost added to vehicle costs.
+   - Turnkey = No:    Includes only vehicle costs (appears lower upfront).
+
+3. Annual Costs (Implicit)
+   - Description: Ongoing costs related to the station capital.
+   - Turnkey = Yes:   $0 per year (paid upfront).
+   - Turnkey = No:    An annual financing cost (based on LDC rate & total station cost) is incurred *every year* of the analysis. This cost is *subtracted* from savings.
+
+**II. Savings & Profitability:**
+
+4. Total Annual Savings / Cash Flow (Displayed)
+   - Location: "Annual Savings" (Immediate View) / "Annual Savings" bars (Cost vs Savings Chart)
+   - Turnkey = Yes:   Represents Gross Savings (Fuel + Maintenance).
+   - Turnkey = No:    Represents Net Savings (Gross Savings - Annual Financing Cost). Appears *lower* each year.
+
+5. Cumulative Savings / Cash Flow (Displayed)
+   - Location: "Overview Panel" (Timeline View) / Multi-Year Summaries / Cumulative Cash Flow Charts
+   - Turnkey = Yes:   Accumulates based on Gross Annual Savings.
+   - Turnkey = No:    Accumulates based on lower Net Annual Savings. Grows *slower*.
+
+6. Payback Period (Displayed)
+   - Location: Payback Gauge (Immediate View) / "Overview Panel" (Timeline View) / Result Highlights
+   - Turnkey = Yes:   Calculated based on Gross Savings recovering the full initial investment (Vehicles + Station).
+   - Turnkey = No:    Calculated based on Net Savings recovering only the initial vehicle investment. Typically *longer*.
+
+7. Net ROI (Return on Investment) (Displayed)
+   - Location: "Overview Panel" (Timeline View) / Multi-Year Summaries / Result Highlights
+   - Turnkey = Yes:   Calculated using full upfront investment as the denominator and final net position (based on gross savings) as the numerator.
+   - Turnkey = No:    Calculated using only vehicle investment as the denominator and final net position (based on net savings after financing) as the numerator. The resulting % comparison depends on specific values but often appears *lower* due to financing costs reducing overall profit relative to the initial investment.
+
+**III. Charts:**
+
+8. Cumulative Cash Flow Chart(s)
+   - Location: Immediate View / Timeline View
+   - Turnkey = Yes:   Starts lower (more negative) due to full station cost. Slope reflects Gross Savings.
+   - Turnkey = No:    Starts higher (less negative) due to $0 upfront station cost. Slope is *flatter* reflecting Net Savings. Crosses $0 (break-even) *later*.
+
+9. Annual Cost vs Savings Chart (Timeline View)
+   - Location: Timeline View
+   - Turnkey = Yes:   'Investment Costs' bar in Year 1 includes station cost. 'Annual Savings' bars show Gross Savings.
+   - Turnkey = No:    'Investment Costs' bar in Year 1 *excludes* station cost. 'Annual Savings' bars are *lower* each year (showing Net Savings).
+
+**IV. Unaffected Features / Metrics:**
+
+- Vehicle Configuration Inputs (Counts, Cost, Miles, Life, MPG)
+- Fuel Price Inputs
+- Station Type Selection (Fast/Time Fill)
+- LDC Selection (AGLC/CGC) - *determines* financing rate if Turnkey=No
+- Vehicle Investment (Cost per vehicle)
+- Environmental & Operational Impact Metrics (CO2 Reduction, Cost Per Mile Savings, Fleet Efficiency)
+- Gross Fuel Savings (before financing)
+- Gross Maintenance Savings (before financing)
+
+----------------------------------------------------------------------------------
+Summary: "Turnkey = No" lowers the upfront financial barrier but adds a recurring annual cost, impacting net savings, payback time, and overall cash flow trajectory compared to paying for the station upfront ("Turnkey = Yes").
+----------------------------------------------------------------------------------

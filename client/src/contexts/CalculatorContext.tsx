@@ -45,7 +45,8 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
 
   const [stationConfig, setStationConfig] = useState<StationConfig>({
     stationType: "fast",
-    businessType: "aglc"
+    businessType: "aglc",
+    turnkey: true // Default to Yes (upfront cost)
   });
 
   const [fuelPrices, setFuelPrices] = useState<FuelPrices>({

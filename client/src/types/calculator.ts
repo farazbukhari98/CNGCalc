@@ -9,6 +9,7 @@ export interface VehicleParameters {
 export interface StationConfig {
   stationType: "fast" | "time";
   businessType: "aglc" | "cgc";
+  turnkey: boolean; // Yes = upfront cost, No = financed cost
 }
 
 // Fuel prices

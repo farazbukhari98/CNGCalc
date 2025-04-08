@@ -55,11 +55,11 @@ const BUSINESS_RATES = {
   cgc: 0.192    // 19.2% for CGC
 };
 
-// Emission factors in kg CO2 per gallon
+// Emission factors in kg CO2 per gallon (updated values)
 const EMISSION_FACTORS = {
   gasoline: 8.887,    // kg CO₂/gallon for light duty
   dieselMedium: 10.180, // kg CO₂/gallon for medium duty
-  dieselHeavy: 10.210,  // kg CO₂/gallon for heavy duty
+  dieselHeavy: 10.180,  // kg CO₂/gallon for heavy duty (updated to match medium)
   cng: 5.511         // kg CO₂/GGE
 };
 
@@ -83,54 +83,51 @@ const TIME_FILL_STATIONS = [
 
 // Station cost calculation
 export function calculateStationCost(config: StationConfig, vehicleParams?: VehicleParameters): number {
-  // Calculate estimated daily GGE (gasoline gallon equivalent) consumption
-  let estimatedAnnualGGE = 0;
-  
-  if (vehicleParams) {
-    // Light-duty vehicles (gasoline to CNG)
-    estimatedAnnualGGE += vehicleParams.lightDutyCount * 
-                          ANNUAL_MILEAGE.light / 
-                          FUEL_EFFICIENCY.light.cng;
-    
-    // Medium-duty vehicles (diesel to CNG) 
-    estimatedAnnualGGE += vehicleParams.mediumDutyCount * 
-                          ANNUAL_MILEAGE.medium / 
-                          FUEL_EFFICIENCY.medium.cng;
-    
-    // Heavy-duty vehicles (diesel to CNG)
-    estimatedAnnualGGE += vehicleParams.heavyDutyCount * 
-                          ANNUAL_MILEAGE.heavy / 
-                          FUEL_EFFICIENCY.heavy.cng;
-  } else {
-    // Default to a station that can handle 50 vehicles if no params provided
-    estimatedAnnualGGE = 50 * 20000 / 10; // 50 vehicles * 20k miles / 10 MPG average
+  // If no vehicle params provided, return default costs
+  if (!vehicleParams) {
+    return config.stationType === 'fast' ? 2200000 : 1200000; // Default to medium size
   }
   
-  // Calculate daily GGE
-  const dailyGGE = estimatedAnnualGGE / 365;
+  // Calculate GGE (Gasoline Gallon Equivalent) per day
+  // Light duty: 2.5 GGE/day, Medium duty: 6 GGE/day, Heavy duty: 15 GGE/day
+  const dailyGGE = 
+    (vehicleParams.lightDutyCount * 2.5) + 
+    (vehicleParams.mediumDutyCount * 6) + 
+    (vehicleParams.heavyDutyCount * 15);
   
-  // Select appropriate station size based on capacity needs
-  const stations = config.stationType === 'fast' ? FAST_FILL_STATIONS : TIME_FILL_STATIONS;
+  // Get capacity tier for pricing
+  const getCapacityTier = () => {
+    if (dailyGGE < 200) return 'small';
+    if (dailyGGE < 500) return 'medium';
+    if (dailyGGE < 800) return 'large';
+    return 'xlarge';
+  };
   
-  // Find the smallest station that can handle our capacity
-  let selectedStation = stations[0]; // Default to smallest
+  const tier = getCapacityTier();
   
-  for (const station of stations) {
-    if (station.capacity >= dailyGGE) {
-      selectedStation = station;
-      break;
+  // Tiered pricing based on capacity
+  const baseCosts = {
+    fast: {
+      small: 1800000,    // $1.8M for small fast-fill
+      medium: 2200000,   // $2.2M for medium fast-fill
+      large: 2700000,    // $2.7M for large fast-fill
+      xlarge: 3100000    // $3.1M for extra large fast-fill
+    },
+    time: {
+      small: 491000,     // $491K for small time-fill
+      medium: 1200000,   // $1.2M for medium time-fill
+      large: 2100000,    // $2.1M for large time-fill
+      xlarge: 3500000    // $3.5M for extra large time-fill
     }
-  }
+  };
   
-  // If no station is big enough, use the largest available
-  if (selectedStation.capacity < dailyGGE && stations.length > 0) {
-    selectedStation = stations[stations.length - 1];
-  }
+  // Get base cost from the pricing tiers
+  const baseCost = baseCosts[config.stationType][tier];
   
-  // Apply business type adjustment (AGLC stations have higher costs due to different standards)
-  const businessMultiplier = config.businessType === 'aglc' ? 1.0 : 0.9;
+  // Apply business type adjustment
+  const businessMultiplier = config.businessType === 'aglc' ? 1.0 : 0.95;
   
-  return Math.round(selectedStation.cost * businessMultiplier);
+  return Math.round(baseCost * businessMultiplier);
 }
 
 // Distribute vehicles across years based on strategy
@@ -374,8 +371,8 @@ export function calculateROI(
   // Calculate station cost based on vehicle parameters
   const stationCost = calculateStationCost(stationConfig, vehicleParams);
   
-  // Total investment
-  const totalInvestment = totalVehicleInvestment + stationCost;
+  // Total investment - only include station cost upfront if turnkey is true
+  const totalInvestment = totalVehicleInvestment + (stationConfig.turnkey ? stationCost : 0);
   
   // Ensure the vehicleDistribution array is long enough
   // (this should be handled already by distributeVehicles, but ensuring it here too)
@@ -393,7 +390,15 @@ export function calculateROI(
   const yearlySavings: number[] = [];
   const cumulativeSavings: number[] = [];
   const cumulativeInvestment: number[] = [];
-  let cumulativeInvestmentToDate = stationCost; // Station cost is applied on year 1
+  
+  // When turnkey is true, station cost is applied upfront
+  // When turnkey is false, station cost is $0 upfront (not included in cumulativeInvestment)
+  let cumulativeInvestmentToDate = stationConfig.turnkey ? stationCost : 0;
+  
+  // Monthly financing rates (as decimal) - 1.5% for AGLC, 1.6% for CGC
+  const monthlyFinancingRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
+  // Annual financing rate (monthly rate * 12 months)
+  const annualFinancingRate = monthlyFinancingRate * 12;
   
   for (let year = 0; year < timeHorizon; year++) {
     // Calculate number of each vehicle type in operation this year (cumulative)
@@ -453,8 +458,14 @@ export function calculateROI(
     
     const maintenanceSavings = lightMaintenanceSavings + mediumMaintenanceSavings + heavyMaintenanceSavings;
     
-    // Total savings for the year
-    const yearSavings = lightFuelSavings + mediumFuelSavings + heavyFuelSavings + maintenanceSavings;
+    // Calculate annual financing cost if turnkey is false
+    let financingCost = 0;
+    if (!stationConfig.turnkey) {
+      financingCost = stationCost * annualFinancingRate;
+    }
+    
+    // Total savings for the year (subtract financing cost if applicable)
+    const yearSavings = lightFuelSavings + mediumFuelSavings + heavyFuelSavings + maintenanceSavings - financingCost;
     
     yearlySavings.push(Math.round(yearSavings));
     
@@ -513,8 +524,8 @@ export function calculateROI(
       cng: 520       // g CO2 per mile for medium-duty CNG vehicles
     },
     heavy: {
-      diesel: 1550,  // g CO2 per mile for heavy-duty diesel vehicles
-      cng: 1170      // g CO2 per mile for heavy-duty CNG vehicles
+      diesel: 690,   // g CO2 per mile for heavy-duty diesel vehicles (updated to match medium-duty)
+      cng: 520       // g CO2 per mile for heavy-duty CNG vehicles (updated to match medium-duty)
     }
   };
 
