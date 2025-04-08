@@ -51,12 +51,15 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     const monthlyFinancingRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
     const annualFinancingRate = monthlyFinancingRate * 12;
     
-    // Get the calculated station cost (even though we don't use it upfront for turnkey=no)
-    const calculatedStationCost = (i === 0 && results.cumulativeInvestment[0] > vehicleInvestment) ? 
-      results.cumulativeInvestment[0] - vehicleInvestment : 0;
+    // Get the calculated station cost
+    // For year 0, the difference between total cumulative investment and vehicle investment gives us the station cost
+    // We need this for accurate financing calculation
+    const calculatedStationCost = (i === 0) ? 
+      results.totalInvestment - results.vehicleDistribution[0].investment : 0;
     
     // For turnkey=no: calculate annual financing cost
-    const financingCost = !stationConfig.turnkey && calculatedStationCost > 0 ? 
+    // For this to be accurate, we need to use the station cost from the results
+    const financingCost = !stationConfig.turnkey ? 
       calculatedStationCost * annualFinancingRate : 0;
     
     return {
