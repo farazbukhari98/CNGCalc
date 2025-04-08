@@ -26,7 +26,7 @@ export default function VehicleParameters() {
   return (
     <div className="bg-white rounded-md p-3 space-y-3">
       <div className="mb-3">
-        <h3 className="text-sm font-medium text-gray-700">Vehicle Conversion Costs</h3>
+        <h3 className="text-sm font-medium text-gray-700">Vehicle Costs</h3>
         <p className="text-xs text-gray-500 mt-1">
           Adjust the default cost for converting each type of vehicle to CNG
         </p>
