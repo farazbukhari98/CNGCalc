@@ -480,7 +480,7 @@ export function calculateROI(
   }
   
   // Calculate payback period - find when cumulative savings exceeds investment
-  let paybackPeriod = -1; // Default to -1 which will indicate "Never" pays back
+  let paybackPeriod = -1; // Default to -1 which will indicate no payback is possible
   
   // Check if it ever pays back within the analysis period
   for (let i = 0; i < timeHorizon; i++) {
@@ -498,20 +498,25 @@ export function calculateROI(
     }
   }
   
-  // Check if final year has positive trend that will eventually reach payback
-  // We leave this commented out since we want to strictly assess within the time horizon
-  /* 
+  // If no payback within time horizon, calculate projected payback
+  // by extrapolating from the final years' trend
   if (paybackPeriod === -1 && timeHorizon > 1) {
     // Check if savings are still growing in the final years
     const finalYearSavingsGrowth = cumulativeSavings[timeHorizon-1] - cumulativeSavings[timeHorizon-2];
+    
     if (finalYearSavingsGrowth > 0) {
-      // Project years to payback based on final year's growth rate
+      // Get final gap between investment and savings
       const gap = cumulativeInvestment[timeHorizon-1] - cumulativeSavings[timeHorizon-1];
-      const yearsToPayback = gap / finalYearSavingsGrowth;
-      paybackPeriod = timeHorizon + yearsToPayback;
+      
+      // Calculate additional years needed to reach payback based on final year's growth rate
+      const additionalYearsToPayback = gap / finalYearSavingsGrowth;
+      
+      // Only return a projected payback if it's reasonably achievable (within 50 years total)
+      if (timeHorizon + additionalYearsToPayback <= 50) {
+        paybackPeriod = timeHorizon + additionalYearsToPayback;
+      }
     }
   }
-  */
   
   // Calculate ROI at the end of the analysis period
   const finalSavings = cumulativeSavings[timeHorizon - 1];

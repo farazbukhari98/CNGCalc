@@ -113,7 +113,9 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-sm text-gray-500 mb-1">Payback Period</div>
-                <div className="text-lg font-bold text-blue-600">{formatPaybackPeriod(results.paybackPeriod)}</div>
+                <div className={`text-lg font-bold ${results.paybackPeriod < 0 ? 'text-red-600' : results.paybackPeriod > 15 ? 'text-amber-600' : 'text-blue-600'}`}>
+                  {formatPaybackPeriod(results.paybackPeriod)}
+                </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-sm text-gray-500 mb-1">Net Cash Flow ({timeHorizon}yr)</div>
