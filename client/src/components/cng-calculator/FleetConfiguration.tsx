@@ -27,10 +27,10 @@ export default function FleetConfiguration() {
     ? Math.round((vehicleParameters.heavyDutyCount / totalVehicles) * 100) 
     : 0;
 
-  // Vehicle costs (estimated)
-  const lightDutyCost = 45000;
-  const mediumDutyCost = 65000;
-  const heavyDutyCost = 85000;
+  // Vehicle costs (CNG conversion costs)
+  const lightDutyCost = 15000;
+  const mediumDutyCost = 15000;
+  const heavyDutyCost = 50000;
 
   // Total vehicle investment
   const totalVehicleInvestment = 
@@ -38,10 +38,45 @@ export default function FleetConfiguration() {
     (vehicleParameters.mediumDutyCount * mediumDutyCost) +
     (vehicleParameters.heavyDutyCount * heavyDutyCost);
 
-  // Station cost based on configuration
+  // Calculate GGE (Gasoline Gallon Equivalent) per day for station sizing
+  const dailyGGE = 
+    (vehicleParameters.lightDutyCount * 2.5) + 
+    (vehicleParameters.mediumDutyCount * 6) + 
+    (vehicleParameters.heavyDutyCount * 15);
+  
+  // Get capacity tier for pricing
+  const getCapacityTier = () => {
+    if (dailyGGE < 200) return 'small';
+    if (dailyGGE < 500) return 'medium';
+    if (dailyGGE < 800) return 'large';
+    return 'xlarge';
+  };
+  
+  const tier = getCapacityTier();
+  
+  // Tiered pricing based on capacity
   const getStationCost = () => {
-    const baseCost = stationConfig.stationType === 'fast' ? 750000 : 550000;
-    const businessMultiplier = stationConfig.businessType === 'aglc' ? 1.0 : 0.9;
+    const baseCosts = {
+      fast: {
+        small: 1800000,    // $1.8M for small fast-fill
+        medium: 2200000,   // $2.2M for medium fast-fill
+        large: 2700000,    // $2.7M for large fast-fill
+        xlarge: 3100000    // $3.1M for extra large fast-fill
+      },
+      time: {
+        small: 491000,     // $491K for small time-fill
+        medium: 1200000,   // $1.2M for medium time-fill
+        large: 2100000,    // $2.1M for large time-fill
+        xlarge: 3500000    // $3.5M for extra large time-fill
+      }
+    };
+    
+    // Get base cost from the pricing tiers
+    const baseCost = baseCosts[stationConfig.stationType][tier];
+    
+    // Apply business type adjustment
+    const businessMultiplier = stationConfig.businessType === 'aglc' ? 1.0 : 0.95;
+    
     return Math.round(baseCost * businessMultiplier);
   };
 
