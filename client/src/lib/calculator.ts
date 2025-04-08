@@ -7,7 +7,7 @@ import {
   CalculationResults 
 } from "@/types/calculator";
 
-// Vehicle costs (assumed averages)
+// Vehicle costs (CNG conversion costs)
 const VEHICLE_COSTS = {
   light: 15000, // CNG conversion cost for light duty vehicles
   medium: 15000, // CNG conversion cost for medium duty vehicles
@@ -55,11 +55,82 @@ const BUSINESS_RATES = {
   cgc: 0.192    // 19.2% for CGC
 };
 
+// Emission factors in kg CO2 per gallon
+const EMISSION_FACTORS = {
+  gasoline: 8.887,    // kg CO₂/gallon for light duty
+  dieselMedium: 10.180, // kg CO₂/gallon for medium duty
+  dieselHeavy: 10.210,  // kg CO₂/gallon for heavy duty
+  cng: 5.511         // kg CO₂/GGE
+};
+
+// Station sizing and cost data
+const FAST_FILL_STATIONS = [
+  { size: 1, capacity: 100, cost: 1828172 },
+  { size: 2, capacity: 72001, cost: 2150219 },
+  { size: 3, capacity: 192001, cost: 2694453 },
+  { size: 4, capacity: 384001, cost: 2869245 },
+  { size: 5, capacity: 576001, cost: 3080351 }
+];
+
+const TIME_FILL_STATIONS = [
+  { size: 6, capacity: 100, cost: 491333 },
+  { size: 1, capacity: 12961, cost: 1831219 },
+  { size: 2, capacity: 108001, cost: 2218147 },
+  { size: 3, capacity: 288001, cost: 2907603 },
+  { size: 4, capacity: 576001, cost: 3200857 },
+  { size: 5, capacity: 864001, cost: 3506651 }
+];
+
 // Station cost calculation
-export function calculateStationCost(config: StationConfig): number {
-  const baseCost = config.stationType === 'fast' ? 750000 : 550000;
+export function calculateStationCost(config: StationConfig, vehicleParams?: VehicleParameters): number {
+  // Calculate estimated daily GGE (gasoline gallon equivalent) consumption
+  let estimatedAnnualGGE = 0;
+  
+  if (vehicleParams) {
+    // Light-duty vehicles (gasoline to CNG)
+    estimatedAnnualGGE += vehicleParams.lightDutyCount * 
+                          ANNUAL_MILEAGE.light / 
+                          FUEL_EFFICIENCY.light.cng;
+    
+    // Medium-duty vehicles (diesel to CNG) 
+    estimatedAnnualGGE += vehicleParams.mediumDutyCount * 
+                          ANNUAL_MILEAGE.medium / 
+                          FUEL_EFFICIENCY.medium.cng;
+    
+    // Heavy-duty vehicles (diesel to CNG)
+    estimatedAnnualGGE += vehicleParams.heavyDutyCount * 
+                          ANNUAL_MILEAGE.heavy / 
+                          FUEL_EFFICIENCY.heavy.cng;
+  } else {
+    // Default to a station that can handle 50 vehicles if no params provided
+    estimatedAnnualGGE = 50 * 20000 / 10; // 50 vehicles * 20k miles / 10 MPG average
+  }
+  
+  // Calculate daily GGE
+  const dailyGGE = estimatedAnnualGGE / 365;
+  
+  // Select appropriate station size based on capacity needs
+  const stations = config.stationType === 'fast' ? FAST_FILL_STATIONS : TIME_FILL_STATIONS;
+  
+  // Find the smallest station that can handle our capacity
+  let selectedStation = stations[0]; // Default to smallest
+  
+  for (const station of stations) {
+    if (station.capacity >= dailyGGE) {
+      selectedStation = station;
+      break;
+    }
+  }
+  
+  // If no station is big enough, use the largest available
+  if (selectedStation.capacity < dailyGGE && stations.length > 0) {
+    selectedStation = stations[stations.length - 1];
+  }
+  
+  // Apply business type adjustment (AGLC stations have higher costs due to different standards)
   const businessMultiplier = config.businessType === 'aglc' ? 1.0 : 0.9;
-  return Math.round(baseCost * businessMultiplier);
+  
+  return Math.round(selectedStation.cost * businessMultiplier);
 }
 
 // Distribute vehicles across years based on strategy
@@ -300,8 +371,8 @@ export function calculateROI(
     (vehicleParams.mediumDutyCount * VEHICLE_COSTS.medium) + 
     (vehicleParams.heavyDutyCount * VEHICLE_COSTS.heavy);
   
-  // Calculate station cost
-  const stationCost = calculateStationCost(stationConfig);
+  // Calculate station cost based on vehicle parameters
+  const stationCost = calculateStationCost(stationConfig, vehicleParams);
   
   // Total investment
   const totalInvestment = totalVehicleInvestment + stationCost;
@@ -429,12 +500,7 @@ export function calculateROI(
   const annualFuelSavings = finalSavings / timeHorizon;
   
   // Calculate CO2 emissions and reduction
-  // Emission factors in kg CO2 per gallon
-  const EMISSION_FACTORS = {
-    gasoline: 8.887,  // kg CO2 per gallon
-    diesel: 10.180,   // kg CO2 per gallon
-    cng: 6.604        // kg CO2 per gallon equivalent
-  };
+  // Use the defined emission factors at the top of the file
   
   // Emission factors for vehicles (g CO2 per mile) - more precise calculation
   const VEHICLE_EMISSION_FACTORS = {
