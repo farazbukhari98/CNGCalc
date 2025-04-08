@@ -115,6 +115,8 @@ export default function SensitivityAnalysis() {
         payback: result.paybackPeriod,
         roi: result.roi,
         netCashFlow: result.netCashFlow,
+        // Calculate scaled cash flow for visualization on the same chart
+        netCashFlowScaled: result.netCashFlow / 10000,
         label: `${percentage > 0 ? '+' : ''}${percentage}%`
       });
     }
@@ -212,6 +214,9 @@ export default function SensitivityAnalysis() {
       return `${Math.round(value)}%`;
     } else if (name === "netCashFlow") {
       return formatCurrency(value);
+    } else if (name === "netCashFlowScaled") {
+      // Convert scaled value back to original for display
+      return formatCurrency(value * 10000);
     }
     return value;
   };
@@ -316,109 +321,93 @@ export default function SensitivityAnalysis() {
                 </div>
               </div>
               
-              {/* Sensitivity Chart */}
+              {/* Sensitivity Chart - Combined Metrics */}
               <div className="bg-gray-50 p-4 rounded-lg col-span-1 md:col-span-2">
-                <Tabs defaultValue="payback" onValueChange={(value) => setActiveMetric(value as "payback" | "roi" | "netCashFlow")}>
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-sm font-medium text-gray-700">Sensitivity Impact</h3>
-                    <TabsList className="bg-gray-200">
-                      <TabsTrigger value="payback" className="text-xs">Payback</TabsTrigger>
-                      <TabsTrigger value="roi" className="text-xs">ROI</TabsTrigger>
-                      <TabsTrigger value="netCashFlow" className="text-xs">Cash Flow</TabsTrigger>
-                    </TabsList>
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-medium text-gray-700">Sensitivity Impact</h3>
+                </div>
+                
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={sensitivityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="label" />
+                      <YAxis 
+                        yAxisId="payback"
+                        label={{ value: 'Payback (Years)', angle: -90, position: 'insideLeft' }} 
+                        domain={['auto', 'auto']}
+                      />
+                      <YAxis 
+                        yAxisId="roi"
+                        orientation="right"
+                        label={{ value: 'ROI & Cash Flow', angle: 90, position: 'insideRight' }} 
+                        domain={['auto', 'auto']}
+                        tickFormatter={(value) => `${value}%`}
+                      />
+                      <RechartsTooltip formatter={formatTooltipValue} />
+                      <Legend />
+                      
+                      {/* Payback Line */}
+                      <Line 
+                        yAxisId="payback"
+                        type="monotone" 
+                        dataKey="payback" 
+                        name="Payback Period" 
+                        stroke="#3b82f6" 
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        activeDot={{ r: 6 }} 
+                      />
+                      
+                      {/* ROI Line */}
+                      <Line 
+                        yAxisId="roi"
+                        type="monotone" 
+                        dataKey="roi" 
+                        name="ROI %" 
+                        stroke="#10b981" 
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        activeDot={{ r: 6 }} 
+                      />
+                      
+                      {/* Cash Flow Line - scaled to fit on ROI axis */}
+                      <Line 
+                        yAxisId="roi"
+                        type="monotone" 
+                        dataKey="netCashFlowScaled" 
+                        name="Cash Flow (scaled)" 
+                        stroke="#f97316" 
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        activeDot={{ r: 6 }}
+                      />
+                      
+                      <ReferenceLine 
+                        yAxisId="payback"
+                        x={variationPercentage > 0 ? `+${variationPercentage}%` : `${variationPercentage}%`} 
+                        stroke="red" 
+                        strokeDasharray="3 3" 
+                        label={{ value: "Selected", position: "top", fill: "red", fontSize: 10 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div className="flex justify-center mt-2 text-xs text-gray-500">
+                  <div className="flex items-center mr-4">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                    <span>Payback Period</span>
                   </div>
-                  
-                  <TabsContent value="payback" className="mt-0">
-                    <div className="h-72">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={sensitivityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="label" />
-                          <YAxis 
-                            label={{ value: 'Payback Period (Years, Months)', angle: -90, position: 'insideLeft' }} 
-                            domain={['auto', 'auto']}
-                          />
-                          <RechartsTooltip formatter={formatTooltipValue} />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="payback" 
-                            name="Payback Period" 
-                            stroke="#3b82f6" 
-                            activeDot={{ r: 8 }} 
-                          />
-                          <ReferenceLine 
-                            x={variationPercentage > 0 ? `+${variationPercentage}%` : `${variationPercentage}%`} 
-                            stroke="red" 
-                            strokeDasharray="3 3" 
-                            label={{ value: "Selected", position: "top", fill: "red", fontSize: 10 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="roi" className="mt-0">
-                    <div className="h-72">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={sensitivityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="label" />
-                          <YAxis 
-                            label={{ value: 'ROI (%)', angle: -90, position: 'insideLeft' }} 
-                            domain={['auto', 'auto']}
-                          />
-                          <RechartsTooltip formatter={formatTooltipValue} />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="roi" 
-                            name="ROI %" 
-                            stroke="#10b981" 
-                            activeDot={{ r: 8 }} 
-                          />
-                          <ReferenceLine 
-                            x={variationPercentage > 0 ? `+${variationPercentage}%` : `${variationPercentage}%`} 
-                            stroke="red" 
-                            strokeDasharray="3 3" 
-                            label={{ value: "Selected", position: "top", fill: "red", fontSize: 10 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="netCashFlow" className="mt-0">
-                    <div className="h-72">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={sensitivityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="label" />
-                          <YAxis 
-                            label={{ value: 'Net Cash Flow ($)', angle: -90, position: 'insideLeft' }} 
-                            domain={['auto', 'auto']}
-                            tickFormatter={(value) => `$${(value / 1000)}k`}
-                          />
-                          <RechartsTooltip formatter={formatTooltipValue} />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="netCashFlow" 
-                            name="Net Cash Flow" 
-                            stroke="#6366f1" 
-                            activeDot={{ r: 8 }} 
-                          />
-                          <ReferenceLine 
-                            x={variationPercentage > 0 ? `+${variationPercentage}%` : `${variationPercentage}%`} 
-                            stroke="red" 
-                            strokeDasharray="3 3" 
-                            label={{ value: "Selected", position: "top", fill: "red", fontSize: 10 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                  <div className="flex items-center mr-4">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                    <span>ROI %</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full mr-1"></div>
+                    <span>Cash Flow (scaled)</span>
+                  </div>
+                </div>
                 
                 {/* Impact Values Display */}
                 {variationImpact && variationPercentage !== 0 && (
