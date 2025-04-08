@@ -76,6 +76,17 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     return `$${value.toLocaleString()}`;
   };
 
+  // Prepare data for year-by-year vehicle investment chart (only used when showCashflow is false)
+  const vehicleInvestmentData = results.vehicleDistribution
+    .map((yearData, index) => ({
+      year: `Year ${index + 1}`,
+      light: yearData.light,
+      medium: yearData.medium,
+      heavy: yearData.heavy,
+      investment: yearData.investment,
+    }))
+    .filter(data => data.investment > 0); // Only show years with investments
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       {/* Cash Flow Chart - Only show when showCashflow is true */}
@@ -121,6 +132,59 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                 <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">Net Cash Flow ({timeHorizon}yr)</div>
                 <div className="text-lg font-bold text-green-600">{formatCurrency(results.netCashFlow)}</div>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Year-by-year Vehicle Investment Chart (only when showCashflow is false) */}
+      {!showCashflow && vehicleInvestmentData.length > 0 && (
+        <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Vehicle Investment Timeline</h2>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={vehicleInvestmentData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis yAxisId="count" orientation="left" label={{ value: 'Vehicle Count', angle: -90, position: 'insideLeft' }} />
+                  <YAxis yAxisId="investment" orientation="right" tickFormatter={currencyFormatter} />
+                  <RechartsTooltip 
+                    formatter={(value, name) => {
+                      if (name === 'investment') return [formatCurrency(value as number), 'Investment'];
+                      return [value, name === 'light' ? 'Light-Duty' : name === 'medium' ? 'Medium-Duty' : 'Heavy-Duty'];
+                    }}
+                  />
+                  <Legend />
+                  <Bar 
+                    yAxisId="count"
+                    dataKey="light" 
+                    name="Light-Duty" 
+                    fill="rgba(96, 165, 250, 0.7)" 
+                    stackId="vehicles" 
+                  />
+                  <Bar 
+                    yAxisId="count"
+                    dataKey="medium" 
+                    name="Medium-Duty" 
+                    fill="rgba(52, 211, 153, 0.7)" 
+                    stackId="vehicles" 
+                  />
+                  <Bar 
+                    yAxisId="count"
+                    dataKey="heavy" 
+                    name="Heavy-Duty" 
+                    fill="rgba(251, 146, 60, 0.7)" 
+                    stackId="vehicles" 
+                  />
+                  <Bar 
+                    yAxisId="investment"
+                    dataKey="investment" 
+                    name="Investment" 
+                    fill="rgba(236, 72, 153, 0.8)" 
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
@@ -172,90 +236,53 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
               </ResponsiveContainer>
             </div>
           ) : (
-            // When showCashflow is false, show an enhanced investment analysis with operational impact
-            <div className="h-64 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col justify-center items-center border-r dark:border-gray-600 pr-4">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                    {formatCurrency(results.totalInvestment)}
-                  </div>
-                  <div className="text-base text-gray-500 dark:text-gray-400 mb-4">
-                    Total Capital Investment
-                  </div>
-                  
-                  <div className="flex justify-center items-center space-x-6 mt-2">
-                    <div className="text-center">
-                      <div className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                        {Math.round((results.vehicleDistribution[0].investment / results.totalInvestment) * 100)}%
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Vehicles
-                      </div>
+            // When showCashflow is false, show simplified investment breakdown
+            <div className="h-64 flex items-center justify-center">
+              <div className="text-center w-full max-w-md">
+                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                  {formatCurrency(results.totalInvestment)}
+                </div>
+                <div className="text-base text-gray-500 dark:text-gray-400 mb-5">
+                  Total Capital Investment
+                </div>
+                
+                <div className="flex justify-center gap-10 mb-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                      {formatCurrency(results.vehicleDistribution[0].investment)}
                     </div>
-                    <div className="text-center">
-                      <div className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                        {Math.round(((results.totalInvestment - results.vehicleDistribution[0].investment) / results.totalInvestment) * 100)}%
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Infrastructure
-                      </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                      Vehicles ({Math.round((results.vehicleDistribution[0].investment / results.totalInvestment) * 100)}%)
                     </div>
                   </div>
-                  
-                  <div className="mt-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full w-full max-w-xs mx-auto">
-                    <div 
-                      className="h-2 bg-blue-500 rounded-full" 
-                      style={{ 
-                        width: `${Math.round((results.vehicleDistribution[0].investment / results.totalInvestment) * 100)}%` 
-                      }}
-                    ></div>
+                  <div className="text-center">
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                      {formatCurrency(results.totalInvestment - results.vehicleDistribution[0].investment)}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                      Station ({Math.round(((results.totalInvestment - results.vehicleDistribution[0].investment) / results.totalInvestment) * 100)}%)
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="flex flex-col justify-center pl-4">
-                <h3 className="text-base font-medium mb-3 text-gray-700 dark:text-gray-300">Investment Breakdown</h3>
                 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                      Vehicles
-                    </span>
-                    <span className="text-sm font-semibold dark:text-gray-200">
-                      {formatCurrency(results.vehicleDistribution[0].investment)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      Station Equipment
-                    </span>
-                    <span className="text-sm font-semibold dark:text-gray-200">
-                      {formatCurrency((results.totalInvestment - results.vehicleDistribution[0].investment) * 0.65)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                      <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-                      Installation
-                    </span>
-                    <span className="text-sm font-semibold dark:text-gray-200">
-                      {formatCurrency((results.totalInvestment - results.vehicleDistribution[0].investment) * 0.35)}
-                    </span>
-                  </div>
-                  
-                  <div className="pt-2 border-t dark:border-gray-600 flex items-center justify-between">
-                    <span className="text-sm font-medium">Per-Vehicle Cost</span>
-                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                      {formatCurrency(results.totalInvestment / 
-                        (results.vehicleDistribution[0].light + 
-                        results.vehicleDistribution[0].medium + 
-                        results.vehicleDistribution[0].heavy))}
-                    </span>
-                  </div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-full max-w-md mx-auto overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 rounded-full" 
+                    style={{ 
+                      width: `${Math.round((results.vehicleDistribution[0].investment / results.totalInvestment) * 100)}%` 
+                    }}
+                  ></div>
+                </div>
+                
+                <div className="mt-4 text-sm text-center text-gray-500 dark:text-gray-400">
+                  Per-Vehicle Cost: <span className="font-bold text-blue-600 dark:text-blue-400">
+                    {formatCurrency(results.totalInvestment / 
+                      (results.vehicleDistribution[0].light + 
+                       results.vehicleDistribution[0].medium + 
+                       results.vehicleDistribution[0].heavy))}
+                  </span>
                 </div>
               </div>
             </div>
