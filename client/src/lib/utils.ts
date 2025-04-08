@@ -7,10 +7,14 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Formats a decimal payback period (in years) into "X Years, X Months" format
- * @param paybackPeriod The payback period in years (can be decimal)
- * @returns Formatted string in "X Years, X Months" format
+ * @param paybackPeriod The payback period in years (can be decimal, or -1 for "Never")
+ * @returns Formatted string in "X Years, X Months" format, or "Never" if the investment doesn't pay back
  */
 export function formatPaybackPeriod(paybackPeriod: number): string {
+  // Check for the special case of -1, which indicates "Never" pays back
+  if (paybackPeriod === -1) return "Never";
+  
+  // Handle other invalid cases
   if (isNaN(paybackPeriod) || paybackPeriod < 0) return "N/A";
   
   const years = Math.floor(paybackPeriod);
