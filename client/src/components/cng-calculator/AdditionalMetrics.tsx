@@ -17,7 +17,11 @@ import {
   ReferenceLine
 } from 'recharts';
 
-export default function AdditionalMetrics() {
+interface AdditionalMetricsProps {
+  showCashflow: boolean;
+}
+
+export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsProps) {
   const { results, deploymentStrategy, timeHorizon } = useCalculator();
 
   // If no results yet, don't render anything
@@ -135,20 +139,20 @@ export default function AdditionalMetrics() {
   return (
     <>
       {/* Emissions Chart */}
-      <Card className="bg-white rounded-lg shadow mb-6">
+      <Card className="bg-white rounded-lg shadow mb-6 dark:bg-gray-800">
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-2">CO₂ Emissions Reduction</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">
             Estimated reduction in carbon dioxide emissions over time
           </p>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <span className="text-sm text-gray-500">Total CO₂ Emissions Saved</span>
-              <div className="text-3xl font-bold text-green-600">{formatEmissions(results.totalEmissionsSaved)}</div>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Total CO₂ Emissions Saved</span>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">{formatEmissions(results.totalEmissionsSaved)}</div>
             </div>
             <div className="text-right">
-              <span className="text-sm text-gray-500">CO₂ Reduction Percentage</span>
-              <div className="text-3xl font-bold text-blue-600">{results.co2Reduction.toFixed(1)}%</div>
+              <span className="text-sm text-gray-500 dark:text-gray-400">CO₂ Reduction Percentage</span>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{results.co2Reduction.toFixed(1)}%</div>
             </div>
           </div>
           
@@ -192,15 +196,15 @@ export default function AdditionalMetrics() {
           </div>
           
           <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-sm text-gray-500 mb-1">Equivalent Trees Planted</div>
-              <div className="text-lg font-bold text-green-600">
+            <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+              <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">Equivalent Trees Planted</div>
+              <div className="text-lg font-bold text-green-600 dark:text-green-400">
                 ~{Math.round(totalEmissionsTons * 16.5).toLocaleString()} trees
               </div>
             </div>
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-sm text-gray-500 mb-1">Equivalent Forest Area</div>
-              <div className="text-lg font-bold text-green-600">
+            <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+              <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">Equivalent Forest Area</div>
+              <div className="text-lg font-bold text-green-600 dark:text-green-400">
                 ~{Math.round(totalEmissionsTons / 7.5).toLocaleString()} acres
               </div>
             </div>
@@ -210,33 +214,40 @@ export default function AdditionalMetrics() {
     
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Operational Metrics */}
-        <Card className="bg-white rounded-lg shadow">
+        <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-5">
             <h3 className="text-lg font-semibold mb-3">Operational Metrics</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Cost per Mile (Gasoline)</span>
-                <span className="text-sm font-medium">${results.costPerMileGasoline.toFixed(3)}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Cost per Mile (Gasoline)</span>
+                <span className="text-sm font-medium dark:text-gray-200">${results.costPerMileGasoline.toFixed(3)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Cost per Mile (CNG)</span>
-                <span className="text-sm font-medium text-green-600">${results.costPerMileCNG.toFixed(3)}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Cost per Mile (CNG)</span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">${results.costPerMileCNG.toFixed(3)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Cost Reduction</span>
-                <span className="text-sm font-medium text-green-600">{results.costReduction.toFixed(1)}%</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Cost Reduction</span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">{results.costReduction.toFixed(1)}%</span>
               </div>
-              <div className="border-t my-2"></div>
+              {/* Annual fuel savings - only show when showCashflow is true */}
+              {showCashflow && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Annual Fuel Savings</span>
+                  <span className="text-sm font-medium text-green-600 dark:text-green-400">${results.annualFuelSavings.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="border-t my-2 dark:border-gray-700"></div>
             </div>
           </CardContent>
         </Card>
         
         {/* Strategy Insights */}
-        <Card className="bg-white rounded-lg shadow">
+        <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-5">
             <h3 className="text-lg font-semibold mb-3">Strategy Insights</h3>
             
-            <div className="text-sm text-gray-700 space-y-2">
+            <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
               <p>
                 The <strong>{deploymentStrategy.charAt(0).toUpperCase() + deploymentStrategy.slice(1)} {deploymentStrategy === 'immediate' ? 'Purchase' : 'Deployment'}</strong> strategy 
                 {deploymentStrategy === 'immediate' 
@@ -250,9 +261,9 @@ export default function AdditionalMetrics() {
                         : ' allows you to customize the deployment schedule to your specific needs and constraints.'}
               </p>
               
-              <div className="border-t my-3"></div>
+              <div className="border-t my-3 dark:border-gray-700"></div>
               
-              <div className="flex items-center text-blue-800 mb-2">
+              <div className="flex items-center text-blue-800 dark:text-blue-400 mb-2">
                 <CheckCircle className="h-5 w-5 mr-1" />
                 <h4 className="font-medium">Advantages</h4>
               </div>
@@ -263,7 +274,7 @@ export default function AdditionalMetrics() {
                 ))}
               </ul>
               
-              <div className="flex items-center text-amber-800 mt-3 mb-2">
+              <div className="flex items-center text-amber-800 dark:text-amber-400 mt-3 mb-2">
                 <AlertTriangle className="h-5 w-5 mr-1" />
                 <h4 className="font-medium">Considerations</h4>
               </div>

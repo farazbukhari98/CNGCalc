@@ -78,9 +78,9 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      {/* Cash Flow Chart */}
+      {/* Cash Flow Chart - Only show when showCashflow is true */}
       {showCashflow && (
-        <Card className="bg-white rounded-lg shadow">
+        <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold mb-4">Cash Flow Analysis</h2>
             <div className="h-64">
@@ -111,14 +111,14 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
               </ResponsiveContainer>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">Payback Period</div>
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">Payback Period</div>
                 <div className={`text-lg font-bold ${results.paybackPeriod < 0 ? 'text-red-600' : results.paybackPeriod > 15 ? 'text-amber-600' : 'text-blue-600'}`}>
                   {formatPaybackPeriod(results.paybackPeriod)}
                 </div>
               </div>
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">Net Cash Flow ({timeHorizon}yr)</div>
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">Net Cash Flow ({timeHorizon}yr)</div>
                 <div className="text-lg font-bold text-green-600">{formatCurrency(results.netCashFlow)}</div>
               </div>
             </div>
@@ -127,75 +127,137 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
       )}
       
       {/* Cost vs Savings Analysis */}
-      <Card className="bg-white rounded-lg shadow">
+      <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
         <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Cost vs. Savings</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={costSavingsData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis tickFormatter={currencyFormatter} />
-                <RechartsTooltip formatter={currencyFormatter} />
-                <Legend />
-                <Bar 
-                  dataKey="vehicleInvestment" 
-                  name="Vehicle Investment"
-                  fill="rgba(239, 68, 68, 0.7)" 
-                  stackId="investment"
-                />
-                <Bar 
-                  dataKey="stationInvestment" 
-                  name="Station Investment"
-                  fill="rgba(59, 130, 246, 0.7)" 
-                  stackId="investment"
-                />
-                {!stationConfig.turnkey && (
+          <h2 className="text-xl font-semibold mb-4">
+            {showCashflow ? "Cost vs. Savings" : "Investment Analysis"}
+          </h2>
+          
+          {/* Only show the bar chart when showCashflow is true */}
+          {showCashflow ? (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={costSavingsData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis tickFormatter={currencyFormatter} />
+                  <RechartsTooltip formatter={currencyFormatter} />
+                  <Legend />
                   <Bar 
-                    dataKey="financingCost" 
-                    name="Financing Cost"
-                    fill="rgba(234, 88, 12, 0.7)" 
-                    stackId="expenses"
+                    dataKey="vehicleInvestment" 
+                    name="Vehicle Investment"
+                    fill="rgba(239, 68, 68, 0.7)" 
+                    stackId="investment"
                   />
-                )}
-                <Bar 
-                  dataKey="savings" 
-                  name={stationConfig.turnkey ? "Savings" : "Net Savings"}
-                  fill="rgba(16, 185, 129, 0.7)" 
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-sm text-gray-500 mb-1">{timeHorizon}-Year ROI</div>
-              <div className="text-lg font-bold text-green-600">{Math.round(results.roi)}%</div>
+                  <Bar 
+                    dataKey="stationInvestment" 
+                    name="Station Investment"
+                    fill="rgba(59, 130, 246, 0.7)" 
+                    stackId="investment"
+                  />
+                  {!stationConfig.turnkey && (
+                    <Bar 
+                      dataKey="financingCost" 
+                      name="Financing Cost"
+                      fill="rgba(234, 88, 12, 0.7)" 
+                      stackId="expenses"
+                    />
+                  )}
+                  <Bar 
+                    dataKey="savings" 
+                    name={stationConfig.turnkey ? "Savings" : "Net Savings"}
+                    fill="rgba(16, 185, 129, 0.7)" 
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-sm text-gray-500 mb-1">Annual Rate of Return</div>
-              <div className="text-lg font-bold text-blue-600">{results.annualRateOfReturn.toFixed(1)}%</div>
+          ) : (
+            // When showCashflow is false, show total investment info
+            <div className="h-64 flex flex-col justify-center items-center">
+              <div className="text-center mb-4">
+                <div className="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                  {formatCurrency(results.totalInvestment)}
+                </div>
+                <div className="text-lg text-gray-500 dark:text-gray-400">
+                  Total Investment
+                </div>
+              </div>
+              <div className="grid grid-cols-2 w-full gap-4 px-8">
+                <div className="text-center bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                  <div className="text-xl font-bold text-gray-800 dark:text-gray-200">
+                    {formatCurrency(results.vehicleDistribution[0].investment)}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Vehicle Investment
+                  </div>
+                </div>
+                <div className="text-center bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                  <div className="text-xl font-bold text-gray-800 dark:text-gray-200">
+                    {formatCurrency(results.totalInvestment - results.vehicleDistribution[0].investment)}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Station Investment
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            {/* Always show the payback period regardless of showCashflow value */}
+            <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+              <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">Payback Period</div>
+              <div className={`text-lg font-bold ${results.paybackPeriod < 0 ? 'text-red-600' : results.paybackPeriod > 15 ? 'text-amber-600' : 'text-blue-600'}`}>
+                {formatPaybackPeriod(results.paybackPeriod)}
+              </div>
             </div>
             
-            {!stationConfig.turnkey && (
-              <div className="col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                <div className="text-sm font-medium text-amber-800 mb-1">
+            {/* Show ROI metrics only when showCashflow is true */}
+            {showCashflow ? (
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">{timeHorizon}-Year ROI</div>
+                <div className="text-lg font-bold text-green-600">{Math.round(results.roi)}%</div>
+              </div>
+            ) : (
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">Total Vehicles</div>
+                <div className="text-lg font-bold text-blue-600">
+                  {results.vehicleDistribution[0].light + 
+                   results.vehicleDistribution[0].medium + 
+                   results.vehicleDistribution[0].heavy}
+                </div>
+              </div>
+            )}
+            
+            {/* Show Annual Rate of Return only when showCashflow is true */}
+            {showCashflow && (
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">Annual Rate of Return</div>
+                <div className="text-lg font-bold text-blue-600">{results.annualRateOfReturn.toFixed(1)}%</div>
+              </div>
+            )}
+            
+            {/* Show financing information for non-turnkey option only when relevant */}
+            {!stationConfig.turnkey && showCashflow && (
+              <div className={`${showCashflow ? "col-span-2" : ""} bg-amber-50 p-3 rounded-lg border border-amber-200 dark:bg-amber-900/30 dark:border-amber-700`}>
+                <div className="text-sm font-medium text-amber-800 mb-1 dark:text-amber-300">
                   Financing Information (Non-TurnKey Option)
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-xs text-amber-700">Monthly Rate:</span>
+                    <span className="text-xs text-amber-700 dark:text-amber-300">Monthly Rate:</span>
                     <span className="text-sm font-semibold ml-1">
                       {(stationConfig.businessType === 'aglc' ? 1.5 : 1.6).toFixed(1)}%
                     </span>
                   </div>
                   <div>
-                    <span className="text-xs text-amber-700">Annual Cost:</span>
+                    <span className="text-xs text-amber-700 dark:text-amber-300">Annual Cost:</span>
                     <span className="text-sm font-semibold ml-1">
                       {formatCurrency(costSavingsData[0].financingCost)}
                     </span>
                   </div>
                 </div>
-                <div className="text-xs text-amber-600 mt-1">
+                <div className="text-xs text-amber-600 mt-1 dark:text-amber-300">
                   Note: Station costs are not paid upfront but financed at monthly percentage rates.
                 </div>
               </div>

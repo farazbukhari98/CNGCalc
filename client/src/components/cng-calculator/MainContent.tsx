@@ -108,7 +108,7 @@ export default function MainContent() {
         <>
           <FinancialAnalysis showCashflow={showCashflow} />
           
-          <AdditionalMetrics />
+          <AdditionalMetrics showCashflow={showCashflow} />
           
           {/* Advanced Analysis Tabs */}
           <div className="mb-6">
