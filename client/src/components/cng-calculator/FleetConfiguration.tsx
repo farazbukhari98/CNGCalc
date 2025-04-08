@@ -6,7 +6,8 @@ export default function FleetConfiguration() {
   const { 
     vehicleParameters,
     stationConfig,
-    results
+    results,
+    timeHorizon
   } = useCalculator();
 
   // Calculate vehicle distribution percentages
@@ -174,7 +175,7 @@ export default function FleetConfiguration() {
               </span>
             </div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">5-Year ROI</span>
+              <span className="text-sm text-gray-600">{timeHorizon}-Year ROI</span>
               <span className="text-sm font-medium text-green-600">
                 {results ? `${Math.round(results.roi)}%` : '-'}
               </span>
