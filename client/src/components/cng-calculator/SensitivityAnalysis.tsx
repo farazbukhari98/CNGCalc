@@ -130,68 +130,105 @@ export default function SensitivityAnalysis() {
 
   // Calculate the modified value based on the selected variable and percentage
   const calculateModifiedValue = (variable: SensitivityVariable, percentage: number) => {
+    // Convert percentage to ratio for calculations
+    const modificationRatio = 1 + percentage / 100;
+    
     // Different calculation based on variable type
     switch (variable) {
       case "gasolinePrice":
-        return fuelPrices.gasolinePrice * (1 + percentage / 100);
+        return fuelPrices.gasolinePrice * modificationRatio;
       case "dieselPrice":
-        return fuelPrices.dieselPrice * (1 + percentage / 100);
+        return fuelPrices.dieselPrice * modificationRatio;
       case "cngPrice":
-        return fuelPrices.cngPrice * (1 + percentage / 100);
+        return fuelPrices.cngPrice * modificationRatio;
       case "lightDutyCost":
       case "mediumDutyCost":
       case "heavyDutyCost":
       case "annualMiles":
-        // These would need appropriate base values from the context
-        return (1 + percentage / 100);
+        // For vehicle costs and annual miles, we just return the ratio
+        // The calculation logic in calculateModifiedResult will handle these appropriately
+        return modificationRatio;
       default:
-        return 0;
+        return 1.0; // Default to no change
     }
   };
 
   // Simulate the modified result
   // In a real implementation, this would call the actual calculation functions
   const calculateModifiedResult = (variable: SensitivityVariable, modifiedValue: number) => {
-    // This is a simplification - in reality, you would recalculate with modified inputs
-    // A comprehensive implementation would need to update inputs and recalculate
+    // This is a simplified model but with corrected business logic
+    // A comprehensive implementation would need to update inputs and recalculate completely
     
-    // For this prototype, we'll use a simplified model
     let basePayback = results?.paybackPeriod || 0;
     let baseRoi = results?.roi || 0;
     let baseNetCashFlow = results?.netCashFlow || 0;
     
-    // Effects vary by variable type (simplified modeling)
+    // Effects vary by variable type based on business logic
     let paybackFactor = 1.0;
     let roiFactor = 1.0;
     let cashFlowFactor = 1.0;
+    
+    // Calculate the ratio for proper scaling
+    let ratio = 1.0;
 
     switch (variable) {
       case "gasolinePrice":
-        // Higher gas price improves CNG financials
-        paybackFactor = modifiedValue / fuelPrices.gasolinePrice > 1 ? 
-          1 / (modifiedValue / fuelPrices.gasolinePrice) : modifiedValue / fuelPrices.gasolinePrice;
-        roiFactor = modifiedValue / fuelPrices.gasolinePrice;
-        cashFlowFactor = modifiedValue / fuelPrices.gasolinePrice;
+        // Higher gas price improves CNG financials (shorter payback, higher ROI, better cash flow)
+        ratio = modifiedValue / fuelPrices.gasolinePrice;
+        // Payback period is inversely proportional - higher gas prices = shorter payback
+        paybackFactor = 1 / ratio;
+        // ROI and cash flow are directly proportional
+        roiFactor = ratio; 
+        cashFlowFactor = ratio;
         break;
+        
       case "dieselPrice":
-        // Higher diesel price improves CNG financials
-        paybackFactor = modifiedValue / fuelPrices.dieselPrice > 1 ? 
-          1 / (modifiedValue / fuelPrices.dieselPrice) : modifiedValue / fuelPrices.dieselPrice;
-        roiFactor = modifiedValue / fuelPrices.dieselPrice;
-        cashFlowFactor = modifiedValue / fuelPrices.dieselPrice;
+        // Higher diesel price improves CNG financials (shorter payback, higher ROI, better cash flow)
+        ratio = modifiedValue / fuelPrices.dieselPrice;
+        // Payback period is inversely proportional
+        paybackFactor = 1 / ratio;
+        // ROI and cash flow are directly proportional
+        roiFactor = ratio;
+        cashFlowFactor = ratio;
         break;
+        
       case "cngPrice":
-        // Higher CNG price worsens financials
-        paybackFactor = fuelPrices.cngPrice / modifiedValue > 1 ? 
-          fuelPrices.cngPrice / modifiedValue : 1 / (fuelPrices.cngPrice / modifiedValue);
-        roiFactor = fuelPrices.cngPrice / modifiedValue;
-        cashFlowFactor = fuelPrices.cngPrice / modifiedValue;
+        // Higher CNG price worsens financials (longer payback, lower ROI, worse cash flow)
+        ratio = modifiedValue / fuelPrices.cngPrice;
+        // Payback period is directly proportional - higher CNG prices = longer payback
+        paybackFactor = ratio;
+        // ROI and cash flow are inversely proportional
+        roiFactor = 1 / ratio;
+        cashFlowFactor = 1 / ratio;
         break;
-      // For the simplified model, we'll use a basic linear relationship for other variables
+        
+      case "lightDutyCost":
+      case "mediumDutyCost":
+      case "heavyDutyCost":
+        // Higher vehicle costs worsen financials (longer payback, lower ROI, worse cash flow)
+        ratio = modifiedValue; // Already a ratio in this case (percentage change)
+        // Payback period is directly proportional - higher costs = longer payback
+        paybackFactor = ratio;
+        // ROI and cash flow are inversely proportional
+        roiFactor = 1 / ratio;
+        cashFlowFactor = 1 / ratio;
+        break;
+        
+      case "annualMiles":
+        // More miles driven improves financials (shorter payback, higher ROI, better cash flow)
+        ratio = modifiedValue; // Already a ratio in this case
+        // Payback period is inversely proportional - more miles = more savings = shorter payback
+        paybackFactor = 1 / ratio;
+        // ROI and cash flow are directly proportional
+        roiFactor = ratio;
+        cashFlowFactor = ratio;
+        break;
+        
       default:
-        paybackFactor = 1 / modifiedValue;
-        roiFactor = modifiedValue;
-        cashFlowFactor = modifiedValue;
+        // Shouldn't reach here, but keep as fallback
+        paybackFactor = 1.0;
+        roiFactor = 1.0;
+        cashFlowFactor = 1.0;
     }
     
     return {
