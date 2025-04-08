@@ -9,23 +9,50 @@ import {
 
 // Vehicle costs (assumed averages)
 const VEHICLE_COSTS = {
-  light: 45000,
-  medium: 65000,
-  heavy: 85000
+  light: 15000, // CNG conversion cost for light duty vehicles
+  medium: 15000, // CNG conversion cost for medium duty vehicles
+  heavy: 50000   // CNG conversion cost for heavy duty vehicles
 };
 
 // Annual mileage assumptions
 const ANNUAL_MILEAGE = {
   light: 15000,
-  medium: 25000,
+  medium: 20000,
   heavy: 40000
+};
+
+// Vehicle lifespan in years
+const VEHICLE_LIFESPAN = {
+  light: 10,
+  medium: 10,
+  heavy: 15
 };
 
 // Fuel efficiency assumptions (miles per gallon)
 const FUEL_EFFICIENCY = {
-  light: { gasoline: 18, cng: 15.5 },
-  medium: { diesel: 10, cng: 8.5 },
-  heavy: { diesel: 6, cng: 5.1 }
+  light: { gasoline: 12, cng: 12 * (1 - 0.05) }, // 5% efficiency loss for light duty
+  medium: { diesel: 10, cng: 10 * (1 - 0.075) }, // 7.5% efficiency loss for medium duty
+  heavy: { diesel: 5, cng: 5 * (1 - 0.10) }     // 10% efficiency loss for heavy duty
+};
+
+// CNG efficiency loss percentage
+const CNG_LOSS = {
+  light: 0.05,   // 5% loss
+  medium: 0.075, // 7.5% loss
+  heavy: 0.10    // 10% loss
+};
+
+// Maintenance costs (per mile)
+const MAINTENANCE_COST = {
+  gasoline: 0.47,
+  diesel: 0.52,
+  cng: 0.47 // Same as gasoline
+};
+
+// Business rates (markup percentage applied to CNG price)
+const BUSINESS_RATES = {
+  aglc: 0.18,   // 18% for AGLC
+  cgc: 0.192    // 19.2% for CGC
 };
 
 // Station cost calculation
@@ -313,7 +340,14 @@ export function calculateROI(
     const yearMultiplier = Math.pow(1 + (fuelPrices.annualIncrease / 100), year);
     const adjustedGasolinePrice = fuelPrices.gasolinePrice * yearMultiplier;
     const adjustedDieselPrice = fuelPrices.dieselPrice * yearMultiplier;
-    const adjustedCngPrice = fuelPrices.cngPrice * yearMultiplier;
+    
+    // Calculate CNG price with electricity cost and business rate
+    const ELECTRICITY_COST_PER_GGE = 0.08; // $0.08 per GGE
+    const businessRate = stationConfig.businessType === 'aglc' ? BUSINESS_RATES.aglc : BUSINESS_RATES.cgc;
+    const baseCngPrice = fuelPrices.cngPrice;
+    const cngWithElectricity = baseCngPrice + ELECTRICITY_COST_PER_GGE;
+    const cngWithBusinessRate = cngWithElectricity * (1 + businessRate);
+    const adjustedCngPrice = cngWithBusinessRate * yearMultiplier;
     
     // Calculate fuel savings for each vehicle type
     const lightFuelSavings = 
@@ -334,8 +368,19 @@ export function calculateROI(
       ((adjustedDieselPrice / FUEL_EFFICIENCY.heavy.diesel) - 
       (adjustedCngPrice / FUEL_EFFICIENCY.heavy.cng));
     
-    // Add in maintenance savings (estimated at 10% of fuel costs)
-    const maintenanceSavings = (lightFuelSavings + mediumFuelSavings + heavyFuelSavings) * 0.1;
+    // Calculate maintenance savings based on miles driven
+    const lightMilesDriven = lightInOperation * ANNUAL_MILEAGE.light;
+    const mediumMilesDriven = mediumInOperation * ANNUAL_MILEAGE.medium;
+    const heavyMilesDriven = heavyInOperation * ANNUAL_MILEAGE.heavy;
+    
+    // Light vehicles: gasoline vs CNG maintenance
+    const lightMaintenanceSavings = lightMilesDriven * (MAINTENANCE_COST.gasoline - MAINTENANCE_COST.cng);
+    
+    // Medium and heavy vehicles: diesel vs CNG maintenance
+    const mediumMaintenanceSavings = mediumMilesDriven * (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng);
+    const heavyMaintenanceSavings = heavyMilesDriven * (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng);
+    
+    const maintenanceSavings = lightMaintenanceSavings + mediumMaintenanceSavings + heavyMaintenanceSavings;
     
     // Total savings for the year
     const yearSavings = lightFuelSavings + mediumFuelSavings + heavyFuelSavings + maintenanceSavings;
@@ -460,7 +505,13 @@ export function calculateROI(
   
   // Calculate cost per mile metrics
   const costPerMileGasoline = fuelPrices.gasolinePrice / FUEL_EFFICIENCY.light.gasoline;
-  const costPerMileCNG = fuelPrices.cngPrice / FUEL_EFFICIENCY.light.cng;
+  
+  // Calculate full CNG price with electricity and business rate
+  const ELECTRICITY_COST_PER_GGE = 0.08; // $0.08 per GGE
+  const businessRate = stationConfig.businessType === 'aglc' ? BUSINESS_RATES.aglc : BUSINESS_RATES.cgc;
+  const fullCngPrice = (fuelPrices.cngPrice + ELECTRICITY_COST_PER_GGE) * (1 + businessRate);
+  const costPerMileCNG = fullCngPrice / FUEL_EFFICIENCY.light.cng;
+  
   const costReduction = ((costPerMileGasoline - costPerMileCNG) / costPerMileGasoline) * 100;
   
   // Total emissions saved in kg (convert to metric tons for display)

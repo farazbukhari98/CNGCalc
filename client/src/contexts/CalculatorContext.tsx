@@ -49,14 +49,14 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
   });
 
   const [fuelPrices, setFuelPrices] = useState<FuelPrices>({
-    gasolinePrice: 3.85,
-    dieselPrice: 4.25,
-    cngPrice: 2.15,
+    gasolinePrice: 3.38,
+    dieselPrice: 3.84,
+    cngPrice: 0.82, // Base CNG rate before business rate and electricity cost
     annualIncrease: 2.5
   });
 
-  const [timeHorizon, setTimeHorizon] = useState<number>(5);
-  const [deploymentStrategy, setDeploymentStrategy] = useState<DeploymentStrategy>("phased");
+  const [timeHorizon, setTimeHorizon] = useState<number>(15); // Default to 15 years
+  const [deploymentStrategy, setDeploymentStrategy] = useState<DeploymentStrategy>("manual"); // Default to manual distribution
   const [vehicleDistribution, setVehicleDistribution] = useState<VehicleDistribution[] | null>(null);
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
@@ -167,11 +167,11 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
       // Create a copy of the current distribution
       const newDistribution = [...vehicleDistribution];
       
-      // Vehicle costs (assumed averages)
+      // Vehicle costs (new specifications)
       const VEHICLE_COSTS = {
-        light: 45000,
-        medium: 65000,
-        heavy: 85000
+        light: 15000,
+        medium: 15000,
+        heavy: 50000
       };
       
       // Update the specified year with the new values

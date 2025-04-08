@@ -1,0 +1,166 @@
+Main Content Area:
+
+Vehicle Counts: Inputs (#lightDutyVehicles, #mediumDutyVehicles, #heavyDutyVehicles) for the total number of each vehicle type to convert. (Min: 0, Default: 0).
+
+Time Horizon: Dropdown (#timeHorizon) to select the analysis period (10 or 15 years, Default: 15).
+
+Deployment Strategy: Dropdown (#deploymentStrategy) to choose how vehicles are introduced over the timeline (Immediate, Phased, Aggressive, Deferred, Manual, Default: Manual on load).
+
+Side Panel (Collapsible Sections):
+
+Vehicle Parameters (#vehicleParams): Dynamically generated inputs for each vehicle type (Light, Medium, Heavy) allowing adjustment of:
+
+Cost: Additional cost for CNG conversion (Default: 
+15
+k
+/
+15k/
+15k/$50k).
+
+Annual Miles: Expected yearly mileage (Default: 15k/20k/40k).
+
+Life Span: Expected vehicle life (Default: 10/10/15 years).
+
+MPG: Base fuel efficiency (Default: 12/10/5 MPG).
+
+Note: These fields become disabled if the corresponding vehicle count in the main section is 0.
+
+Station Configuration (#stationConfig):
+
+Station Type: Dropdown (#stationType) for Fast Fill or Time Fill (Default: Fast Fill).
+
+LDC: Dropdown (#business) for Business Type (AGLC or CGC, Default: AGLC). This affects the CNG rate calculation.
+
+Fuel Prices (#fuelPrices):
+
+Gasoline Price: Input (#gasolinePrice, $/gal, Default: $3.38).
+
+Diesel Price: Input (#dieselPrice, $/gal, Default: $3.84).
+
+CNG Rate: Input (#cngRate, $/GGE, Default: $0.82). This is the delivered gas cost before the business rate and electricity cost are added.
+
+4. Key Constants & Defaults (Hardcoded in script.js):
+
+CONSTANTS:
+
+CNG_LOSS: Efficiency reduction percentage when running on CNG (5% Light, 7.5% Medium, 10% Heavy).
+
+MAINTENANCE_COST: Per-mile maintenance cost assumptions ($0.47 Gas/CNG, $0.52 Diesel).
+
+BUSINESS_RATES: Percentage markup applied to CNG price based on LDC type (18% AGLC, 19.2% CGC).
+
+ELECTRICITY_COST_PER_GGE: Fixed cost added to CNG price ($0.08).
+
+FAST_FILL_STATIONS, TIME_FILL_STATIONS: Arrays defining available station sizes, their capacity (seems to be daily GGE based on usage in selectAppropriateStation), and their capital cost.
+
+EPA_EMISSIONS: CO₂ emission factors ( kg/gallon or kg/GGE ) for different fuel types.
+
+DEFAULT_PARAMS: Default values for vehicle cost, miles, lifespan, and MPG if side panel inputs are invalid or zero.
+
+5. Application State (AppState in script.js):
+
+matrixState: A crucial object holding the year-by-year deployment numbers for each vehicle type (lightDuty, mediumDuty, heavyDuty arrays), the total allocated for each type (totals), and the cumulative number of vehicles in the fleet each year (cumulativeFleet). This drives the timeline calculations.
+
+Chart Instances: Holds references to the created Chart.js objects (chart, paybackGauge, timelineChart, costSavingsChart).
+
+Note: AppState.analysisMode, AppState.timeBasedMetrics, and AppState.history seem declared but are not actively used in the current logic. AppState.tenYearGauge and AppState.fifteenYearGauge are also declared but never initialized or used.
+
+6. Core Calculations (script.js):
+
+CNG MPG: Calculated as Base MPG * (1 - CNG_LOSS).
+
+Annual GGE per Vehicle: Annual Miles / CNG MPG.
+
+Total Annual GGE (for Station Sizing): Sums the annual GGE needed for all vehicles deployed across the entire timeline based on the matrixState. This is divided by 365 to get a daily GGE requirement.
+
+Potential Issue: This calculation might overestimate the required peak daily capacity if deployment is phased. Typically, station sizing depends on the maximum simultaneous fueling demand or the total GGE needed by the final fleet size, not the sum of GGE across all years of deployment.
+
+Station Selection & Investment: Based on the calculated daily GGE and chosen station type (Fast/Time), the code selects the smallest station from the CONSTANTS array whose capacity meets or exceeds the need. If needs exceed the largest available station, the largest is chosen, and a warning can be shown (though the warning element seems missing in the final HTML structure). Station cost is retrieved from the selected station object. In timeline mode, station investment is added only in Year 1's investment calculation.
+
+CNG Price Calculation: (Delivered CNG Rate + Electricity Cost/GGE) * (1 + Business Rate %).
+
+Annual Fuel Savings: For a given year (or overall for Immediate strategy), calculates the cost difference between running the active fleet on conventional fuel (Gas/Diesel) vs. CNG, based on annual miles, respective MPGs, and fuel prices.
+
+Annual Maintenance Savings: Calculates the difference in maintenance costs based on annual miles and the per-mile cost constants for conventional vs. CNG.
+
+Total Annual Savings: Sum of Fuel Savings and Maintenance Savings for the active fleet in a given year.
+
+Vehicle Investment:
+
+Immediate: Total vehicle count * Per-vehicle conversion cost (from side panel).
+
+Timeline: Sum of (vehicles deployed in year N * Per-vehicle cost) for each year.
+
+Total Investment: Vehicle Investment + Station Investment.
+
+Cumulative Cash Flow: Running total, year by year, of (Cumulative Savings - Cumulative Investment). Starts negative with Year 0 investment.
+
+Payback Period: Calculates the year (including fraction) when Cumulative Savings first equals or exceeds Cumulative Investment. Uses linear interpolation between years for accuracy. Returns Infinity if break-even is never reached within the analysis or based on final year savings projection.
+
+ROI (Return on Investment): (Total Net Savings / Total Investment) * 100%, where Total Net Savings is (Total Cumulative Savings over the horizon - Total Investment).
+
+CO₂ Reduction: Calculates the difference between baseline emissions (Gas/Diesel) and CNG emissions for the active fleet each year, summed over the horizon, using EPA factors and accounting for CNG efficiency loss. Result is in metric tons.
+
+Cost Per Mile Savings (Impact Metric): Calculated as Net Financial Outcome / Total Miles Driven over the horizon.
+
+Potential Issue: The calculation (Total Investment - Total Savings) / Total Miles doesn't directly match the tooltip description of (Conventional fuel cost/mile - CNG cost/mile). The multi-year summary calculation (calculateCostPerMileReduction) aligns better with the tooltip.
+
+Fleet Efficiency Improvement (Impact Metric): Calculates the average CNG efficiency relative to the baseline MPG across all deployed vehicles (e.g., 95% for Light Duty).
+
+Potential Issue: The label "Improvement" is slightly misleading, as CNG generally has lower MPG; it represents the relative efficiency after conversion.
+
+Multi-Year Summary Calculations: Includes period-specific Investment, Savings, ROI, plus calculations for Average Annual Savings (Avg. Annual Cash Flow), Total Operating Savings (Total Operating Cash Flow), and Cost Per Mile Reduction (per vehicle type, using the calculateCostPerMileReduction function).
+
+7. Deployment Strategies:
+
+Immediate: All vehicles purchased in Year 1. Calculations are straightforward totals and annual figures. Uses the dedicated "Immediate Analysis" UI section.
+
+Phased: Distributes total vehicles as evenly as possible across all years of the selected time horizon.
+
+Aggressive Early: Front-loads purchases (approx. 60% Year 1, 20% Year 2, 10% Year 3, rest spread evenly).
+
+Deferred: Delays purchases, starting around the midpoint of the horizon and distributing evenly over the remaining years.
+
+Manual: User manually enters the number of vehicles of each type to purchase in each year using the timeline input grid. The "Apply Strategy" button has no effect in this mode.
+
+Implementation: Phased, Aggressive, and Deferred strategies automatically populate the input fields in the "Yearly Deployment Timeline" section when "Apply Strategy" is clicked.
+
+8. Visual & Analytical Outputs:
+
+Strategy Header: Dynamically updates title and tagline based on the selected deployment strategy.
+
+Cashflow Toggle: Allows the user to switch the view between a "cash flow" focus (showing investment, savings, ROI, payback) and a "benefits" focus (hiding financial metrics like ROI/payback, renaming "Savings" to "Benefits", hiding specific chart sections).
+
+Immediate Strategy View (#immediateAnalysis):
+
+Displays total upfront Vehicle, Station, and Total Investment.
+
+Displays calculated Annual Fuel, Maintenance, and Total Savings.
+
+Shows a custom-drawn Payback Period Gauge (#paybackGauge) visualizing the break-even time against color-coded zones (Green/Yellow/Red).
+
+Shows a Cumulative Cash Flow line chart (#cashFlowChart) for the immediate investment scenario.
+
+Provides dynamically generated "Result Highlights" summarizing the key findings.
+
+Timeline-based Analysis View (#timelineSection): (Shown for non-immediate strategies)
+
+Overview Panel: Key metrics for the entire horizon: Total Investment, Cumulative Savings, Payback Period (formatted Years/Months), Net ROI.
+
+Vehicle Distribution Status: Shows how many vehicles of each type have been allocated in the timeline vs. the total specified, indicating if allocation is complete, incomplete, or over-allocated.
+
+Yearly Deployment Timeline: An interactive grid (#yearTimelineContainer) where users can manually input (for Manual strategy) or view (for other strategies) the number of vehicles deployed each year. Includes "Apply Strategy" and "Clear All" buttons.
+
+Environmental & Operational Impact: Displays calculated CO₂ Reduction (in tons and equivalent passenger cars removed), Cost Per Mile Savings, and Fleet Efficiency Improvement, with tooltips explaining the calculations.
+
+Multi-Year Summaries: Separate cards (#tenYearAnalysis, #fifteenYearAnalysis) showing key financial metrics (Investment, Cumulative Savings, ROI) calculated specifically for the first 10 and 15 years of the analysis. Also includes "Investment & Returns" subsections detailing average annual savings, total operating savings, and cost-per-mile reduction by vehicle type for that specific period (10 or 15 years).
+
+Financial Charts:
+
+Cumulative Cash Flow (#timelineCashFlowChart): Line chart showing the net position year by year over the horizon.
+
+Annual Cost vs. Savings (#costSavingsChart): Bar chart comparing investment costs and savings generated each year.
+
+Strategy Insights: Dynamically generated text (#strategyInsights) providing a qualitative summary and interpretation of the results based on the chosen deployment strategy (Phased, Aggressive, Deferred, Manual).
+
+Vehicle Config Summary: A small info box summarizing the total vehicles and time horizon being analyzed.
