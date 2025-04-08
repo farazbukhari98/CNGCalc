@@ -4,7 +4,6 @@ import VehicleParameters from "./VehicleParameters";
 import StationConfiguration from "./StationConfiguration";
 import FuelPrices from "./FuelPrices";
 import GlobalSettings from "./GlobalSettings";
-import TimeHorizonSelector from "./TimeHorizonSelector";
 import { Badge } from "@/components/ui/badge";
 import { useCalculator } from "@/contexts/CalculatorContext";
 
@@ -15,7 +14,6 @@ export default function SidePanel() {
     vehicleParams: true,
     stationConfig: false,
     fuelPrices: false,
-    timeHorizon: true,
   });
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -118,26 +116,6 @@ export default function SidePanel() {
           </button>
           <div className={`mt-2 ${openSections.fuelPrices ? "" : "hidden"}`}>
             <FuelPrices />
-          </div>
-        </div>
-
-        {/* Time Horizon Section */}
-        <div className="mb-4">
-          <button
-            type="button"
-            className="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onClick={() => toggleSection("timeHorizon")}
-            aria-expanded={openSections.timeHorizon}
-          >
-            <span className="font-medium">Time Horizon</span>
-            <ChevronDown
-              className={`w-5 h-5 transition-transform duration-200 ${
-                openSections.timeHorizon ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-          <div className={`mt-2 ${openSections.timeHorizon ? "" : "hidden"}`}>
-            <TimeHorizonSelector />
           </div>
         </div>
 

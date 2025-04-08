@@ -7,7 +7,6 @@ import FinancialAnalysis from "./FinancialAnalysis";
 import AdditionalMetrics from "./AdditionalMetrics";
 import StrategyComparison from "./StrategyComparison";
 import SensitivityAnalysis from "./SensitivityAnalysis";
-import MultiVariableAnalysis from "./MultiVariableAnalysis";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -97,7 +96,6 @@ export default function MainContent() {
               <TabsList className="w-full bg-gray-100 p-1 mb-4">
                 <TabsTrigger value="comparison" className="flex-1 py-2">Strategy Comparison</TabsTrigger>
                 <TabsTrigger value="sensitivity" className="flex-1 py-2">Sensitivity Analysis</TabsTrigger>
-                <TabsTrigger value="multivariable" className="flex-1 py-2">Multi-Variable Analysis</TabsTrigger>
               </TabsList>
               
               <TabsContent value="comparison" className="mt-0">
@@ -106,10 +104,6 @@ export default function MainContent() {
               
               <TabsContent value="sensitivity" className="mt-0">
                 <SensitivityAnalysis />
-              </TabsContent>
-              
-              <TabsContent value="multivariable" className="mt-0">
-                <MultiVariableAnalysis />
               </TabsContent>
             </Tabs>
           </div>
