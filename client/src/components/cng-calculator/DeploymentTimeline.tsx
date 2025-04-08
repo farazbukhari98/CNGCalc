@@ -36,7 +36,7 @@ export default function DeploymentTimeline() {
   };
 
   return (
-    <Card className="bg-white rounded-lg shadow mb-6">
+    <Card className="bg-white rounded-lg shadow mb-6 deployment-timeline">
       <CardContent className="p-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
           <h2 className="text-xl font-semibold">Deployment Timeline</h2>

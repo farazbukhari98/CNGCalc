@@ -137,7 +137,7 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
   };
 
   return (
-    <>
+    <div className="additional-metrics">
       {/* Emissions Chart */}
       <Card className="bg-white rounded-lg shadow mb-6 dark:bg-gray-800">
         <CardContent className="p-6">
@@ -288,6 +288,6 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 }

@@ -88,7 +88,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     .filter(data => data.investment > 0); // Only show years with investments
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 financial-analysis">
       {/* Cash Flow Chart - Only show when showCashflow is true */}
       {showCashflow && (
         <Card className="bg-white rounded-lg shadow dark:bg-gray-800">

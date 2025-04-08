@@ -25,88 +25,187 @@ export default function MainContent() {
   
   // Function to handle PDF export
   const handleExportPDF = async () => {
-    if (!contentRef.current || !results) return;
+    if (!results) return;
     
     try {
       setIsExporting(true);
       
-      // Create a report title with the current date
+      // Create a date string for the report
       const date = new Date().toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
       });
       
-      // Initialize PDF document (A4 size)
+      // Initialize PDF document (A4 size in landscape)
       const pdf = new jsPDF({
-        orientation: 'portrait',
+        orientation: 'landscape',
         unit: 'mm',
         format: 'a4'
       });
       
-      // Add report header
-      pdf.setFontSize(20);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text(`CNG Fleet Analysis Report`, 20, 20);
+      // Page dimensions
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentWidth = pageWidth - (margin * 2);
+      
+      // Add title page
+      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+      
+      // Header
+      pdf.setFontSize(26);
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.text('CNG Fleet Analysis Report', margin, margin + 10);
+      
+      // Strategy information
+      pdf.setFontSize(16);
+      pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
+      pdf.text(`${strategyTitles[deploymentStrategy]}`, margin, margin + 20);
       pdf.setFontSize(12);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(`${strategyTitles[deploymentStrategy]} | Generated on ${date}`, 20, 30);
+      pdf.text(`${strategyTaglines[deploymentStrategy]}`, margin, margin + 26);
       
-      // Draw a separator line
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(20, 35, 190, 35);
+      // Generate date
+      pdf.text(`Generated on ${date}`, margin, margin + 34);
       
-      // Capture the main content as an image
-      const canvas = await html2canvas(contentRef.current, {
-        scale: 1.5, // Higher scale for better quality
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: darkMode ? '#1f2937' : '#ffffff'
-      });
+      // Fleet information box
+      const boxY = margin + 45;
+      pdf.setDrawColor(darkMode ? 70 : 200, darkMode ? 70 : 200, darkMode ? 70 : 200);
+      pdf.setFillColor(darkMode ? 50 : 245, darkMode ? 55 : 250, darkMode ? 60 : 255);
+      pdf.roundedRect(margin, boxY, contentWidth / 2 - 5, 40, 3, 3, 'FD');
       
-      // Convert canvas to image
-      const imgData = canvas.toDataURL('image/png');
-      
-      // Calculate aspect ratio to fit in PDF
-      const imgWidth = 170; // Width in mm (A4 width = 210mm, with margins)
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Add the image to PDF
-      pdf.addImage(imgData, 'PNG', 20, 40, imgWidth, imgHeight);
-      
-      // Add summary information at the bottom
-      const pageHeight = pdf.internal.pageSize.height;
-      let yPos = 40 + imgHeight + 10; // Position after image
-      
-      // If we're near the bottom of the page, add a new page
-      if (yPos > pageHeight - 40) {
-        pdf.addPage();
-        yPos = 20;
-      }
-      
-      // Add summary table
-      pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text('Summary of Key Metrics', 20, yPos);
-      yPos += 10;
-      
+      // Fleet details
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.setFontSize(12);
+      pdf.text('Fleet Composition:', margin + 5, boxY + 10);
       pdf.setFontSize(10);
-      pdf.setTextColor(80, 80, 80);
+      pdf.text(`Light-Duty Vehicles: ${vehicleParameters.lightDutyCount}`, margin + 10, boxY + 18);
+      pdf.text(`Medium-Duty Vehicles: ${vehicleParameters.mediumDutyCount}`, margin + 10, boxY + 25);
+      pdf.text(`Heavy-Duty Vehicles: ${vehicleParameters.heavyDutyCount}`, margin + 10, boxY + 32);
       
-      // Create a summary table of key metrics
+      // Station information box
+      pdf.setDrawColor(darkMode ? 70 : 200, darkMode ? 70 : 200, darkMode ? 70 : 200);
+      pdf.setFillColor(darkMode ? 50 : 245, darkMode ? 55 : 250, darkMode ? 60 : 255);
+      pdf.roundedRect(margin + contentWidth / 2 + 5, boxY, contentWidth / 2 - 5, 40, 3, 3, 'FD');
+      
+      // Station details
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.setFontSize(12);
+      pdf.text('Station Configuration:', margin + contentWidth / 2 + 10, boxY + 10);
+      pdf.setFontSize(10);
+      pdf.text(`Type: ${stationConfig.stationType === 'fast' ? 'Fast-Fill' : 'Time-Fill'}`, margin + contentWidth / 2 + 15, boxY + 18);
+      pdf.text(`Business Type: ${stationConfig.businessType === 'aglc' ? 'Alternative Gas & Light Company' : 'Clean Gas Corporation'}`, margin + contentWidth / 2 + 15, boxY + 25);
+      pdf.text(`Payment Option: ${stationConfig.turnkey ? 'TurnKey (Upfront)' : 'Financed'}`, margin + contentWidth / 2 + 15, boxY + 32);
+      
+      // Key Metrics
+      const boxY2 = boxY + 50;
+      pdf.setDrawColor(darkMode ? 70 : 200, darkMode ? 70 : 200, darkMode ? 70 : 200);
+      pdf.setFillColor(darkMode ? 50 : 245, darkMode ? 55 : 250, darkMode ? 60 : 255);
+      pdf.roundedRect(margin, boxY2, contentWidth, 45, 3, 3, 'FD');
+      
+      // Metrics header
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.setFontSize(14);
+      pdf.text('Key Financial & Environmental Metrics', margin + 5, boxY2 + 10);
+      
+      // Create two columns of metrics
       const metrics = [
         { name: 'Total Investment', value: `$${results.totalInvestment.toLocaleString()}` },
         { name: 'Payback Period', value: results.paybackPeriod < 0 ? 'Never' : `${Math.floor(results.paybackPeriod)} years, ${Math.round((results.paybackPeriod % 1) * 12)} months` },
         { name: 'ROI', value: `${Math.round(results.roi)}%` },
+        { name: 'Annual Rate of Return', value: `${results.annualRateOfReturn.toFixed(1)}%` },
         { name: 'Annual Fuel Savings', value: `$${results.annualFuelSavings.toLocaleString()}` },
+        { name: 'Net Cash Flow', value: `$${results.netCashFlow.toLocaleString()}` },
         { name: 'CO₂ Reduction', value: `${results.co2Reduction.toLocaleString()} kg` },
-        { name: 'Cost Per Mile Reduction', value: `${results.costReduction.toFixed(1)}%` }
+        { name: 'Cost Per Mile (Gasoline)', value: `$${results.costPerMileGasoline.toFixed(3)}` },
+        { name: 'Cost Per Mile (CNG)', value: `$${results.costPerMileCNG.toFixed(3)}` },
+        { name: 'Cost Reduction', value: `${results.costReduction.toFixed(1)}%` }
       ];
       
+      // Layout metrics in two columns
+      const colWidth = contentWidth / 2 - 10;
+      pdf.setFontSize(10);
       metrics.forEach((metric, index) => {
-        pdf.text(metric.name, 25, yPos + (index * 7));
-        pdf.text(metric.value, 100, yPos + (index * 7));
+        const col = index < 5 ? 0 : 1;
+        const row = index % 5;
+        const x = margin + 5 + (col * colWidth);
+        const y = boxY2 + 20 + (row * 7);
+        
+        pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
+        pdf.text(metric.name + ':', x, y);
+        
+        pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+        pdf.text(metric.value, x + 60, y);
       });
+      
+      // Add a second page for charts and analytics
+      pdf.addPage();
+      
+      // Page heading
+      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+      
+      pdf.setFontSize(18);
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.text('Analysis Charts & Deployment Timeline', margin, margin + 10);
+      
+      // Capture the financial analysis card
+      const financialEl = document.querySelector('.financial-analysis');
+      if (financialEl) {
+        const canvas = await html2canvas(financialEl as HTMLElement, {
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
+        });
+        
+        const imgWidth = contentWidth / 2 - 5;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, margin + 15, imgWidth, imgHeight);
+      }
+      
+      // Capture the deployment timeline
+      const timelineEl = document.querySelector('.deployment-timeline');
+      if (timelineEl) {
+        const canvas = await html2canvas(timelineEl as HTMLElement, {
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
+        });
+        
+        const imgWidth = contentWidth / 2 - 5;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin + contentWidth / 2 + 5, margin + 15, imgWidth, imgHeight);
+      }
+      
+      // Capture the additional metrics
+      const metricsEl = document.querySelector('.additional-metrics');
+      if (metricsEl) {
+        const canvas = await html2canvas(metricsEl as HTMLElement, {
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
+        });
+        
+        const imgWidth = contentWidth / 2 - 5;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Check if we need to go to a new page
+        const currentY = margin + 15 + 70; // Estimate height of previous charts
+        const newImgHeight = Math.min(imgHeight, pageHeight - currentY - margin);
+        
+        if (currentY + newImgHeight > pageHeight - margin) {
+          pdf.addPage();
+          pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
+          pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, margin + 10, imgWidth, imgHeight);
+        } else {
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, currentY, imgWidth, imgHeight);
+        }
+      }
       
       // Save the PDF with a descriptive filename
       pdf.save(`CNG_Analysis_${deploymentStrategy}_${date.replace(/[\s,]+/g, '_')}.pdf`);
