@@ -227,7 +227,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                     <Bar 
                       dataKey="financingCost" 
                       name="Financing Cost"
-                      fill="rgba(234, 88, 12, 0.7)" 
+                      fill="rgba(101, 67, 33, 0.8)" 
                       stackId="expenses"
                     />
                   )}
@@ -328,25 +328,29 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
             
             {/* Show financing information for non-turnkey option only when relevant */}
             {!stationConfig.turnkey && showCashflow && (
-              <div className={`${showCashflow ? "col-span-2" : ""} bg-amber-50 p-3 rounded-lg border border-amber-200 dark:bg-amber-900/30 dark:border-amber-700`}>
-                <div className="text-sm font-medium text-amber-800 mb-1 dark:text-amber-300">
+              <div className={`${showCashflow ? "col-span-2" : ""} p-3 rounded-lg border dark:bg-gray-800/50 dark:border-gray-700`} 
+                style={{ 
+                  backgroundColor: 'rgba(101, 67, 33, 0.1)', 
+                  borderColor: 'rgba(101, 67, 33, 0.3)'
+                }}>
+                <div className="text-sm font-medium mb-1 dark:text-amber-200" style={{ color: '#654321' }}>
                   Financing Information (Non-TurnKey Option)
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-xs text-amber-700 dark:text-amber-300">Monthly Rate:</span>
-                    <span className="text-sm font-semibold ml-1">
+                    <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Monthly Rate:</span>
+                    <span className="text-sm font-semibold ml-1 dark:text-gray-200">
                       {(stationConfig.businessType === 'aglc' ? 1.5 : 1.6).toFixed(1)}%
                     </span>
                   </div>
                   <div>
-                    <span className="text-xs text-amber-700 dark:text-amber-300">Annual Cost:</span>
-                    <span className="text-sm font-semibold ml-1">
+                    <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Annual Cost:</span>
+                    <span className="text-sm font-semibold ml-1 dark:text-gray-200">
                       {formatCurrency(costSavingsData[0].financingCost)}
                     </span>
                   </div>
                 </div>
-                <div className="text-xs text-amber-600 mt-1 dark:text-amber-300">
+                <div className="text-xs mt-1 dark:text-amber-200" style={{ color: '#654321' }}>
                   Note: Station costs are not paid upfront but financed at monthly percentage rates.
                 </div>
               </div>
