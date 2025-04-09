@@ -23,9 +23,19 @@ export default function MainContent() {
   const [isExporting, setIsExporting] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   
-  // Function to handle PDF export
+  // Helper function to format currency
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+  
+  // Function to handle high-quality PDF export with dedicated pages for each section
   const handleExportPDF = async () => {
-    if (!results) return;
+    if (!results || !contentRef.current) return;
     
     try {
       setIsExporting(true);
@@ -37,287 +47,659 @@ export default function MainContent() {
         day: 'numeric' 
       });
       
-      // Initialize PDF document (A4 size in portrait for better layout)
+      // Initialize PDF document (A4 size in portrait for better quality)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
       
-      // Page dimensions
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15;
-      const contentWidth = pageWidth - (margin * 2);
-      
-      // ==================== TITLE PAGE ====================
-      
-      // Add title page background
-      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
-      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-      
-      // Draw header bar
-      pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
-      pdf.rect(0, 0, pageWidth, 40, 'F');
-      
-      // Header text
-      pdf.setFontSize(24);
-      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-      pdf.text('CNG Fleet Analysis Report', margin, margin + 10);
-      
-      // Strategy information
-      pdf.setFontSize(18);
-      pdf.setTextColor(darkMode ? 230 : 40, darkMode ? 230 : 40, darkMode ? 230 : 40);
-      pdf.text(`${strategyTitles[deploymentStrategy]}`, margin, margin + 35);
-      
-      pdf.setFontSize(12);
-      pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
-      pdf.text(`${strategyTaglines[deploymentStrategy]}`, margin, margin + 45);
-      
-      // Generate date
-      pdf.text(`Generated on ${date}`, margin, margin + 55);
-      
-      // Fleet information box
-      const boxY = margin + 65;
-      pdf.setDrawColor(darkMode ? 70 : 200, darkMode ? 70 : 200, darkMode ? 70 : 200);
-      pdf.setFillColor(darkMode ? 50 : 245, darkMode ? 55 : 250, darkMode ? 60 : 255);
-      pdf.roundedRect(margin, boxY, contentWidth, 45, 3, 3, 'FD');
-      
-      // Fleet details
-      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-      pdf.setFontSize(14);
-      pdf.text('Fleet Composition:', margin + 5, boxY + 12);
-      
-      pdf.setFontSize(11);
-      const vehicleY = boxY + 20;
-      const col1X = margin + 10;
-      const col2X = margin + 70;
-      const col3X = margin + 130;
-      
-      // Labels
-      pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
-      pdf.text('Light-Duty:', col1X, vehicleY + 10);
-      pdf.text('Medium-Duty:', col2X, vehicleY + 10);
-      pdf.text('Heavy-Duty:', col3X, vehicleY + 10);
-      
-      // Values 
-      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-      pdf.setFontSize(14);
-      pdf.text(`${vehicleParameters.lightDutyCount}`, col1X + 35, vehicleY + 10);
-      pdf.text(`${vehicleParameters.mediumDutyCount}`, col2X + 41, vehicleY + 10);
-      pdf.text(`${vehicleParameters.heavyDutyCount}`, col3X + 35, vehicleY + 10);
-      
-      // Station information box
-      const stationBoxY = boxY + 55;
-      pdf.setDrawColor(darkMode ? 70 : 200, darkMode ? 70 : 200, darkMode ? 70 : 200);
-      pdf.setFillColor(darkMode ? 50 : 245, darkMode ? 55 : 250, darkMode ? 60 : 255);
-      pdf.roundedRect(margin, stationBoxY, contentWidth, 50, 3, 3, 'FD');
-      
-      // Station details
-      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-      pdf.setFontSize(14);
-      pdf.text('Station Configuration:', margin + 5, stationBoxY + 12);
-      
-      pdf.setFontSize(11);
-      const stationDetailY = stationBoxY + 25;
-      
-      // Left column - labels
-      pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
-      pdf.text('Station Type:', margin + 10, stationDetailY);
-      pdf.text('Business Type:', margin + 10, stationDetailY + 10);
-      pdf.text('Payment Option:', margin + 10, stationDetailY + 20);
-      
-      // Right column - values
-      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-      pdf.text(`${stationConfig.stationType === 'fast' ? 'Fast-Fill' : 'Time-Fill'}`, margin + 50, stationDetailY);
-      pdf.text(`${stationConfig.businessType === 'aglc' ? 'Alternative Gas & Light Company' : 'Clean Gas Corporation'}`, margin + 50, stationDetailY + 10);
-      pdf.text(`${stationConfig.turnkey ? 'TurnKey (Upfront)' : 'Financed'}`, margin + 50, stationDetailY + 20);
-      
-      // Key Metrics
-      const metricsBoxY = stationBoxY + 60;
-      pdf.setDrawColor(darkMode ? 70 : 200, darkMode ? 70 : 200, darkMode ? 70 : 200);
-      pdf.setFillColor(darkMode ? 50 : 245, darkMode ? 55 : 250, darkMode ? 60 : 255);
-      pdf.roundedRect(margin, metricsBoxY, contentWidth, 90, 3, 3, 'FD');
-      
-      // Metrics header
-      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-      pdf.setFontSize(14);
-      pdf.text('Key Financial & Environmental Metrics', margin + 5, metricsBoxY + 12);
-      
-      // Create metrics in a 2x5 grid layout
-      const metrics = [
-        { name: 'Total Investment', value: `$${results.totalInvestment.toLocaleString()}` },
-        { name: 'Payback Period', value: results.paybackPeriod < 0 ? 'Never' : `${Math.floor(results.paybackPeriod)} years, ${Math.round((results.paybackPeriod % 1) * 12)} months` },
-        { name: 'ROI', value: `${Math.round(results.roi)}%` },
-        { name: 'Annual Rate of Return', value: `${results.annualRateOfReturn.toFixed(1)}%` },
-        { name: 'Annual Fuel Savings', value: `$${results.annualFuelSavings.toLocaleString()}` },
-        { name: 'Net Cash Flow', value: `$${results.netCashFlow.toLocaleString()}` },
-        { name: 'CO₂ Reduction', value: `${results.co2Reduction.toLocaleString()} kg` },
-        { name: 'Cost Per Mile (Gasoline)', value: `$${results.costPerMileGasoline.toFixed(3)}` },
-        { name: 'Cost Per Mile (CNG)', value: `$${results.costPerMileCNG.toFixed(3)}` },
-        { name: 'Cost Reduction', value: `${results.costReduction.toFixed(1)}%` }
-      ];
-      
-      // Layout metrics in two columns with clear spacing
-      const colWidth = contentWidth / 2;
-      const metricX1 = margin + 10;
-      const metricX2 = margin + 10 + colWidth;
-      const metricValueOffset = 62;
-      
-      pdf.setFontSize(10);
-      metrics.forEach((metric, index) => {
-        const col = index < 5 ? 0 : 1;
-        const row = index % 5;
-        const x = col === 0 ? metricX1 : metricX2;
-        const y = metricsBoxY + 30 + (row * 12);
-        
-        pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
-        pdf.text(metric.name + ':', x, y);
-        
-        pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-        pdf.text(metric.value, x + metricValueOffset, y);
+      // Set PDF metadata
+      pdf.setProperties({
+        title: 'CNG Fleet Analysis Report',
+        subject: `${strategyTitles[deploymentStrategy]} Strategy Analysis`,
+        author: 'CNG Fleet Calculator',
+        keywords: 'CNG, Fleet, Analysis, Compressed Natural Gas',
+        creator: 'CNG Fleet Calculator'
       });
       
-      // ==================== FINANCIAL ANALYSIS PAGE ====================
-      pdf.addPage();
+      // Create title page
+      pdf.setFontSize(24);
+      pdf.setTextColor(darkMode ? 220 : 40);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('CNG Fleet Analysis Report', 105, 40, { align: 'center' });
       
-      // Add page background
-      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
-      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+      // Strategy title
+      pdf.setFontSize(18);
+      pdf.setTextColor(darkMode ? 150 : 70);
+      pdf.text(`${strategyTitles[deploymentStrategy]} Strategy`, 105, 60, { align: 'center' });
       
-      // Draw header bar
-      pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
-      pdf.rect(0, 0, pageWidth, 30, 'F');
+      // Strategy description
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(darkMode ? 180 : 80);
+      pdf.text(strategyTaglines[deploymentStrategy], 105, 70, { align: 'center' });
       
-      // Page header
-      pdf.setFontSize(16);
-      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-      pdf.text('Financial Analysis', margin, margin + 5);
+      // Date
+      pdf.setFontSize(10);
+      pdf.setTextColor(100);
+      pdf.text(`Generated on ${date}`, 105, 85, { align: 'center' });
       
-      // Capture the financial analysis card
-      const financialEl = document.querySelector('.financial-analysis');
-      if (financialEl) {
-        const canvas = await html2canvas(financialEl as HTMLElement, {
-          scale: 1.5,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
-        });
+      // Key metrics on title page
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(darkMode ? 220 : 40);
+      pdf.text('Key Financial Metrics', 105, 105, { align: 'center' });
+      
+      // Draw key metrics
+      const leftCol = 60;
+      const rightCol = 150;
+      const startY = 120;
+      const lineHeight = 15;
+      
+      // Labels
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(darkMode ? 180 : 80);
+      
+      pdf.text('Total Investment:', leftCol, startY);
+      pdf.text('Annual Fuel Savings:', leftCol, startY + lineHeight);
+      pdf.text('Net Cash Flow:', leftCol, startY + lineHeight * 2);
+      pdf.text('ROI:', leftCol, startY + lineHeight * 3);
+      pdf.text('Payback Period:', leftCol, startY + lineHeight * 4);
+      pdf.text('CO₂ Reduction:', leftCol, startY + lineHeight * 5);
+      
+      // Helper function to format payback period
+      const formatPaybackPeriod = (paybackPeriod: number): string => {
+        if (paybackPeriod === -1) {
+          return "Never";
+        }
         
-        const imgWidth = contentWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const years = Math.floor(paybackPeriod);
+        const months = Math.round((paybackPeriod - years) * 12);
         
-        // Add the financial charts
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, 40, imgWidth, imgHeight);
-      }
-      
-      // ==================== DEPLOYMENT TIMELINE PAGE ====================
-      pdf.addPage();
-      
-      // Add page background
-      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
-      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-      
-      // Draw header bar
-      pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
-      pdf.rect(0, 0, pageWidth, 30, 'F');
-      
-      // Page header
-      pdf.setFontSize(16);
-      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-      pdf.text('Deployment Timeline', margin, margin + 5);
-      
-      // Capture just the deployment timeline
-      const timelineEl = document.querySelector('.deployment-timeline');
-      if (timelineEl) {
-        const canvas = await html2canvas(timelineEl as HTMLElement, {
-          scale: 1.5,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
-        });
+        if (years === 0 && months === 0) {
+          return "Immediate";
+        }
         
-        const imgWidth = contentWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let result = "";
+        if (years > 0) {
+          result += `${years} Year${years !== 1 ? 's' : ''}`;
+        }
         
-        // Use full page width for the timeline
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, 40, imgWidth, imgHeight);
-      }
-      
-      // ==================== EMISSIONS & ADDITIONAL METRICS PAGE ====================
-      pdf.addPage();
-      
-      // Add page background
-      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
-      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-      
-      // Draw header bar
-      pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
-      pdf.rect(0, 0, pageWidth, 30, 'F');
-      
-      // Page header
-      pdf.setFontSize(16);
-      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-      pdf.text('Environmental Impact & Additional Metrics', margin, margin + 5);
-      
-      // Capture the additional metrics section
-      const metricsEl = document.querySelector('.additional-metrics');
-      if (metricsEl) {
-        const canvas = await html2canvas(metricsEl as HTMLElement, {
-          scale: 1.5,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
-        });
+        if (months > 0) {
+          if (result.length > 0) {
+            result += ", ";
+          }
+          result += `${months} Month${months !== 1 ? 's' : ''}`;
+        }
         
-        const imgWidth = contentWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        return result;
+      };
+      
+      // Values
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(darkMode ? 220 : 40);
+      
+      pdf.text(formatCurrency(results.totalInvestment), rightCol, startY);
+      pdf.text(formatCurrency(results.annualFuelSavings), rightCol, startY + lineHeight);
+      pdf.text(formatCurrency(results.netCashFlow), rightCol, startY + lineHeight * 2);
+      pdf.text(`${Math.round(results.roi)}%`, rightCol, startY + lineHeight * 3);
+      pdf.text(formatPaybackPeriod(results.paybackPeriod), rightCol, startY + lineHeight * 4);
+      pdf.text(`${results.co2Reduction.toLocaleString()} kg`, rightCol, startY + lineHeight * 5);
+      
+      // Fleet composition
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(darkMode ? 220 : 40);
+      pdf.text('Fleet Composition', 105, 200, { align: 'center' });
+      
+      // Fleet labels and values
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(darkMode ? 180 : 80);
+      
+      pdf.text('Light-Duty Vehicles:', leftCol, 220);
+      pdf.text('Medium-Duty Vehicles:', leftCol, 235);
+      pdf.text('Heavy-Duty Vehicles:', leftCol, 250);
+      
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(darkMode ? 220 : 40);
+      
+      pdf.text(`${vehicleParameters.lightDutyCount}`, rightCol, 220);
+      pdf.text(`${vehicleParameters.mediumDutyCount}`, rightCol, 235);
+      pdf.text(`${vehicleParameters.heavyDutyCount}`, rightCol, 250);
+      
+      // Custom function to add component sections to PDF
+      const addSectionToPDF = async (sectionId: string, title: string) => {
+        const section = document.getElementById(sectionId);
+        if (!section) return;
         
-        // Position environmental metrics on its own page
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, 40, imgWidth, imgHeight);
-      }
-      
-      // ==================== SENSITIVITY ANALYSIS PAGE ====================
-      
-      // Get the sensitivity analysis element if it exists
-      const sensitivityEl = document.querySelector('.sensitivity-analysis');
-      if (sensitivityEl) {
+        // Add a new page
         pdf.addPage();
         
-        // Add page background
-        pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
-        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-        
-        // Draw header bar
-        pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
-        pdf.rect(0, 0, pageWidth, 30, 'F');
-        
-        // Page header
-        pdf.setFontSize(16);
-        pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
-        pdf.text('Sensitivity Analysis', margin, margin + 5);
-        
-        const canvas = await html2canvas(sensitivityEl as HTMLElement, {
-          scale: 1.5,
+        // Capture the section as an image
+        const canvas = await html2canvas(section, {
+          scale: 2, // Higher scale for better quality
           useCORS: true,
-          allowTaint: true,
-          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
+          logging: false,
+          backgroundColor: darkMode ? '#1a1a1a' : '#ffffff'
         });
         
-        const imgWidth = contentWidth;
+        // Convert canvas to image
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        
+        // Calculate aspect ratio to fit on PDF page
+        const imgWidth = 190; // A4 width in mm (portrait) with margins
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         
-        // Add the sensitivity analysis
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, 40, imgWidth, imgHeight);
+        // Add title
+        pdf.setFontSize(16);
+        pdf.setTextColor(darkMode ? 220 : 40);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(title, 105, 15, { align: 'center' });
+        
+        // Add date
+        pdf.setFontSize(10);
+        pdf.setTextColor(100);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Generated on ${date}`, 105, 22, { align: 'center' });
+        
+        // Add image centered on page with margins
+        pdf.addImage(imgData, 'JPEG', 10, 30, imgWidth, imgHeight);
+        
+        // Add page number
+        pdf.setFontSize(10);
+        pdf.setTextColor(100);
+        pdf.text(`Page ${pdf.getNumberOfPages()}`, 105, 290, { align: 'center' });
+      };
+      
+      // Add component sections
+      await addSectionToPDF('financial-analysis', 'Financial Analysis');
+      await addSectionToPDF('deployment-timeline', 'Deployment Timeline');
+      await addSectionToPDF('additional-metrics', 'Financial & Environmental Metrics');
+      
+      if (showCashflow) {
+        await addSectionToPDF('cash-flow-section', 'Cash Flow Analysis');
       }
       
-      // Save the PDF with a descriptive filename
-      pdf.save(`CNG_Analysis_${deploymentStrategy}_${date.replace(/[\s,]+/g, '_')}.pdf`);
+      await addSectionToPDF('sensitivity-analysis', 'Sensitivity Analysis');
+      await addSectionToPDF('multi-variable-analysis', 'Multi-Variable Analysis');
+      
+      // Finalize and save the PDF
+      pdf.save(`CNG_Fleet_Analysis_${strategyTitles[deploymentStrategy].replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+      setIsExporting(false);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('There was an error generating the PDF. Please try again.');
+      setIsExporting(false);
+    }
+  };
+         .fontSize(18)
+         .fillColor(textColor)
+         .text('Financial Analysis', 50, 30);
+      
+      // Draw investment breakdown
+      doc.roundedRect(50, 90, doc.page.width - 100, 180, 5)
+         .lineWidth(1)
+         .fillAndStroke(boxBgColor, boxBorderColor);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(16)
+         .fillColor(textColor)
+         .text('Investment Breakdown', 70, 110);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(20)
+         .fillColor(accentColor)
+         .text(formatCurrency(results.totalInvestment), doc.page.width / 2, 140, { align: 'center' });
+      
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor(subtitleColor)
+         .text('Total Capital Investment', doc.page.width / 2, 165, { align: 'center' });
+      
+      // Draw pie chart sections for vehicle and station investment
+      const vehicleInvestment = results.vehicleDistribution[0].investment;
+      const stationInvestment = results.totalInvestment - vehicleInvestment;
+      const vehiclePercent = Math.round((vehicleInvestment / results.totalInvestment) * 100);
+      const stationPercent = 100 - vehiclePercent;
+      
+      // Draw vehicle investment section
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor(textColor);
+      
+      doc.text('Vehicles', 150, 200);
+      doc.font('Helvetica')
+         .fontSize(12)
+         .text(formatCurrency(vehicleInvestment), 150, 220);
+      doc.text(`${vehiclePercent}%`, 150, 240);
+      
+      // Color square for vehicles
+      doc.rect(120, 200, 15, 15)
+         .fill(accentColor);
+      
+      // Draw station investment section
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor(textColor);
+      
+      doc.text('Station', 350, 200);
+      doc.font('Helvetica')
+         .fontSize(12)
+         .text(formatCurrency(stationInvestment), 350, 220);
+      doc.text(`${stationPercent}%`, 350, 240);
+      
+      // Color square for station
+      doc.rect(320, 200, 15, 15)
+         .fill(secondaryColor);
+      
+      // Cash flow and savings trends
+      doc.roundedRect(50, 290, doc.page.width - 100, 220, 5)
+         .lineWidth(1)
+         .fillAndStroke(boxBgColor, boxBorderColor);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(16)
+         .fillColor(textColor)
+         .text('Financial Projections', 70, 310);
+      
+      // Draw simplified chart
+      const chartX = 70;
+      const chartY = 340;
+      const chartWidth = doc.page.width - 140;
+      const chartHeight = 150;
+      
+      // Draw chart axes
+      doc.moveTo(chartX, chartY)
+         .lineTo(chartX, chartY + chartHeight)
+         .lineTo(chartX + chartWidth, chartY + chartHeight)
+         .stroke();
+      
+      // Draw investment and savings lines
+      const maxYear = results.yearlySavings.length;
+      const yearWidth = chartWidth / maxYear;
+      
+      // Draw year markers
+      for (let i = 0; i < maxYear; i++) {
+        const x = chartX + i * yearWidth;
+        doc.font('Helvetica')
+           .fontSize(8)
+           .fillColor(subtitleColor)
+           .text(`Year ${i + 1}`, x, chartY + chartHeight + 10, { width: yearWidth, align: 'center' });
+      }
+      
+      // Find the maximum value for scaling
+      const maxSavings = Math.max(...results.cumulativeSavings);
+      const maxInvestment = Math.max(...results.cumulativeInvestment);
+      const maxValue = Math.max(maxSavings, maxInvestment);
+      
+      // Draw investment line
+      doc.moveTo(chartX, chartY + chartHeight);
+      for (let i = 0; i < results.cumulativeInvestment.length; i++) {
+        const x = chartX + i * yearWidth;
+        const y = chartY + chartHeight - (results.cumulativeInvestment[i] / maxValue) * chartHeight;
+        if (i === 0) {
+          doc.moveTo(x, y);
+        } else {
+          doc.lineTo(x, y);
+        }
+      }
+      doc.strokeColor(accentColor)
+         .lineWidth(2)
+         .stroke();
+      
+      // Draw savings line
+      doc.moveTo(chartX, chartY + chartHeight);
+      for (let i = 0; i < results.cumulativeSavings.length; i++) {
+        const x = chartX + i * yearWidth;
+        const y = chartY + chartHeight - (results.cumulativeSavings[i] / maxValue) * chartHeight;
+        if (i === 0) {
+          doc.moveTo(x, y);
+        } else {
+          doc.lineTo(x, y);
+        }
+      }
+      doc.strokeColor(secondaryColor)
+         .lineWidth(2)
+         .stroke();
+      
+      // Chart legend
+      doc.rect(70, 510, 15, 10)
+         .fill(accentColor);
+      doc.font('Helvetica')
+         .fontSize(10)
+         .fillColor(textColor)
+         .text('Cumulative Investment', 90, 510);
+      
+      doc.rect(230, 510, 15, 10)
+         .fill(secondaryColor);
+      doc.text('Cumulative Savings', 250, 510);
+      
+      // Metrics grid
+      doc.roundedRect(50, 530, doc.page.width - 100, 120, 5)
+         .lineWidth(1)
+         .fillAndStroke(boxBgColor, boxBorderColor);
+      
+      // Financial metrics grid layout
+      const metricItems = [
+        { label: 'Payback Period', value: formatPaybackPeriod(results.paybackPeriod) },
+        { label: `${timeHorizon}-Year ROI`, value: `${Math.round(results.roi)}%` },
+        { label: 'Annual Rate of Return', value: `${results.annualRateOfReturn.toFixed(1)}%` },
+        { label: 'Net Cash Flow', value: formatCurrency(results.netCashFlow) }
+      ];
+      
+      // Draw metrics grid
+      const gridCols = 2;
+      const gridRows = Math.ceil(metricItems.length / gridCols);
+      const cellWidth = (doc.page.width - 100) / gridCols;
+      const cellHeight = 120 / gridRows;
+      
+      metricItems.forEach((item, index) => {
+        const row = Math.floor(index / gridCols);
+        const col = index % gridCols;
+        const x = 50 + col * cellWidth + 20;
+        const y = 530 + row * cellHeight + 15;
+        
+        doc.font('Helvetica')
+           .fontSize(11)
+           .fillColor(subtitleColor)
+           .text(item.label, x, y);
+        
+        doc.font('Helvetica-Bold')
+           .fontSize(14)
+           .fillColor(textColor)
+           .text(item.value, x, y + 20);
+      });
+      
+      // ==================== DEPLOYMENT TIMELINE PAGE ====================
+      doc.addPage();
+      
+      // Page background
+      doc.rect(0, 0, doc.page.width, doc.page.height)
+         .fill(bgColor);
+      
+      // Header bar
+      doc.rect(0, 0, doc.page.width, 70)
+         .fill(headerBgColor);
+      
+      // Page header
+      doc.font('Helvetica-Bold')
+         .fontSize(18)
+         .fillColor(textColor)
+         .text('Deployment Timeline', 50, 30);
+      
+      // Draw timeline header
+      doc.roundedRect(50, 90, doc.page.width - 100, 60, 5)
+         .lineWidth(1)
+         .fillAndStroke(accentColor, accentColor);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(16)
+         .fillColor('#ffffff')
+         .text(`${strategyTitles[deploymentStrategy]} - ${timeHorizon} Year Plan`, 70, 110);
+      
+      doc.font('Helvetica')
+         .fontSize(12)
+         .text(strategyTaglines[deploymentStrategy], 70, 130);
+      
+      // Draw timeline for each year
+      const years = results.vehicleDistribution.length;
+      const timelineYears = Math.min(years, 10); // Display up to 10 years
+      
+      for (let year = 0; year < timelineYears; year++) {
+        const dist = results.vehicleDistribution[year];
+        const yPos = 170 + year * 60;
+        
+        // Year background
+        doc.roundedRect(50, yPos, doc.page.width - 100, 50, 5)
+           .lineWidth(1)
+           .fillAndStroke(boxBgColor, boxBorderColor);
+        
+        // Year header
+        doc.font('Helvetica-Bold')
+           .fontSize(14)
+           .fillColor(textColor)
+           .text(`Year ${year + 1}`, 70, yPos + 15);
+        
+        // Vehicle counts
+        const lightLabel = `Light-Duty: ${dist.light}`;
+        const mediumLabel = `Medium-Duty: ${dist.medium}`;
+        const heavyLabel = `Heavy-Duty: ${dist.heavy}`;
+        
+        doc.font('Helvetica')
+           .fontSize(10)
+           .fillColor(subtitleColor);
+        
+        doc.text(lightLabel, 170, yPos + 10);
+        doc.text(mediumLabel, 170, yPos + 25);
+        doc.text(heavyLabel, 170, yPos + 40);
+        
+        // Investment and savings
+        doc.font('Helvetica-Bold')
+           .fontSize(11)
+           .fillColor(accentColor)
+           .text(`Investment: ${formatCurrency(dist.investment)}`, 300, yPos + 15);
+        
+        if (year > 0) {
+          doc.fillColor(secondaryColor)
+             .text(`Savings: ${formatCurrency(results.yearlySavings[year])}`, 300, yPos + 35);
+        }
+      }
+      
+      // Draw summary at the bottom
+      const summaryY = 170 + timelineYears * 60 + 20;
+      
+      doc.roundedRect(50, summaryY, doc.page.width - 100, 80, 5)
+         .lineWidth(1)
+         .fillAndStroke(headerBgColor, boxBorderColor);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor(textColor)
+         .text('Deployment Summary', 70, summaryY + 15);
+      
+      // Total vehicles deployed
+      const totalLight = results.vehicleDistribution.reduce((sum, year) => sum + year.light, 0);
+      const totalMedium = results.vehicleDistribution.reduce((sum, year) => sum + year.medium, 0);
+      const totalHeavy = results.vehicleDistribution.reduce((sum, year) => sum + year.heavy, 0);
+      
+      doc.font('Helvetica')
+         .fontSize(11)
+         .fillColor(textColor);
+      
+      doc.text(`Total Vehicles: ${totalLight + totalMedium + totalHeavy}`, 70, summaryY + 40);
+      doc.text(`Total Investment: ${formatCurrency(results.totalInvestment)}`, 280, summaryY + 40);
+      doc.text(`Net Cash Flow: ${formatCurrency(results.netCashFlow)}`, 280, summaryY + 55);
+      
+      // ==================== ENVIRONMENTAL IMPACT PAGE ====================
+      doc.addPage();
+      
+      // Page background
+      doc.rect(0, 0, doc.page.width, doc.page.height)
+         .fill(bgColor);
+      
+      // Header bar
+      doc.rect(0, 0, doc.page.width, 70)
+         .fill(headerBgColor);
+      
+      // Page header
+      doc.font('Helvetica-Bold')
+         .fontSize(18)
+         .fillColor(textColor)
+         .text('Environmental Impact', 50, 30);
+      
+      // CO2 Reduction box
+      doc.roundedRect(50, 90, doc.page.width - 100, 160, 5)
+         .lineWidth(1)
+         .fillAndStroke(boxBgColor, boxBorderColor);
+      
+      // Key emission statistics
+      doc.font('Helvetica-Bold')
+         .fontSize(16)
+         .fillColor(textColor)
+         .text('CO₂ Emissions Reduction', 70, 110);
+      
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor(subtitleColor)
+         .text('Estimated reduction in carbon dioxide emissions over time', 70, 130);
+      
+      // Total emissions saved
+      doc.font('Helvetica-Bold')
+         .fontSize(24)
+         .fillColor(secondaryColor)
+         .text(`${results.totalEmissionsSaved.toLocaleString()} kg`, doc.page.width / 2, 160, { align: 'center' });
+      
+      doc.font('Helvetica')
+         .fontSize(14)
+         .fillColor(textColor)
+         .text('Total CO₂ Emissions Saved', doc.page.width / 2, 190, { align: 'center' });
+      
+      // CO2 reduction percentage
+      const co2ReductionPercent = Math.round(results.costReduction);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(16)
+         .fillColor(secondaryColor)
+         .text(`${co2ReductionPercent}%`, 150, 220);
+      
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor(textColor)
+         .text('CO₂ Reduction Percentage', 150, 240);
+      
+      // Environmental equivalents
+      const treeEquivalent = Math.round(results.totalEmissionsSaved / 21); // Average tree absorbs 21kg CO2 per year
+      const forestAcres = Math.round(treeEquivalent / 120); // About 120 trees per acre in an average forest
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(16)
+         .fillColor(secondaryColor)
+         .text(`${treeEquivalent.toLocaleString()} trees`, 350, 220);
+      
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor(textColor)
+         .text('Equivalent Trees Planted', 350, 240);
+      
+      // Emissions chart box
+      doc.roundedRect(50, 270, doc.page.width - 100, 250, 5)
+         .lineWidth(1)
+         .fillAndStroke(boxBgColor, boxBorderColor);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor(textColor)
+         .text('Emissions Reduction Over Time', 70, 290);
+      
+      // Draw simplified chart
+      const emisChartX = 70;
+      const emisChartY = 320;
+      const emisChartWidth = doc.page.width - 140;
+      const emisChartHeight = 150;
+      
+      // Draw chart axes
+      doc.moveTo(emisChartX, emisChartY)
+         .lineTo(emisChartX, emisChartY + emisChartHeight)
+         .lineTo(emisChartX + emisChartWidth, emisChartY + emisChartHeight)
+         .stroke();
+      
+      // Draw yearly emission bars
+      const maxEmission = Math.max(...results.yearlyEmissionsSaved);
+      const barWidth = emisChartWidth / results.yearlyEmissionsSaved.length - 10;
+      
+      results.yearlyEmissionsSaved.forEach((emission, index) => {
+        const x = emisChartX + index * (barWidth + 10) + 5;
+        const barHeight = (emission / maxEmission) * emisChartHeight;
+        const y = emisChartY + emisChartHeight - barHeight;
+        
+        doc.rect(x, y, barWidth, barHeight)
+           .fillOpacity(0.7)
+           .fill(secondaryColor);
+        
+        // Year label
+        doc.font('Helvetica')
+           .fontSize(8)
+           .fillColor(subtitleColor)
+           .fillOpacity(1)
+           .text(`Year ${index + 1}`, x, emisChartY + emisChartHeight + 10, { width: barWidth, align: 'center' });
+        
+        // Only show values for bars high enough to display text
+        if (barHeight > 20) {
+          doc.font('Helvetica')
+             .fontSize(8)
+             .fillColor(textColor)
+             .text(`${Math.round(emission).toLocaleString()}`, x, y - 15, { width: barWidth, align: 'center' });
+        }
+      });
+      
+      // Chart legend
+      doc.rect(70, 490, 15, 10)
+         .fill(secondaryColor);
+      doc.font('Helvetica')
+         .fontSize(10)
+         .fillColor(textColor)
+         .text('Yearly CO₂ Emissions Saved (kg)', 90, 490);
+      
+      // Cost analysis box
+      doc.roundedRect(50, 530, doc.page.width - 100, 120, 5)
+         .lineWidth(1)
+         .fillAndStroke(boxBgColor, boxBorderColor);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor(textColor)
+         .text('Cost Per Mile Comparison', 70, 550);
+      
+      // Cost comparison boxes
+      doc.rect(80, 580, 180, 60)
+         .lineWidth(1)
+         .fillAndStroke('#fff5f5', '#fecaca'); // Light red for gasoline
+      
+      doc.rect(300, 580, 180, 60)
+         .lineWidth(1)
+         .fillAndStroke('#f0fdf4', '#86efac'); // Light green for CNG
+      
+      // Gasoline cost
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#dc2626') // Red
+         .text('Gasoline Cost Per Mile', 100, 590);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(16)
+         .text(`$${results.costPerMileGasoline.toFixed(3)}`, 100, 610);
+      
+      // CNG cost
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#16a34a') // Green
+         .text('CNG Cost Per Mile', 320, 590);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(16)
+         .text(`$${results.costPerMileCNG.toFixed(3)}`, 320, 610);
+      
+      // Finish and save the PDF
+      doc.end();
+      
+      // When the stream is done, create a blob and save it
+      stream.on('finish', function() {
+        const blob = stream.toBlob('application/pdf');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `CNG_Analysis_${deploymentStrategy}_${date.replace(/[\s,]+/g, '_')}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setIsExporting(false);
+      });
       
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('There was an error generating the PDF. Please try again.');
-    } finally {
       setIsExporting(false);
     }
   };
