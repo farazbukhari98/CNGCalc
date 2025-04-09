@@ -8,7 +8,6 @@ import FinancialAnalysis from "./FinancialAnalysis";
 import AdditionalMetrics from "./AdditionalMetrics";
 import StrategyComparison from "./StrategyComparison";
 import SensitivityAnalysis from "./SensitivityAnalysis";
-import MultiVariableAnalysis from "./MultiVariableAnalysis";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -17,53 +16,16 @@ import { Download, PanelLeft, PanelRight, Moon, Sun } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-// Deployment strategy titles and taglines
-const strategyTitles = {
-  immediate: "Immediate Deployment",
-  phased: "Phased Deployment",
-  aggressive: "Aggressive Deployment",
-  deferred: "Deferred Deployment",
-  manual: "Custom Deployment"
-};
-
-const strategyTaglines = {
-  immediate: "Convert entire fleet to CNG immediately",
-  phased: "Gradually convert fleet over time",
-  aggressive: "Rapid initial conversion with follow-up phases",
-  deferred: "Delay major conversion for initial testing",
-  manual: "Customized deployment schedule"
-};
-
 export default function MainContent() {
-  const { 
-    deploymentStrategy, 
-    results, 
-    vehicleParameters, 
-    stationConfig, 
-    fuelPrices, 
-    timeHorizon, 
-    sidebarCollapsed, 
-    toggleSidebar 
-  } = useCalculator();
-  
+  const { deploymentStrategy, results, vehicleParameters, stationConfig, fuelPrices, timeHorizon } = useCalculator();
   const { darkMode, toggleDarkMode } = useDarkMode();
   const [showCashflow, setShowCashflow] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   
-  // Helper function to format currency
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-  
-  // Function to handle high-quality PDF export with dedicated pages for each section
+  // Function to handle PDF export
   const handleExportPDF = async () => {
-    if (!results || !contentRef.current) return;
+    if (!results) return;
     
     try {
       setIsExporting(true);
@@ -75,290 +37,426 @@ export default function MainContent() {
         day: 'numeric' 
       });
       
-      // Initialize PDF document (A4 size in portrait for better quality)
+      // Initialize PDF document (A4 size in portrait for better layout)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
       
-      // Set PDF metadata
-      pdf.setProperties({
-        title: 'CNG Fleet Analysis Report',
-        subject: `${strategyTitles[deploymentStrategy]} Strategy Analysis`,
-        author: 'CNG Fleet Calculator',
-        keywords: 'CNG, Fleet, Analysis, Compressed Natural Gas',
-        creator: 'CNG Fleet Calculator'
-      });
+      // Page dimensions
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - (margin * 2);
       
-      // Create title page
+      // ==================== TITLE PAGE ====================
+      
+      // Add title page background
+      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+      
+      // Draw header bar
+      pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
+      pdf.rect(0, 0, pageWidth, 40, 'F');
+      
+      // Header text
       pdf.setFontSize(24);
-      pdf.setTextColor(darkMode ? 220 : 40);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('CNG Fleet Analysis Report', 105, 40, { align: 'center' });
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.text('CNG Fleet Analysis Report', margin, margin + 10);
       
-      // Strategy title
+      // Strategy information
       pdf.setFontSize(18);
-      pdf.setTextColor(darkMode ? 150 : 70);
-      pdf.text(`${strategyTitles[deploymentStrategy]} Strategy`, 105, 60, { align: 'center' });
+      pdf.setTextColor(darkMode ? 230 : 40, darkMode ? 230 : 40, darkMode ? 230 : 40);
+      pdf.text(`${strategyTitles[deploymentStrategy]}`, margin, margin + 35);
       
-      // Strategy description
       pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(darkMode ? 180 : 80);
-      pdf.text(strategyTaglines[deploymentStrategy], 105, 70, { align: 'center' });
+      pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
+      pdf.text(`${strategyTaglines[deploymentStrategy]}`, margin, margin + 45);
       
-      // Date
-      pdf.setFontSize(10);
-      pdf.setTextColor(100);
-      pdf.text(`Generated on ${date}`, 105, 85, { align: 'center' });
+      // Generate date
+      pdf.text(`Generated on ${date}`, margin, margin + 55);
       
-      // Key metrics on title page
+      // Fleet information box
+      const boxY = margin + 65;
+      pdf.setDrawColor(darkMode ? 70 : 200, darkMode ? 70 : 200, darkMode ? 70 : 200);
+      pdf.setFillColor(darkMode ? 50 : 245, darkMode ? 55 : 250, darkMode ? 60 : 255);
+      pdf.roundedRect(margin, boxY, contentWidth, 45, 3, 3, 'FD');
+      
+      // Fleet details
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
       pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(darkMode ? 220 : 40);
-      pdf.text('Key Financial Metrics', 105, 105, { align: 'center' });
+      pdf.text('Fleet Composition:', margin + 5, boxY + 12);
       
-      // Draw key metrics
-      const leftCol = 60;
-      const rightCol = 150;
-      const startY = 120;
-      const lineHeight = 15;
+      pdf.setFontSize(11);
+      const vehicleY = boxY + 20;
+      const col1X = margin + 10;
+      const col2X = margin + 70;
+      const col3X = margin + 130;
       
       // Labels
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(darkMode ? 180 : 80);
+      pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
+      pdf.text('Light-Duty:', col1X, vehicleY + 10);
+      pdf.text('Medium-Duty:', col2X, vehicleY + 10);
+      pdf.text('Heavy-Duty:', col3X, vehicleY + 10);
       
-      pdf.text('Total Investment:', leftCol, startY);
-      pdf.text('Annual Fuel Savings:', leftCol, startY + lineHeight);
-      pdf.text('Net Cash Flow:', leftCol, startY + lineHeight * 2);
-      pdf.text('ROI:', leftCol, startY + lineHeight * 3);
-      pdf.text('Payback Period:', leftCol, startY + lineHeight * 4);
-      pdf.text('CO₂ Reduction:', leftCol, startY + lineHeight * 5);
-      
-      // Values
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(darkMode ? 220 : 40);
-      
-      pdf.text(formatCurrency(results.totalInvestment), rightCol, startY);
-      pdf.text(formatCurrency(results.annualFuelSavings), rightCol, startY + lineHeight);
-      pdf.text(formatCurrency(results.netCashFlow), rightCol, startY + lineHeight * 2);
-      pdf.text(`${Math.round(results.roi)}%`, rightCol, startY + lineHeight * 3);
-      
-      // Format payback period
-      const formatPaybackPeriod = (paybackPeriod: number): string => {
-        if (paybackPeriod === -1) return "Never";
-        const years = Math.floor(paybackPeriod);
-        const months = Math.round((paybackPeriod - years) * 12);
-        if (years === 0 && months === 0) return "Immediate";
-        
-        let result = "";
-        if (years > 0) result += `${years} Year${years !== 1 ? 's' : ''}`;
-        if (months > 0) {
-          if (result.length > 0) result += ", ";
-          result += `${months} Month${months !== 1 ? 's' : ''}`;
-        }
-        return result;
-      };
-      
-      pdf.text(formatPaybackPeriod(results.paybackPeriod), rightCol, startY + lineHeight * 4);
-      pdf.text(`${results.co2Reduction.toLocaleString()} kg`, rightCol, startY + lineHeight * 5);
-      
-      // Fleet composition
+      // Values 
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
       pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(darkMode ? 220 : 40);
-      pdf.text('Fleet Composition', 105, 200, { align: 'center' });
+      pdf.text(`${vehicleParameters.lightDutyCount}`, col1X + 35, vehicleY + 10);
+      pdf.text(`${vehicleParameters.mediumDutyCount}`, col2X + 41, vehicleY + 10);
+      pdf.text(`${vehicleParameters.heavyDutyCount}`, col3X + 35, vehicleY + 10);
       
-      // Fleet labels and values
+      // Station information box
+      const stationBoxY = boxY + 55;
+      pdf.setDrawColor(darkMode ? 70 : 200, darkMode ? 70 : 200, darkMode ? 70 : 200);
+      pdf.setFillColor(darkMode ? 50 : 245, darkMode ? 55 : 250, darkMode ? 60 : 255);
+      pdf.roundedRect(margin, stationBoxY, contentWidth, 50, 3, 3, 'FD');
+      
+      // Station details
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.setFontSize(14);
+      pdf.text('Station Configuration:', margin + 5, stationBoxY + 12);
+      
+      pdf.setFontSize(11);
+      const stationDetailY = stationBoxY + 25;
+      
+      // Left column - labels
+      pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
+      pdf.text('Station Type:', margin + 10, stationDetailY);
+      pdf.text('Business Type:', margin + 10, stationDetailY + 10);
+      pdf.text('Payment Option:', margin + 10, stationDetailY + 20);
+      
+      // Right column - values
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.text(`${stationConfig.stationType === 'fast' ? 'Fast-Fill' : 'Time-Fill'}`, margin + 50, stationDetailY);
+      pdf.text(`${stationConfig.businessType === 'aglc' ? 'Alternative Gas & Light Company' : 'Clean Gas Corporation'}`, margin + 50, stationDetailY + 10);
+      pdf.text(`${stationConfig.turnkey ? 'TurnKey (Upfront)' : 'Financed'}`, margin + 50, stationDetailY + 20);
+      
+      // Key Metrics
+      const metricsBoxY = stationBoxY + 60;
+      pdf.setDrawColor(darkMode ? 70 : 200, darkMode ? 70 : 200, darkMode ? 70 : 200);
+      pdf.setFillColor(darkMode ? 50 : 245, darkMode ? 55 : 250, darkMode ? 60 : 255);
+      pdf.roundedRect(margin, metricsBoxY, contentWidth, 90, 3, 3, 'FD');
+      
+      // Metrics header
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.setFontSize(14);
+      pdf.text('Key Financial & Environmental Metrics', margin + 5, metricsBoxY + 12);
+      
+      // Create metrics in a 2x5 grid layout
+      const metrics = [
+        { name: 'Total Investment', value: `$${results.totalInvestment.toLocaleString()}` },
+        { name: 'Payback Period', value: results.paybackPeriod < 0 ? 'Never' : `${Math.floor(results.paybackPeriod)} years, ${Math.round((results.paybackPeriod % 1) * 12)} months` },
+        { name: 'ROI', value: `${Math.round(results.roi)}%` },
+        { name: 'Annual Rate of Return', value: `${results.annualRateOfReturn.toFixed(1)}%` },
+        { name: 'Annual Fuel Savings', value: `$${results.annualFuelSavings.toLocaleString()}` },
+        { name: 'Net Cash Flow', value: `$${results.netCashFlow.toLocaleString()}` },
+        { name: 'CO₂ Reduction', value: `${results.co2Reduction.toLocaleString()} kg` },
+        { name: 'Cost Per Mile (Gasoline)', value: `$${results.costPerMileGasoline.toFixed(3)}` },
+        { name: 'Cost Per Mile (CNG)', value: `$${results.costPerMileCNG.toFixed(3)}` },
+        { name: 'Cost Reduction', value: `${results.costReduction.toFixed(1)}%` }
+      ];
+      
+      // Layout metrics in two columns with clear spacing
+      const colWidth = contentWidth / 2;
+      const metricX1 = margin + 10;
+      const metricX2 = margin + 10 + colWidth;
+      const metricValueOffset = 62;
+      
       pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(darkMode ? 180 : 80);
-      
-      pdf.text('Light-Duty Vehicles:', leftCol, 220);
-      pdf.text('Medium-Duty Vehicles:', leftCol, 235);
-      pdf.text('Heavy-Duty Vehicles:', leftCol, 250);
-      
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(darkMode ? 220 : 40);
-      
-      pdf.text(`${vehicleParameters.lightDutyCount}`, rightCol, 220);
-      pdf.text(`${vehicleParameters.mediumDutyCount}`, rightCol, 235);
-      pdf.text(`${vehicleParameters.heavyDutyCount}`, rightCol, 250);
-      
-      // Custom function to add component sections to PDF
-      const addSectionToPDF = async (sectionId: string, title: string) => {
-        const section = document.getElementById(sectionId);
-        if (!section) return;
+      metrics.forEach((metric, index) => {
+        const col = index < 5 ? 0 : 1;
+        const row = index % 5;
+        const x = col === 0 ? metricX1 : metricX2;
+        const y = metricsBoxY + 30 + (row * 12);
         
-        // Add a new page
-        pdf.addPage();
+        pdf.setTextColor(darkMode ? 200 : 80, darkMode ? 200 : 80, darkMode ? 200 : 80);
+        pdf.text(metric.name + ':', x, y);
         
-        // Capture the section as an image
-        const canvas = await html2canvas(section, {
-          scale: 2, // Higher scale for better quality
+        pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+        pdf.text(metric.value, x + metricValueOffset, y);
+      });
+      
+      // ==================== FINANCIAL ANALYSIS PAGE ====================
+      pdf.addPage();
+      
+      // Add page background
+      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+      
+      // Draw header bar
+      pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
+      pdf.rect(0, 0, pageWidth, 30, 'F');
+      
+      // Page header
+      pdf.setFontSize(16);
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.text('Financial Analysis', margin, margin + 5);
+      
+      // Capture the financial analysis card
+      const financialEl = document.querySelector('.financial-analysis');
+      if (financialEl) {
+        const canvas = await html2canvas(financialEl as HTMLElement, {
+          scale: 1.5,
           useCORS: true,
-          logging: false,
-          backgroundColor: darkMode ? '#1a1a1a' : '#ffffff'
+          allowTaint: true,
+          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
         });
         
-        // Convert canvas to image
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        
-        // Calculate aspect ratio to fit on PDF page
-        const imgWidth = 190; // A4 width in mm (portrait) with margins
+        const imgWidth = contentWidth;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         
-        // Add title
-        pdf.setFontSize(16);
-        pdf.setTextColor(darkMode ? 220 : 40);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(title, 105, 15, { align: 'center' });
-        
-        // Add date
-        pdf.setFontSize(10);
-        pdf.setTextColor(100);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(`Generated on ${date}`, 105, 22, { align: 'center' });
-        
-        // Add image centered on page with margins
-        pdf.addImage(imgData, 'JPEG', 10, 30, imgWidth, imgHeight);
-        
-        // Add page number
-        pdf.setFontSize(10);
-        pdf.setTextColor(100);
-        pdf.text(`Page ${pdf.getNumberOfPages()}`, 105, 290, { align: 'center' });
-      };
-      
-      // Add component sections
-      await addSectionToPDF('financial-analysis', 'Financial Analysis');
-      await addSectionToPDF('deployment-timeline', 'Deployment Timeline');
-      await addSectionToPDF('additional-metrics', 'Financial & Environmental Metrics');
-      
-      if (showCashflow) {
-        await addSectionToPDF('cash-flow-section', 'Cash Flow Analysis');
+        // Add the financial charts
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, 40, imgWidth, imgHeight);
       }
       
-      await addSectionToPDF('sensitivity-analysis', 'Sensitivity Analysis');
-      await addSectionToPDF('multi-variable-analysis', 'Multi-Variable Analysis');
+      // ==================== DEPLOYMENT TIMELINE PAGE ====================
+      pdf.addPage();
       
-      // Finalize and save the PDF
-      pdf.save(`CNG_Fleet_Analysis_${strategyTitles[deploymentStrategy].replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
-      setIsExporting(false);
+      // Add page background
+      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+      
+      // Draw header bar
+      pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
+      pdf.rect(0, 0, pageWidth, 30, 'F');
+      
+      // Page header
+      pdf.setFontSize(16);
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.text('Deployment Timeline', margin, margin + 5);
+      
+      // Capture just the deployment timeline
+      const timelineEl = document.querySelector('.deployment-timeline');
+      if (timelineEl) {
+        const canvas = await html2canvas(timelineEl as HTMLElement, {
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
+        });
+        
+        const imgWidth = contentWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Use full page width for the timeline
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, 40, imgWidth, imgHeight);
+      }
+      
+      // ==================== EMISSIONS & ADDITIONAL METRICS PAGE ====================
+      pdf.addPage();
+      
+      // Add page background
+      pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+      
+      // Draw header bar
+      pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
+      pdf.rect(0, 0, pageWidth, 30, 'F');
+      
+      // Page header
+      pdf.setFontSize(16);
+      pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+      pdf.text('Environmental Impact & Additional Metrics', margin, margin + 5);
+      
+      // Capture the additional metrics section
+      const metricsEl = document.querySelector('.additional-metrics');
+      if (metricsEl) {
+        const canvas = await html2canvas(metricsEl as HTMLElement, {
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
+        });
+        
+        const imgWidth = contentWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Position environmental metrics on its own page
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, 40, imgWidth, imgHeight);
+      }
+      
+      // ==================== SENSITIVITY ANALYSIS PAGE ====================
+      
+      // Get the sensitivity analysis element if it exists
+      const sensitivityEl = document.querySelector('.sensitivity-analysis');
+      if (sensitivityEl) {
+        pdf.addPage();
+        
+        // Add page background
+        pdf.setFillColor(darkMode ? 35 : 240, darkMode ? 41 : 245, darkMode ? 47 : 250);
+        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        // Draw header bar
+        pdf.setFillColor(darkMode ? 50 : 220, darkMode ? 55 : 225, darkMode ? 60 : 230);
+        pdf.rect(0, 0, pageWidth, 30, 'F');
+        
+        // Page header
+        pdf.setFontSize(16);
+        pdf.setTextColor(darkMode ? 255 : 0, darkMode ? 255 : 0, darkMode ? 255 : 0);
+        pdf.text('Sensitivity Analysis', margin, margin + 5);
+        
+        const canvas = await html2canvas(sensitivityEl as HTMLElement, {
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: darkMode ? '#1f2937' : '#ffffff'
+        });
+        
+        const imgWidth = contentWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Add the sensitivity analysis
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, 40, imgWidth, imgHeight);
+      }
+      
+      // Save the PDF with a descriptive filename
+      pdf.save(`CNG_Analysis_${deploymentStrategy}_${date.replace(/[\s,]+/g, '_')}.pdf`);
+      
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('There was an error generating the PDF. Please try again.');
+    } finally {
       setIsExporting(false);
     }
   };
 
+  // Strategy titles and taglines
+  const strategyTitles = {
+    immediate: "Immediate Purchase Strategy",
+    phased: "Phased Deployment Strategy",
+    aggressive: "Aggressive Early Strategy",
+    deferred: "Deferred Deployment Strategy",
+    manual: "Custom Deployment Strategy"
+  };
+
+  const strategyTaglines = {
+    immediate: "Full upfront investment for maximum savings potential",
+    phased: "Balanced approach with steady investment over time",
+    aggressive: "Front-loaded investment to accelerate savings",
+    deferred: "Gradual deployment with heavier investment in later years",
+    manual: "Customized deployment based on your specific needs"
+  };
+
+  const { toggleSidebar, sidebarCollapsed } = useCalculator();
+
   return (
-    <div className="flex flex-col w-full min-h-screen text-foreground bg-background" ref={contentRef}>
-      <div className="flex items-center justify-between p-2 border-b bg-card">
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleSidebar} 
-            className="sidebar-toggle"
-          >
-            {sidebarCollapsed ? <PanelRight size={20} /> : <PanelLeft size={20} />}
-          </Button>
-          <h1 className="text-xl font-bold md:text-2xl">CNG Fleet Calculator</h1>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="show-cashflow" 
-              checked={showCashflow} 
-              onCheckedChange={setShowCashflow} 
-            />
-            <Label htmlFor="show-cashflow">Show Cashflow</Label>
+    <div className="flex-1 overflow-y-auto p-6" ref={contentRef}>
+      {/* Strategy Header */}
+      <div className="mb-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="h-8 w-8 bg-transparent"
+              onClick={toggleSidebar}
+              title={sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
+            >
+              {sidebarCollapsed ? (
+                <PanelRight className="h-4 w-4" />
+              ) : (
+                <PanelLeft className="h-4 w-4" />
+              )}
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {strategyTitles[deploymentStrategy]}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {strategyTaglines[deploymentStrategy]} • <span className="text-green-600 text-sm">Auto-updating</span>
+              </p>
+            </div>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleDarkMode}
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </Button>
-          <Button 
-            onClick={handleExportPDF} 
-            disabled={!results || isExporting} 
-            className="flex items-center space-x-1"
-          >
-            <Download size={16} />
-            <span>{isExporting ? "Exporting..." : "Export PDF"}</span>
-          </Button>
+          <div className="flex items-center mt-3 md:mt-0 space-x-6">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="cashflowToggle" className="mr-3 text-sm font-medium text-gray-700">
+                Show Cash Flow
+              </Label>
+              <Switch
+                id="cashflowToggle"
+                checked={showCashflow}
+                onCheckedChange={setShowCashflow}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="darkModeToggle" className="mr-3 text-sm font-medium text-gray-700">
+                {darkMode ? "Light Mode" : "Dark Mode"}
+              </Label>
+              <Switch
+                id="darkModeToggle"
+                checked={darkMode}
+                onCheckedChange={toggleDarkMode}
+                className="dark-mode-transition"
+              />
+              <span className="ml-1">
+                {darkMode ? (
+                  <Sun size={18} className="text-amber-500" />
+                ) : (
+                  <Moon size={18} className="text-blue-800" />
+                )}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Main content sections */}
+      <FleetConfiguration showCashflow={showCashflow} />
       
-      <div className="flex-1 p-4 overflow-auto">
-        {results ? (
-          <Tabs defaultValue="analysis" className="w-full">
-            <TabsList className="w-full justify-start mb-4 overflow-x-auto">
-              <TabsTrigger value="analysis">Financial Analysis</TabsTrigger>
-              <TabsTrigger value="timeline">Deployment Timeline</TabsTrigger>
-              <TabsTrigger value="comparison">Strategy Comparison</TabsTrigger>
-              <TabsTrigger value="sensitivity">Sensitivity Analysis</TabsTrigger>
-              <TabsTrigger value="multi-variable">Multi-Variable Analysis</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="analysis" className="space-y-6">
-              <div id="financial-analysis">
-                <FinancialAnalysis showCashflow={showCashflow} />
-              </div>
-              <div id="additional-metrics">
-                <AdditionalMetrics showCashflow={showCashflow} />
-              </div>
-              <div id="deployment-timeline">
-                <DeploymentTimeline />
-              </div>
-              {showCashflow && (
-                <div id="cash-flow-section">
-                  <FleetConfiguration showCashflow={showCashflow} />
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="timeline">
-              <DeploymentTimeline />
-            </TabsContent>
-            
-            <TabsContent value="comparison">
-              <StrategyComparison />
-            </TabsContent>
-            
-            <TabsContent value="sensitivity" id="sensitivity-analysis">
-              <SensitivityAnalysis />
-            </TabsContent>
-            
-            <TabsContent value="multi-variable" id="multi-variable-analysis">
-              <MultiVariableAnalysis />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-            <h2 className="text-xl font-semibold mb-4">Welcome to the CNG Fleet Calculator</h2>
-            <p className="max-w-md mb-8">
-              Configure your fleet parameters in the sidebar and click "Calculate" to analyze the financial and environmental impact of converting to CNG.
-            </p>
-            <p className="text-sm">
-              {sidebarCollapsed && (
-                <Button 
-                  variant="outline" 
-                  onClick={toggleSidebar} 
-                  className="flex items-center space-x-1"
-                >
-                  <PanelRight size={16} />
-                  <span>Open Sidebar</span>
-                </Button>
-              )}
-            </p>
+      <DeploymentTimeline />
+      
+      {results && (
+        <>
+          <FinancialAnalysis showCashflow={showCashflow} />
+          
+          <AdditionalMetrics showCashflow={showCashflow} />
+          
+          {/* Advanced Analysis Tabs */}
+          <div className="mb-6">
+            <Tabs defaultValue="comparison" className="w-full">
+              <TabsList className="w-full bg-gray-100 p-1 mb-4">
+                <TabsTrigger value="comparison" className="flex-1 py-2">Strategy Comparison</TabsTrigger>
+                <TabsTrigger value="sensitivity" className="flex-1 py-2">Sensitivity Analysis</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="comparison" className="mt-0">
+                <StrategyComparison />
+              </TabsContent>
+              
+              <TabsContent value="sensitivity" className="mt-0">
+                <SensitivityAnalysis />
+              </TabsContent>
+            </Tabs>
           </div>
-        )}
-      </div>
+          
+          {/* Export/Save Actions */}
+          <div className="flex flex-wrap justify-end gap-3 mt-6">
+            <Button 
+              variant="outline" 
+              className="inline-flex items-center"
+              onClick={handleExportPDF}
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="h-5 w-5 mr-2" />
+                  Export PDF
+                </>
+              )}
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
