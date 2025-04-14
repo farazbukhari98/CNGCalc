@@ -6,6 +6,12 @@ export interface VehicleParameters {
   lightDutyCost: number;
   mediumDutyCost: number;
   heavyDutyCost: number;
+  lightDutyLifespan: number;  // Average lifespan in years
+  mediumDutyLifespan: number; // Average lifespan in years
+  heavyDutyLifespan: number;  // Average lifespan in years
+  lightDutyMPG: number;       // Miles per gallon
+  mediumDutyMPG: number;      // Miles per gallon 
+  heavyDutyMPG: number;       // Miles per gallon
 }
 
 // Station configuration

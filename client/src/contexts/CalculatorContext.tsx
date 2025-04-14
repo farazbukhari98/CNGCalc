@@ -43,7 +43,15 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     heavyDutyCount: 2,
     lightDutyCost: 15000,
     mediumDutyCost: 15000,
-    heavyDutyCost: 50000
+    heavyDutyCost: 50000,
+    // Default values for vehicle lifespan
+    lightDutyLifespan: 10,
+    mediumDutyLifespan: 10,
+    heavyDutyLifespan: 15,
+    // Default values for MPG (Miles Per Gallon)
+    lightDutyMPG: 12,
+    mediumDutyMPG: 10,
+    heavyDutyMPG: 5
   });
 
   const [stationConfig, setStationConfig] = useState<StationConfig>({

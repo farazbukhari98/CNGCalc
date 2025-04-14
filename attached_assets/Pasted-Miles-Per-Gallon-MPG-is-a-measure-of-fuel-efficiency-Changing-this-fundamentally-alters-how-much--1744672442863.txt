@@ -1,0 +1,70 @@
+Miles Per Gallon (MPG) is a measure of fuel efficiency. Changing this fundamentally alters how much fuel each vehicle consumes. Here's how that ripples through the calculator:
+
+Annual Fuel Consumption:
+
+Higher MPG (More Efficient): Vehicles use less fuel (Gasoline, Diesel, or CNG) to cover the same annual miles.
+
+Lower MPG (Less Efficient): Vehicles use more fuel to cover the same annual miles.
+
+Annual Fuel Savings: This is the core of the financial benefit. The calculation compares the cost of running on conventional fuel (gas/diesel) versus CNG.
+
+Higher MPG: Since vehicles use less fuel overall, the total dollar amount saved per year by switching to cheaper CNG will likely decrease. Even though CNG is cheaper per unit, you're buying fewer units of both conventional fuel and CNG.
+
+Lower MPG: Since vehicles use more fuel overall, the total dollar amount saved per year by switching to cheaper CNG will likely increase. You're magnifying the cost difference because you're consuming more fuel.
+
+Station Sizing and Investment: The CNG station needs to be sized based on the total daily/annual CNG fuel demand.
+
+Higher MPG: Lower overall CNG consumption means you might need a smaller, less expensive station.
+
+Lower MPG: Higher overall CNG consumption means you might need a larger, more expensive station. This directly impacts the "Upfront Station Investment" or the annual financing cost if not paid upfront.
+
+Total Investment: This combines vehicle costs and station costs.
+
+Higher MPG: Might lead to lower total investment because of the potential for a cheaper station.
+
+Lower MPG: Might lead to higher total investment because of the potential for a more expensive station.
+
+Payback Period: This is calculated as (Total Investment / Total Annual Savings).
+
+Higher MPG: You might have slightly lower investment but significantly lower annual savings. This generally means the payback period will get longer.
+
+Lower MPG: You might have slightly higher investment but significantly higher annual savings. This generally means the payback period will get shorter.
+
+Return on Investment (ROI) & Net Cash Flow: These depend on total savings versus total investment over the analysis period.
+
+Higher MPG: Lower annual savings usually lead to lower overall ROI and net cash flow over the 10 or 15 years.
+
+Lower MPG: Higher annual savings usually lead to higher overall ROI and net cash flow.
+
+Environmental Impact (CO₂ Reduction): This calculation compares emissions from conventional fuel burned vs. CNG burned.
+
+Higher MPG: Vehicles burn less fuel overall. While CNG is cleaner per unit, burning less fuel overall means the total tons of CO₂ reduced compared to the baseline will be lower.
+
+Lower MPG: Vehicles burn more fuel overall. This means the total tons of CO₂ reduced by switching to cleaner CNG will be higher.
+
+Operational Costs (Cost Per Mile Savings):
+
+Higher MPG: The cost to run per mile decreases for both fuel types. The savings per mile when switching to CNG might increase or decrease depending on the relative prices, but the total annual savings effect (point 2) is usually dominant in the overall financial picture.
+
+Lower MPG: The cost to run per mile increases. The savings per mile when switching to CNG generally increases.
+
+How Changes to Average Vehicle Lifespan Affect Everything Else (Non-Technical Explanation):
+
+Based on the provided code structure, the "Average Vehicle Lifespan" parameter seems to function primarily as an informational input rather than a direct driver of the core financial calculations within the fixed analysis horizon (10 or 15 years). The calculator doesn't appear to automatically model vehicle replacements based on this lifespan during the analysis period.
+
+Here's the nuanced impact:
+
+Direct Calculation Impact (Minimal):
+
+Investment, Annual Savings, Station Cost, Payback, ROI, CO2 Reduction, Cost Per Mile: Within the calculator's model for the initial set of vehicles purchased over the 10/15 year horizon, changing the lifespan input doesn't directly alter these core calculations. The savings are generated based on the vehicles operating, and the investment is based on their initial purchase cost and the station cost.
+
+Indirect Impact (Crucial for Interpretation):
+
+Viability Check: The most significant impact of lifespan is comparing it to the calculated Payback Period and the chosen Time Horizon.
+
+If the calculated Payback Period is longer than the vehicle's average lifespan, the investment doesn't make sense from a purely financial standpoint for that vehicle – you wouldn't even break even before needing to replace it.
+
+It helps you judge if the 10-year or 15-year ROI is realistic. An ROI calculated over 15 years isn't fully meaningful if the vehicles only last 10 years without factoring in replacement costs (which the calculator doesn't seem to do automatically).
+
+Decision Making: Lifespan informs the user about the expected duration of the asset generating the savings. A shorter lifespan might make a project with a borderline long payback period less attractive.
+

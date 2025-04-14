@@ -23,20 +23,6 @@ const ANNUAL_MILEAGE = {
   heavy: 40000
 };
 
-// Vehicle lifespan in years
-const VEHICLE_LIFESPAN = {
-  light: 10,
-  medium: 10,
-  heavy: 15
-};
-
-// Fuel efficiency assumptions (miles per gallon)
-const FUEL_EFFICIENCY = {
-  light: { gasoline: 12, cng: 12 * (1 - 0.05) }, // 5% efficiency loss for light duty
-  medium: { diesel: 10, cng: 10 * (1 - 0.075) }, // 7.5% efficiency loss for medium duty
-  heavy: { diesel: 5, cng: 5 * (1 - 0.10) }     // 10% efficiency loss for heavy duty
-};
-
 // CNG efficiency loss percentage
 const CNG_LOSS = {
   light: 0.05,   // 5% loss
@@ -365,6 +351,21 @@ export function calculateROI(
   strategy: DeploymentStrategy,
   vehicleDistribution: VehicleDistribution[]
 ): CalculationResults {
+  // Create fuel efficiency object from vehicle parameters
+  const FUEL_EFFICIENCY = {
+    light: { 
+      gasoline: vehicleParams.lightDutyMPG,
+      cng: vehicleParams.lightDutyMPG * (1 - CNG_LOSS.light) 
+    },
+    medium: { 
+      diesel: vehicleParams.mediumDutyMPG, 
+      cng: vehicleParams.mediumDutyMPG * (1 - CNG_LOSS.medium) 
+    },
+    heavy: { 
+      diesel: vehicleParams.heavyDutyMPG, 
+      cng: vehicleParams.heavyDutyMPG * (1 - CNG_LOSS.heavy) 
+    }
+  };
   // Calculate total vehicle investment
   const vehicleCosts = getVehicleCosts(vehicleParams);
   const totalVehicleInvestment = 
