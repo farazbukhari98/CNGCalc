@@ -45,10 +45,9 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     // Calculate total station cost (same regardless of turnkey or non-turnkey)
     const totalStationCost = results.totalInvestment - results.vehicleDistribution[0].investment;
     
-    // For both turnkey and non-turnkey, show station cost in first year
-    // This represents the total station investment value, which should be the same
-    // regardless of payment method
-    const stationCost = (i === 0) ? totalStationCost : 0;
+    // For turnkey=yes: Show station cost in first year as upfront payment
+    // For turnkey=no: Show NO station cost (it's financed via monthly LDC investment tariff)
+    const stationCost = (i === 0 && stationConfig.turnkey) ? totalStationCost : 0;
     
     // For non-turnkey: calculate LDC investment tariff rate
     // This is a fixed monthly cost (percentage of station cost) paid throughout the analysis period
@@ -214,18 +213,24 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                     fill="rgba(239, 68, 68, 0.7)" 
                     stackId="investment"
                   />
-                  <Bar 
-                    dataKey="stationInvestment" 
-                    name="Station Investment"
-                    fill="rgba(59, 130, 246, 0.7)" 
-                    stackId="investment"
-                  />
-                  <Bar 
-                    dataKey="financingCost" 
-                    name="LDC Investment Tariff"
-                    fill="rgba(101, 67, 33, 0.8)" 
-                    stackId="expenses"
-                  />
+                  {/* For turnkey option, show station investment in year 1 */}
+                  {stationConfig.turnkey && (
+                    <Bar 
+                      dataKey="stationInvestment" 
+                      name="Station Investment"
+                      fill="rgba(59, 130, 246, 0.7)" 
+                      stackId="investment"
+                    />
+                  )}
+                  {/* For non-turnkey, show LDC investment tariff in all years */}
+                  {!stationConfig.turnkey && (
+                    <Bar 
+                      dataKey="financingCost" 
+                      name="LDC Investment Tariff"
+                      fill="rgba(101, 67, 33, 0.8)" 
+                      stackId="expenses"
+                    />
+                  )}
                   <Bar 
                     dataKey="savings" 
                     name={stationConfig.turnkey ? "Savings" : "Net Savings"}
