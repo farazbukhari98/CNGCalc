@@ -227,7 +227,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                   {!stationConfig.turnkey && (
                     <Bar 
                       dataKey="financingCost" 
-                      name="Financing Cost"
+                      name="Monthly Service Fee"
                       fill="rgba(101, 67, 33, 0.8)" 
                       stackId="expenses"
                     />
