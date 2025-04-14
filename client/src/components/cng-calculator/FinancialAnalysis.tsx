@@ -1,6 +1,7 @@
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPaybackPeriod } from "@/lib/utils";
+import { MetricInfoTooltip } from "./MetricInfoTooltip";
 import { 
   LineChart, 
   Line, 
@@ -89,7 +90,21 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
       {showCashflow && (
         <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Cash Flow Analysis</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Cash Flow Analysis
+              <MetricInfoTooltip
+                title="Cash Flow Analysis"
+                description="This chart shows the cumulative investment versus cumulative savings over the selected time horizon. The intersection of these lines represents the payback point."
+                calculation="Chart plots Cumulative Investment and Cumulative Savings over time. Payback occurs when the green line (savings) crosses the red line (investment)."
+                affectingVariables={[
+                  "Vehicle costs and count",
+                  "Station configuration and payment method (TurnKey/Non-TurnKey)",
+                  "Fuel prices and annual increase rate",
+                  "Deployment strategy timing"
+                ]}
+                simpleDescription="Tracks how your savings accumulate compared to your investment over time."
+              />
+            </h2>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={cashFlowData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
