@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import { CalculatorProvider } from "./contexts/CalculatorContext";
 import { ComparisonProvider } from "./contexts/ComparisonContext";
 import { DarkModeProvider } from "./contexts/DarkModeContext";
+import { TooltipProvider } from "./contexts/TooltipContext";
 
 function Router() {
   return (
@@ -21,12 +22,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <DarkModeProvider>
-        <CalculatorProvider>
-          <ComparisonProvider>
-            <Router />
-            <Toaster />
-          </ComparisonProvider>
-        </CalculatorProvider>
+        <TooltipProvider>
+          <CalculatorProvider>
+            <ComparisonProvider>
+              <Router />
+              <Toaster />
+            </ComparisonProvider>
+          </CalculatorProvider>
+        </TooltipProvider>
       </DarkModeProvider>
     </QueryClientProvider>
   );
