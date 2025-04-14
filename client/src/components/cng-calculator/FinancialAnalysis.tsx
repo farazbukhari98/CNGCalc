@@ -47,27 +47,27 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     const stationCost = (i === 0 && stationConfig.turnkey) ? 
       (results.cumulativeInvestment[0] - vehicleInvestment) : 0;
     
-    // For non-turnkey: calculate annual service fee rate to display
+    // For non-turnkey: calculate LDC investment tariff rate to display
     // This is a fixed monthly cost (percentage of station cost) paid throughout the analysis period
-    const monthlyServiceRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
-    const annualServiceRate = monthlyServiceRate * 12;
+    const monthlyTariffRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
+    const annualTariffRate = monthlyTariffRate * 12;
     
     // Get the calculated station cost
     // For year 0, the difference between total cumulative investment and vehicle investment gives us the station cost
-    // We need this for accurate service fee calculation
+    // We need this for accurate tariff calculation
     const calculatedStationCost = (i === 0) ? 
       results.totalInvestment - results.vehicleDistribution[0].investment : 0;
     
-    // For non-turnkey: calculate annual service fee
+    // For non-turnkey: calculate annual LDC investment tariff
     // This is a flat monthly recurring cost that continues for the entire period
-    const serviceFeeCost = !stationConfig.turnkey ? 
-      calculatedStationCost * annualServiceRate : 0;
+    const tariffCost = !stationConfig.turnkey ? 
+      calculatedStationCost * annualTariffRate : 0;
     
     return {
       year: `Year ${i + 1}`,
       vehicleInvestment: vehicleInvestment,
       stationInvestment: stationCost,
-      financingCost: serviceFeeCost, // Renamed but keeping key as financingCost for compatibility with the chart
+      financingCost: tariffCost, // Renamed but keeping key as financingCost for compatibility with the chart
       savings: results.yearlySavings[i]
     };
   });
