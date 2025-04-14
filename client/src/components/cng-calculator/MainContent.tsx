@@ -2,12 +2,14 @@ import { useState, useRef } from "react";
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { useComparison } from "@/contexts/ComparisonContext";
 import { useDarkMode } from "@/contexts/DarkModeContext";
+import { useTooltips } from "@/contexts/TooltipContext";
 import FleetConfiguration from "./FleetConfiguration";
 import DeploymentTimeline from "./DeploymentTimeline";
 import FinancialAnalysis from "./FinancialAnalysis";
 import AdditionalMetrics from "./AdditionalMetrics";
 import StrategyComparison from "./StrategyComparison";
 import SensitivityAnalysis from "./SensitivityAnalysis";
+import { TooltipToggle } from "./TooltipToggle";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -397,6 +399,13 @@ export default function MainContent() {
                   <Moon size={18} className="text-blue-800" />
                 )}
               </span>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="tooltipToggle" className="mr-3 text-sm font-medium text-gray-700">
+                Detailed Info
+              </Label>
+              <TooltipToggle />
             </div>
           </div>
         </div>
