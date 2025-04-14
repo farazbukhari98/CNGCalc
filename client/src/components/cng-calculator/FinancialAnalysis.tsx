@@ -43,25 +43,22 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     const vehicleInvestment = results.vehicleDistribution[i]?.investment || 0;
     
     // For turnkey=yes: show station cost in first year only
-    // For turnkey=no: don't show station cost upfront (it's financed)
+    // For turnkey=no: don't show station cost upfront (it's financed via LDC investment tariff)
     const stationCost = (i === 0 && stationConfig.turnkey) ? 
-      (results.cumulativeInvestment[0] - vehicleInvestment) : 0;
+      (results.totalInvestment - results.vehicleDistribution[0].investment) : 0;
     
-    // For non-turnkey: calculate LDC investment tariff rate to display
+    // Calculate total station cost (used for LDC investment tariff calculation)
+    // This is the full station cost regardless of turnkey option
+    const totalStationCost = results.totalInvestment - results.vehicleDistribution[0].investment;
+    
+    // For non-turnkey: calculate LDC investment tariff rate
     // This is a fixed monthly cost (percentage of station cost) paid throughout the analysis period
     const monthlyTariffRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
     const annualTariffRate = monthlyTariffRate * 12;
     
-    // Get the calculated station cost
-    // For year 0, the difference between total cumulative investment and vehicle investment gives us the station cost
-    // We need this for accurate tariff calculation
-    const calculatedStationCost = (i === 0) ? 
-      results.totalInvestment - results.vehicleDistribution[0].investment : 0;
-    
     // For non-turnkey: calculate annual LDC investment tariff
-    // This is a flat monthly recurring cost that continues for the entire period
-    const tariffCost = !stationConfig.turnkey ? 
-      calculatedStationCost * annualTariffRate : 0;
+    // This is applied for ALL years (not just year 1) when non-turnkey is selected
+    const tariffCost = !stationConfig.turnkey ? totalStationCost * annualTariffRate : 0;
     
     return {
       year: `Year ${i + 1}`,
