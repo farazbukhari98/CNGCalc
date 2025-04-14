@@ -1,6 +1,7 @@
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, AlertTriangle } from "lucide-react";
+import { MetricInfoTooltip } from "./MetricInfoTooltip";
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -141,7 +142,21 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
       {/* Emissions Chart */}
       <Card className="bg-white rounded-lg shadow mb-6 dark:bg-gray-800">
         <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-2">CO₂ Emissions Reduction</h2>
+          <h2 className="text-xl font-semibold mb-2">
+            CO₂ Emissions Reduction
+            <MetricInfoTooltip
+              title="CO₂ Emissions Reduction"
+              description="This chart visualizes the estimated reduction in carbon dioxide emissions over the analysis period. It shows both annual savings and the cumulative impact of your CNG fleet transition."
+              calculation="Based on EPA emission factors: gasoline (8.887 kg CO₂/gallon), diesel (10.180 kg CO₂/gallon), CNG (5.511 kg CO₂/GGE). Annual emissions are calculated by multiplying fuel consumption by the appropriate emission factor."
+              affectingVariables={[
+                "Vehicle count by type",
+                "Annual mileage assumptions",
+                "Vehicle MPG values",
+                "Deployment strategy timing"
+              ]}
+              simpleDescription="Visual representation of annual and cumulative CO₂ emission reductions from your CNG fleet."
+            />
+          </h2>
           <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">
             Estimated reduction in carbon dioxide emissions over time
           </p>

@@ -152,7 +152,20 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
       {!showCashflow && vehicleInvestmentData.length > 0 && (
         <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Vehicle Investment Timeline</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Vehicle Investment Timeline
+              <MetricInfoTooltip
+                title="Vehicle Investment Timeline" 
+                description="This chart shows how vehicle investments are distributed across the analysis period based on the selected deployment strategy. It breaks down the number of vehicles by type (light/medium/heavy duty) and displays the corresponding investment amount for each year."
+                calculation="Stacked bars show vehicle count by type. The pink line shows the total investment amount for each year."
+                affectingVariables={[
+                  "Deployment strategy selection",
+                  "Vehicle costs by type",
+                  "Fleet composition (light/medium/heavy duty mix)"
+                ]}
+                simpleDescription="Year-by-year breakdown of your vehicle additions and associated investment costs."
+              />
+            </h2>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={vehicleInvestmentData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -209,7 +222,40 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
       <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-4">
-            {showCashflow ? "Cost vs. Savings" : "Investment Analysis"}
+            {showCashflow ? (
+              <>
+                Cost vs. Savings
+                <MetricInfoTooltip
+                  title="Cost vs. Savings Analysis"
+                  description="This chart breaks down yearly costs versus savings for your CNG project. It shows how vehicle investments, station costs or tariffs, and resulting savings are distributed over time."
+                  calculation={stationConfig.turnkey 
+                    ? "Shows vehicle investments, station investment (year 1 only), and annual savings." 
+                    : "Shows vehicle investments, annual LDC tariff payments, and net savings after tariff costs."}
+                  affectingVariables={[
+                    "Vehicle counts and costs",
+                    "Deployment strategy timing",
+                    "Station type and payment option (TurnKey/Non-TurnKey)",
+                    "Fuel prices and annual increase rate"
+                  ]}
+                  simpleDescription="Year-by-year comparison of costs and savings from your CNG project."
+                />
+              </>
+            ) : (
+              <>
+                Investment Analysis
+                <MetricInfoTooltip
+                  title="Investment Analysis"
+                  description="A breakdown of your total capital investment between vehicles and station costs. Provides insight into cost allocation and per-vehicle investment metrics."
+                  calculation="Total Investment = Vehicle Investment + Station Investment. Per-Vehicle Cost = Total Investment / Total Vehicle Count."
+                  affectingVariables={[
+                    "Vehicle counts and costs",
+                    "Station type and configuration",
+                    "Business type selection"
+                  ]}
+                  simpleDescription="Breakdown of your total project investment across vehicles and infrastructure."
+                />
+              </>
+            )}
           </h2>
           
           {/* Only show the bar chart when showCashflow is true */}

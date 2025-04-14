@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { formatPaybackPeriod } from "@/lib/utils";
+import { MetricInfoTooltip } from "./MetricInfoTooltip";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts";
 
 // Type for sensitivity variable
@@ -281,7 +282,20 @@ export default function SensitivityAnalysis() {
   return (
     <Card className="bg-white rounded-lg shadow mb-6 sensitivity-analysis">
       <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Sensitivity Analysis</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          Sensitivity Analysis
+          <MetricInfoTooltip
+            title="Sensitivity Analysis"
+            description="This analysis allows you to visualize how changes in key variables affect your financial outcomes. Adjust the slider to see how modifications to the selected variable impact payback period, ROI, and net cash flow."
+            calculation="The chart plots how payback period (left axis) and ROI/cash flow (right axis) change when the selected variable is adjusted up or down by a percentage."
+            affectingVariables={[
+              "Selected variable (fuel prices, vehicle costs, or annual mileage)",
+              "Baseline project configuration",
+              "Time horizon for analysis"
+            ]}
+            simpleDescription="See how changes to key variables affect your financial results."
+          />
+        </h2>
         
         {results ? (
           <>
