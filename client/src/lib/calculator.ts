@@ -399,10 +399,11 @@ export function calculateROI(
   // When turnkey is false, station cost is $0 upfront (not included in cumulativeInvestment)
   let cumulativeInvestmentToDate = stationConfig.turnkey ? stationCost : 0;
   
-  // Monthly financing rates (as decimal) - 1.5% for AGLC, 1.6% for CGC
-  const monthlyFinancingRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
-  // Annual financing rate (monthly rate * 12 months)
-  const annualFinancingRate = monthlyFinancingRate * 12;
+  // Monthly service fee rates (as decimal) - 1.5% for AGLC, 1.6% for CGC
+  // For non-TurnKey, this is a fixed monthly percentage of the station cost
+  const monthlyServiceRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
+  // Annual service fee (monthly rate * 12 months)
+  const annualServiceRate = monthlyServiceRate * 12;
   
   for (let year = 0; year < timeHorizon; year++) {
     // Calculate number of each vehicle type in operation this year (cumulative)
@@ -462,14 +463,15 @@ export function calculateROI(
     
     const maintenanceSavings = lightMaintenanceSavings + mediumMaintenanceSavings + heavyMaintenanceSavings;
     
-    // Calculate annual financing cost if turnkey is false
-    let financingCost = 0;
+    // Calculate annual service fee for non-turnkey option
+    // This is a fixed monthly cost that continues for the entire period
+    let annualServiceFee = 0;
     if (!stationConfig.turnkey) {
-      financingCost = stationCost * annualFinancingRate;
+      annualServiceFee = stationCost * annualServiceRate;
     }
     
-    // Total savings for the year (subtract financing cost if applicable)
-    const yearSavings = lightFuelSavings + mediumFuelSavings + heavyFuelSavings + maintenanceSavings - financingCost;
+    // Total savings for the year (subtract service fee if applicable)
+    const yearSavings = lightFuelSavings + mediumFuelSavings + heavyFuelSavings + maintenanceSavings - annualServiceFee;
     
     yearlySavings.push(Math.round(yearSavings));
     

@@ -47,26 +47,27 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     const stationCost = (i === 0 && stationConfig.turnkey) ? 
       (results.cumulativeInvestment[0] - vehicleInvestment) : 0;
     
-    // For turnkey=no: calculate annual financing rate to display
-    const monthlyFinancingRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
-    const annualFinancingRate = monthlyFinancingRate * 12;
+    // For non-turnkey: calculate annual service fee rate to display
+    // This is a fixed monthly cost (percentage of station cost) paid throughout the analysis period
+    const monthlyServiceRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
+    const annualServiceRate = monthlyServiceRate * 12;
     
     // Get the calculated station cost
     // For year 0, the difference between total cumulative investment and vehicle investment gives us the station cost
-    // We need this for accurate financing calculation
+    // We need this for accurate service fee calculation
     const calculatedStationCost = (i === 0) ? 
       results.totalInvestment - results.vehicleDistribution[0].investment : 0;
     
-    // For turnkey=no: calculate annual financing cost
-    // For this to be accurate, we need to use the station cost from the results
-    const financingCost = !stationConfig.turnkey ? 
-      calculatedStationCost * annualFinancingRate : 0;
+    // For non-turnkey: calculate annual service fee
+    // This is a flat monthly recurring cost that continues for the entire period
+    const serviceFeeCost = !stationConfig.turnkey ? 
+      calculatedStationCost * annualServiceRate : 0;
     
     return {
       year: `Year ${i + 1}`,
       vehicleInvestment: vehicleInvestment,
       stationInvestment: stationCost,
-      financingCost: financingCost,
+      financingCost: serviceFeeCost, // Renamed but keeping key as financingCost for compatibility with the chart
       savings: results.yearlySavings[i]
     };
   });
@@ -334,7 +335,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                   borderColor: 'rgba(101, 67, 33, 0.3)'
                 }}>
                 <div className="text-sm font-medium mb-1 dark:text-amber-200" style={{ color: '#654321' }}>
-                  Financing Information (Non-TurnKey Option)
+                  Service Fee Information (Non-TurnKey Option)
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -351,7 +352,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                   </div>
                 </div>
                 <div className="text-xs mt-1 dark:text-amber-200" style={{ color: '#654321' }}>
-                  Note: Station costs are not paid upfront but financed at monthly percentage rates.
+                  Note: Non-TurnKey option requires a monthly service fee (% of station cost) paid throughout the analysis period.
                 </div>
               </div>
             )}
