@@ -148,14 +148,14 @@ export default function StationConfiguration() {
               className="flex flex-col items-center p-3 bg-gray-50 border rounded-md cursor-pointer hover:bg-blue-50 data-[state=checked]:bg-blue-50 data-[state=checked]:border-blue-500"
             >
               <span className="text-sm font-medium">No</span>
-              <span className="text-xs text-gray-500 mt-1">Finance over time</span>
+              <span className="text-xs text-gray-500 mt-1">Leveraging LDC investment tariff</span>
             </Label>
           </div>
         </RadioGroup>
         <p className="text-xs text-gray-500 mt-1">
           {stationConfig.turnkey 
             ? "Station cost is paid upfront as a single investment" 
-            : `Station cost is financed monthly at ${stationConfig.businessType === 'aglc' ? '1.5%' : '1.6%'} over the analysis period`}
+            : `Station uses LDC investment tariff with monthly service fee of ${stationConfig.businessType === 'aglc' ? '1.5%' : '1.6%'} over the analysis period`}
         </p>
       </div>
 
@@ -168,7 +168,7 @@ export default function StationConfiguration() {
         <p className="text-xs text-gray-500 mt-1">
           {stationConfig.turnkey 
             ? "Includes installation and equipment (paid upfront)" 
-            : "Includes installation and equipment (financed monthly)"}
+            : "Includes installation and equipment (LDC investment tariff)"}
         </p>
       </div>
     </div>

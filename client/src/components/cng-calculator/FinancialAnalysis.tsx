@@ -227,7 +227,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                   {!stationConfig.turnkey && (
                     <Bar 
                       dataKey="financingCost" 
-                      name="Monthly Service Fee"
+                      name="LDC Investment Tariff"
                       fill="rgba(101, 67, 33, 0.8)" 
                       stackId="expenses"
                     />
@@ -335,7 +335,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                   borderColor: 'rgba(101, 67, 33, 0.3)'
                 }}>
                 <div className="text-sm font-medium mb-1 dark:text-amber-200" style={{ color: '#654321' }}>
-                  Service Fee Information (Non-TurnKey Option)
+                  LDC Investment Tariff (Non-TurnKey Option)
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -352,7 +352,7 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                   </div>
                 </div>
                 <div className="text-xs mt-1 dark:text-amber-200" style={{ color: '#654321' }}>
-                  Note: Non-TurnKey option requires a monthly service fee (% of station cost) paid throughout the analysis period.
+                  Note: LDC investment tariff applies a monthly fee of {(stationConfig.businessType === 'aglc' ? 1.5 : 1.6).toFixed(1)}% on the station cost throughout the analysis period.
                 </div>
               </div>
             )}

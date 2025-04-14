@@ -399,11 +399,11 @@ export function calculateROI(
   // When turnkey is false, station cost is $0 upfront (not included in cumulativeInvestment)
   let cumulativeInvestmentToDate = stationConfig.turnkey ? stationCost : 0;
   
-  // Monthly service fee rates (as decimal) - 1.5% for AGLC, 1.6% for CGC
+  // Monthly LDC investment tariff rates (as decimal) - 1.5% for AGLC, 1.6% for CGC
   // For non-TurnKey, this is a fixed monthly percentage of the station cost
-  const monthlyServiceRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
-  // Annual service fee (monthly rate * 12 months)
-  const annualServiceRate = monthlyServiceRate * 12;
+  const monthlyTariffRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
+  // Annual tariff amount (monthly rate * 12 months)
+  const annualTariffRate = monthlyTariffRate * 12;
   
   for (let year = 0; year < timeHorizon; year++) {
     // Calculate number of each vehicle type in operation this year (cumulative)
@@ -463,15 +463,15 @@ export function calculateROI(
     
     const maintenanceSavings = lightMaintenanceSavings + mediumMaintenanceSavings + heavyMaintenanceSavings;
     
-    // Calculate annual service fee for non-turnkey option
+    // Calculate annual LDC investment tariff for non-turnkey option
     // This is a fixed monthly cost that continues for the entire period
-    let annualServiceFee = 0;
+    let annualTariffFee = 0;
     if (!stationConfig.turnkey) {
-      annualServiceFee = stationCost * annualServiceRate;
+      annualTariffFee = stationCost * annualTariffRate;
     }
     
-    // Total savings for the year (subtract service fee if applicable)
-    const yearSavings = lightFuelSavings + mediumFuelSavings + heavyFuelSavings + maintenanceSavings - annualServiceFee;
+    // Total savings for the year (subtract tariff fee if applicable)
+    const yearSavings = lightFuelSavings + mediumFuelSavings + heavyFuelSavings + maintenanceSavings - annualTariffFee;
     
     yearlySavings.push(Math.round(yearSavings));
     
