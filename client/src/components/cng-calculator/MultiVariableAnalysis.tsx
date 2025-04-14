@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { formatPaybackPeriod } from "@/lib/utils";
+import { MetricInfoTooltip } from "./MetricInfoTooltip";
 
 // Type for sensitivity variables
 type SensitivityVariable = 
@@ -473,7 +474,21 @@ export default function MultiVariableAnalysis() {
   return (
     <Card className="bg-white rounded-lg shadow mb-6">
       <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Multi-Variable Analysis</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          Multi-Variable Analysis
+          <MetricInfoTooltip
+            title="Multi-Variable Analysis"
+            description="This advanced analysis examines how combinations of two variables simultaneously impact your financial metrics. The heat map visualization shows the interaction effects across different percentage changes."
+            calculation="Each cell in the heat map represents a unique combination of X and Y variable changes, color-coded to show the resulting impact on your selected metric (payback period, ROI, or net cash flow)."
+            affectingVariables={[
+              "Primary variable (X-axis)",
+              "Secondary variable (Y-axis)",
+              "Selected financial metric",
+              "Baseline project configuration"
+            ]}
+            simpleDescription="Visualize how combinations of two variables interact to affect your project outcomes."
+          />
+        </h2>
         
         {results ? (
           <>
