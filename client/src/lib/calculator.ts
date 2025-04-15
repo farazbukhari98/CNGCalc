@@ -40,7 +40,8 @@ const MAINTENANCE_COST = {
 // Business rates (markup percentage applied to CNG price)
 const BUSINESS_RATES = {
   aglc: 0.18,   // 18% for AGLC
-  cgc: 0.192    // 19.2% for CGC
+  cgc: 0.192,   // 19.2% for CGC
+  vng: 0.18     // 18% for VNG (same as AGLC for now)
 };
 
 // Emission factors in kg CO2 per gallon (updated values)
@@ -113,7 +114,7 @@ export function calculateStationCost(config: StationConfig, vehicleParams?: Vehi
   const baseCost = baseCosts[config.stationType][tier];
   
   // Apply business type adjustment
-  const businessMultiplier = config.businessType === 'aglc' ? 1.0 : 0.95;
+  const businessMultiplier = config.businessType === 'cgc' ? 0.95 : 1.0; // CGC is 0.95, AGLC and VNG are 1.0
   
   return Math.round(baseCost * businessMultiplier);
 }
@@ -400,9 +401,9 @@ export function calculateROI(
   // When turnkey is false, station cost is $0 upfront (not included in cumulativeInvestment)
   let cumulativeInvestmentToDate = stationConfig.turnkey ? stationCost : 0;
   
-  // Monthly LDC investment tariff rates (as decimal) - 1.5% for AGLC, 1.6% for CGC
+  // Monthly LDC investment tariff rates (as decimal) - 1.5% for AGLC/VNG, 1.6% for CGC
   // For non-TurnKey, this is a fixed monthly percentage of the station cost
-  const monthlyTariffRate = stationConfig.businessType === 'aglc' ? 0.015 : 0.016;
+  const monthlyTariffRate = stationConfig.businessType === 'cgc' ? 0.016 : 0.015; // CGC is 1.6%, AGLC and VNG are 1.5%
   // Annual tariff amount (monthly rate * 12 months)
   const annualTariffRate = monthlyTariffRate * 12;
   
@@ -425,7 +426,14 @@ export function calculateROI(
     
     // Calculate CNG price with electricity cost and business rate
     const ELECTRICITY_COST_PER_GGE = 0.08; // $0.08 per GGE
-    const businessRate = stationConfig.businessType === 'aglc' ? BUSINESS_RATES.aglc : BUSINESS_RATES.cgc;
+    let businessRate;
+    if (stationConfig.businessType === 'cgc') {
+      businessRate = BUSINESS_RATES.cgc;
+    } else if (stationConfig.businessType === 'vng') {
+      businessRate = BUSINESS_RATES.vng;
+    } else {
+      businessRate = BUSINESS_RATES.aglc;
+    }
     const baseCngPrice = fuelPrices.cngPrice;
     const cngWithElectricity = baseCngPrice + ELECTRICITY_COST_PER_GGE;
     const cngWithBusinessRate = cngWithElectricity * (1 + businessRate);

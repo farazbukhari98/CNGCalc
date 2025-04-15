@@ -97,7 +97,7 @@ export default function StationConfiguration() {
         <Label className="block text-sm font-medium text-gray-700 mb-2">GAS LDC</Label>
         <Select 
           value={stationConfig.businessType} 
-          onValueChange={(value) => updateStationConfig({...stationConfig, businessType: value as 'aglc' | 'cgc'})}
+          onValueChange={(value) => updateStationConfig({...stationConfig, businessType: value as 'aglc' | 'cgc' | 'vng'})}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select GAS LDC" />
@@ -105,6 +105,7 @@ export default function StationConfiguration() {
           <SelectContent>
             <SelectItem value="aglc">AGLC (Atlanta Gas Light Company)</SelectItem>
             <SelectItem value="cgc">CGC (Chattanooga Gas Company)</SelectItem>
+            <SelectItem value="vng">VNG (Virginia Natural Gas)</SelectItem>
           </SelectContent>
         </Select>
       </div>

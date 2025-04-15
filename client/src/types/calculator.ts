@@ -17,7 +17,7 @@ export interface VehicleParameters {
 // Station configuration
 export interface StationConfig {
   stationType: "fast" | "time";
-  businessType: "aglc" | "cgc";
+  businessType: "aglc" | "cgc" | "vng";
   turnkey: boolean; // Yes = upfront cost, No = financed cost
 }
 
