@@ -15,16 +15,16 @@ export default function FuelPrices() {
   const cngVsDieselSavings = Math.round(((fuelPrices.dieselPrice - fuelPrices.cngPrice) / fuelPrices.dieselPrice) * 100 * 10) / 10;
 
   return (
-    <div className="bg-white rounded-md p-3 space-y-3">
+    <div className="bg-white dark:bg-gray-800 rounded-md p-3 space-y-3">
       {/* Gasoline Price */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Gasoline Price ($/gallon)
         </label>
         <div className="flex items-center">
           <input
             type="number"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="block w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
             min="0"
             step="0.01"
             value={fuelPrices.gasolinePrice}
@@ -38,7 +38,7 @@ export default function FuelPrices() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="ml-2 text-gray-500 cursor-help">
+                <div className="ml-2 text-gray-500 dark:text-gray-400 cursor-help">
                   <Info size={18} />
                 </div>
               </TooltipTrigger>
@@ -52,13 +52,13 @@ export default function FuelPrices() {
 
       {/* Diesel Price */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Diesel Price ($/gallon)
         </label>
         <div className="flex items-center">
           <input
             type="number"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="block w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
             min="0"
             step="0.01"
             value={fuelPrices.dieselPrice}
@@ -72,7 +72,7 @@ export default function FuelPrices() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="ml-2 text-gray-500 cursor-help">
+                <div className="ml-2 text-gray-500 dark:text-gray-400 cursor-help">
                   <Info size={18} />
                 </div>
               </TooltipTrigger>
@@ -86,13 +86,13 @@ export default function FuelPrices() {
 
       {/* CNG Price */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           CNG Price ($/GGE)
         </label>
         <div className="flex items-center">
           <input
             type="number"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="block w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
             min="0"
             step="0.01"
             value={fuelPrices.cngPrice}
@@ -106,7 +106,7 @@ export default function FuelPrices() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="ml-2 text-gray-500 cursor-help">
+                <div className="ml-2 text-gray-500 dark:text-gray-400 cursor-help">
                   <Info size={18} />
                 </div>
               </TooltipTrigger>
@@ -120,13 +120,13 @@ export default function FuelPrices() {
 
       {/* Annual Fuel Price Increase */}
       <div className="border-t pt-3 mt-3">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Annual Fuel Price Increase (%)
         </label>
         <div className="flex items-center">
           <input
             type="number"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="block w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
             min="0"
             max="20"
             step="0.1"
@@ -141,7 +141,7 @@ export default function FuelPrices() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="ml-2 text-gray-500 cursor-help">
+                <div className="ml-2 text-gray-500 dark:text-gray-400 cursor-help">
                   <Info size={18} />
                 </div>
               </TooltipTrigger>
@@ -155,15 +155,15 @@ export default function FuelPrices() {
 
       {/* Fuel Price Comparison */}
       <div className="border-t pt-3 mt-3">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Fuel Price Comparison</h3>
-        <div className="bg-gray-50 p-2 rounded">
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fuel Price Comparison</h3>
+        <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
             <span>CNG Savings vs. Gasoline</span>
-            <span className="font-medium text-green-600">{cngVsGasolineSavings}%</span>
+            <span className="font-medium text-green-600 dark:text-green-400">{cngVsGasolineSavings}%</span>
           </div>
-          <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>CNG Savings vs. Diesel</span>
-            <span className="font-medium text-green-600">{cngVsDieselSavings}%</span>
+            <span className="font-medium text-green-600 dark:text-green-400">{cngVsDieselSavings}%</span>
           </div>
         </div>
       </div>
