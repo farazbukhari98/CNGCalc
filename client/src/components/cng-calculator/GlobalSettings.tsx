@@ -155,7 +155,7 @@ export default function GlobalSettings() {
           Time Horizon
         </label>
         <div className="flex space-x-2">
-          {[5, 10, 15].map((years) => (
+          {[10, 15].map((years) => (
             <Button
               key={years}
               variant={timeHorizon === years ? "default" : "outline"}
