@@ -1,6 +1,6 @@
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { MetricInfoTooltip } from "./MetricInfoTooltip";
 import { 
   ResponsiveContainer, 
@@ -231,7 +231,21 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
         {/* Operational Metrics */}
         <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-5">
-            <h3 className="text-lg font-semibold mb-3">Operational Metrics</h3>
+            <h3 className="text-lg font-semibold mb-3">
+              Operational Metrics
+              <MetricInfoTooltip
+                title="Operational Metrics"
+                description="These metrics provide a detailed breakdown of your operational costs and savings on a per-mile basis. They show the direct financial impact of switching from conventional fuels to CNG for your fleet."
+                calculation="Cost per Mile = Fuel Price ÷ Vehicle MPG. Cost Reduction = ((Gasoline Cost - CNG Cost) ÷ Gasoline Cost) × 100%. Annual Fuel Savings = Total fuel cost savings across all vehicles."
+                affectingVariables={[
+                  "Fuel prices (gasoline, diesel, CNG)",
+                  "Vehicle MPG values by type",
+                  "Annual mileage assumptions",
+                  "Vehicle count by type"
+                ]}
+                simpleDescription="Key metrics showing how CNG reduces your cost per mile compared to conventional fuels."
+              />
+            </h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-300">Cost per Mile (Gasoline)</span>
@@ -260,7 +274,21 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
         {/* Strategy Insights */}
         <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-5">
-            <h3 className="text-lg font-semibold mb-3">Strategy Insights</h3>
+            <h3 className="text-lg font-semibold mb-3">
+              Strategy Insights
+              <MetricInfoTooltip
+                title="Strategy Insights"
+                description="This section provides guidance on the benefits and considerations of your selected vehicle deployment strategy. Each strategy offers different tradeoffs between upfront costs, implementation timeline, and financial returns."
+                calculation="Analysis is based on common industry practices and financial modeling of each approach. The insights help optimize your deployment plan for both operational and financial goals."
+                affectingVariables={[
+                  "Selected deployment strategy (Immediate, Phased, Aggressive, Deferred, or Manual)",
+                  "Total fleet size and composition",
+                  "Project timeline",
+                  "Available capital resources"
+                ]}
+                simpleDescription="Expert guidance on the advantages and considerations of your chosen deployment approach."
+              />
+            </h3>
             
             <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
               <p>
