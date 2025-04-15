@@ -48,8 +48,8 @@ export default function VehicleParameters() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Light Duty Vehicle Cost
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Incremental Light Duty Vehicle Cost
               </label>
               <div className="flex items-center">
                 <div className="relative flex-1">
@@ -74,7 +74,7 @@ export default function VehicleParameters() {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Enter the cost to convert each light duty vehicle to CNG</p>
+                      <p>Enter the incremental cost to convert each light duty vehicle to CNG</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -82,8 +82,8 @@ export default function VehicleParameters() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Medium Duty Vehicle Cost
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Incremental Medium Duty Vehicle Cost
               </label>
               <div className="flex items-center">
                 <div className="relative flex-1">
@@ -108,7 +108,7 @@ export default function VehicleParameters() {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Enter the cost to convert each medium duty vehicle to CNG</p>
+                      <p>Enter the incremental cost to convert each medium duty vehicle to CNG</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -116,8 +116,8 @@ export default function VehicleParameters() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Heavy Duty Vehicle Cost
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Incremental Heavy Duty Vehicle Cost
               </label>
               <div className="flex items-center">
                 <div className="relative flex-1">
@@ -142,7 +142,7 @@ export default function VehicleParameters() {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Enter the cost to convert each heavy duty vehicle to CNG</p>
+                      <p>Enter the incremental cost to convert each heavy duty vehicle to CNG</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -154,7 +154,7 @@ export default function VehicleParameters() {
         <TabsContent value="specs">
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Vehicle Lifespan (Years)</h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vehicle Lifespan (Years)</h3>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -226,7 +226,7 @@ export default function VehicleParameters() {
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Average lifespan affects replacement timing and payback period considerations
               </p>
             </div>
@@ -234,7 +234,7 @@ export default function VehicleParameters() {
             <Separator />
             
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Fuel Efficiency (Miles Per Gallon)</h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fuel Efficiency (Miles Per Gallon)</h3>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -306,7 +306,7 @@ export default function VehicleParameters() {
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Fuel efficiency directly impacts cost savings and emissions reductions
               </p>
             </div>
