@@ -30,6 +30,14 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     return `$${value.toLocaleString()}`;
   };
 
+  // Calculate total vehicle investment across all years (sum of all distributed investments)
+  const totalVehicleInvestment = results.vehicleDistribution.reduce(
+    (sum, dist) => sum + dist.investment, 0
+  );
+
+  // Calculate station cost - the total investment minus the vehicle investment portion
+  const totalStationCost = results.totalInvestment - totalVehicleInvestment;
+
   // Prepare cash flow chart data
   const cashFlowData = Array.from({ length: timeHorizon }, (_, i) => {
     return {
@@ -38,13 +46,10 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
       cumulativeSavings: results.cumulativeSavings[i]
     };
   });
-
+  
   // Prepare cost vs savings chart data
   const costSavingsData = Array.from({ length: timeHorizon }, (_, i) => {
     const vehicleInvestment = results.vehicleDistribution[i]?.investment || 0;
-    
-    // Calculate total station cost (same regardless of turnkey or non-turnkey)
-    const totalStationCost = results.totalInvestment - results.vehicleDistribution[0].investment;
     
     // For turnkey=yes: Show station cost in first year as upfront payment
     // For turnkey=no: Show NO station cost (it's financed via monthly LDC investment tariff)
@@ -314,20 +319,20 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                 <div className="flex justify-center gap-10 mb-4">
                   <div className="text-center">
                     <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                      {formatCurrency(results.vehicleDistribution[0].investment)}
+                      {formatCurrency(totalVehicleInvestment)}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
                       <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                      Vehicles ({Math.round((results.vehicleDistribution[0].investment / results.totalInvestment) * 100)}%)
+                      Vehicles ({Math.round((totalVehicleInvestment / results.totalInvestment) * 100)}%)
                     </div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                      {formatCurrency(results.totalInvestment - results.vehicleDistribution[0].investment)}
+                      {formatCurrency(results.totalInvestment - totalVehicleInvestment)}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
                       <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      Station ({Math.round(((results.totalInvestment - results.vehicleDistribution[0].investment) / results.totalInvestment) * 100)}%)
+                      Station ({Math.round(((results.totalInvestment - totalVehicleInvestment) / results.totalInvestment) * 100)}%)
                     </div>
                   </div>
                 </div>
@@ -336,19 +341,12 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                   <div 
                     className="h-full bg-blue-500 rounded-full" 
                     style={{ 
-                      width: `${Math.round((results.vehicleDistribution[0].investment / results.totalInvestment) * 100)}%` 
+                      width: `${Math.round((totalVehicleInvestment / results.totalInvestment) * 100)}%` 
                     }}
                   ></div>
                 </div>
                 
-                <div className="mt-4 text-sm text-center text-gray-500 dark:text-gray-400">
-                  Per-Vehicle Cost: <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {formatCurrency(results.totalInvestment / 
-                      (results.vehicleDistribution[0].light + 
-                       results.vehicleDistribution[0].medium + 
-                       results.vehicleDistribution[0].heavy))}
-                  </span>
-                </div>
+
               </div>
             </div>
           )}
