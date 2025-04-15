@@ -156,7 +156,7 @@ export default function StationConfiguration() {
         <p className="text-xs text-gray-500 mt-1">
           {stationConfig.turnkey 
             ? "Station cost is paid upfront as a single investment" 
-            : `Station uses LDC investment tariff with monthly fee of ${stationConfig.businessType === 'aglc' ? '1.5%' : '1.6%'} over the analysis period`}
+            : `Station uses LDC investment tariff with monthly fee of ${stationConfig.businessType === 'cgc' ? '1.6%' : '1.5%'} over the analysis period`}
         </p>
       </div>
 

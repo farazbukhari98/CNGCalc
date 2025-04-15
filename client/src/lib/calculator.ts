@@ -621,7 +621,14 @@ export function calculateROI(
   
   // Calculate full CNG price with electricity and business rate
   const ELECTRICITY_COST_PER_GGE = 0.08; // $0.08 per GGE
-  const businessRate = stationConfig.businessType === 'aglc' ? BUSINESS_RATES.aglc : BUSINESS_RATES.cgc;
+  let businessRate;
+  if (stationConfig.businessType === 'cgc') {
+    businessRate = BUSINESS_RATES.cgc;
+  } else if (stationConfig.businessType === 'vng') {
+    businessRate = BUSINESS_RATES.vng;
+  } else {
+    businessRate = BUSINESS_RATES.aglc;
+  }
   const fullCngPrice = (fuelPrices.cngPrice + ELECTRICITY_COST_PER_GGE) * (1 + businessRate);
   const costPerMileCNG = fullCngPrice / FUEL_EFFICIENCY.light.cng;
   
