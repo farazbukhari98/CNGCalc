@@ -1,6 +1,7 @@
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPaybackPeriod } from "@/lib/utils";
+import { calculateStationCost } from "@/lib/calculator";
 import { MetricInfoTooltip } from "./MetricInfoTooltip";
 import { 
   LineChart, 
@@ -35,12 +36,18 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     (sum, dist) => sum + dist.investment, 0
   );
 
-  // For turnkey option, station cost is included in total investment
-  // For non-turnkey, we need to calculate it based on the difference between totalInvestment and totalVehicleInvestment
-  // This gives us a consistent station cost value to use for both display and LDC tariff calculations
+  // For non-turnkey option, we need to calculate station cost separately since it's not included in totalInvestment
+  // This ensures we have the correct station cost to calculate LDC investment tariff
+  const { vehicleParameters } = useCalculator();
+  
+  // Calculate appropriate station cost based on the current fleet configuration
+  const calculatedStationCost = calculateStationCost(stationConfig, vehicleParameters);
+  
+  // For turnkey, station cost is included in total investment (the difference between total and vehicle investments)
+  // For non-turnkey, use the calculated station cost directly
   const totalStationCost = stationConfig.turnkey 
     ? (results.totalInvestment - totalVehicleInvestment)  // Already included in totalInvestment
-    : (2200000);  // Use an average cost for FastFill-Medium station as the baseline
+    : calculatedStationCost;  // Calculate based on current fleet and station configuration
   
   console.log("Total station cost:", totalStationCost, "Vehicle Investment:", totalVehicleInvestment, "Total Investment:", results.totalInvestment, "TurnKey:", stationConfig.turnkey);
 
@@ -406,6 +413,20 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                     <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Monthly Rate:</span>
                     <span className="text-sm font-semibold ml-1 dark:text-gray-200">
                       {(stationConfig.businessType === 'aglc' ? 1.5 : 1.6).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Station Cost:</span>
+                    <span className="text-sm font-semibold ml-1 dark:text-gray-200">
+                      {formatCurrency(totalStationCost)}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div>
+                    <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Annual Rate:</span>
+                    <span className="text-sm font-semibold ml-1 dark:text-gray-200">
+                      {(stationConfig.businessType === 'aglc' ? 18 : 19.2).toFixed(1)}%
                     </span>
                   </div>
                   <div>
