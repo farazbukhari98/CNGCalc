@@ -402,9 +402,6 @@ export default function MainContent() {
             </div>
             
             <div className="flex items-center space-x-2">
-              <Label htmlFor="tooltipToggle" className="mr-3 text-sm font-medium text-gray-700">
-                Detailed Info
-              </Label>
               <TooltipToggle />
             </div>
           </div>
