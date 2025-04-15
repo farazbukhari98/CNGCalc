@@ -151,7 +151,7 @@ export default function GlobalSettings() {
 
       {/* Time Horizon */}
       <div className="pt-2">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Time Horizon
         </label>
         <div className="flex space-x-2">
@@ -160,8 +160,8 @@ export default function GlobalSettings() {
               key={years}
               variant={timeHorizon === years ? "default" : "outline"}
               className={timeHorizon === years 
-                ? "px-3 py-1 text-sm bg-blue-600 text-white rounded shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" 
-                : "px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"}
+                ? "px-3 py-1 text-sm bg-blue-600 text-white dark:bg-blue-700 dark:text-white rounded shadow hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800" 
+                : "px-3 py-1 text-sm bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"}
               onClick={() => updateTimeHorizon(years)}
             >
               {years} Years
@@ -172,12 +172,12 @@ export default function GlobalSettings() {
 
       {/* Deployment Strategy */}
       <div className="pt-2">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Deployment Strategy
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="ml-2 inline-block text-gray-500 cursor-help">
+                <div className="ml-2 inline-block text-gray-500 dark:text-gray-400 cursor-help">
                   <Info size={16} />
                 </div>
               </TooltipTrigger>
@@ -188,7 +188,7 @@ export default function GlobalSettings() {
           </TooltipProvider>
         </label>
         <select
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+          className="block w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
           value={deploymentStrategy}
           onChange={(e) => updateDeploymentStrategy(e.target.value as any)}
         >
@@ -198,14 +198,14 @@ export default function GlobalSettings() {
           <option value="deferred">Deferred (Late Heavy)</option>
           <option value="manual">Manual Distribution</option>
         </select>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           {strategyDescriptions[deploymentStrategy]}
         </p>
       </div>
 
       {/* Tip for comparison */}
       {comparisonItems.length > 0 && (
-        <div className="pt-2 text-xs text-gray-500">
+        <div className="pt-2 text-xs text-gray-500 dark:text-gray-400">
           <p className="italic">
             Tip: You can compare up to 4 different strategies to analyze ROI and environmental benefits.
           </p>
