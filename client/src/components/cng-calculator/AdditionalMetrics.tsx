@@ -23,7 +23,14 @@ interface AdditionalMetricsProps {
 }
 
 export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsProps) {
-  const { results, deploymentStrategy, timeHorizon } = useCalculator();
+  const { 
+    results, 
+    deploymentStrategy, 
+    timeHorizon, 
+    vehicleParameters, 
+    stationConfig,
+    fuelPrices 
+  } = useCalculator();
 
   // If no results yet, don't render anything
   if (!results) return null;
@@ -275,57 +282,210 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
         <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-5">
             <h3 className="text-lg font-semibold mb-3">
-              Strategy Insights
+              Personalized Strategy Insights
               <MetricInfoTooltip
-                title="Strategy Insights"
-                description="This section provides guidance on the benefits and considerations of your selected vehicle deployment strategy. Each strategy offers different tradeoffs between upfront costs, implementation timeline, and financial returns."
-                calculation="Analysis is based on common industry practices and financial modeling of each approach. The insights help optimize your deployment plan for both operational and financial goals."
+                title="Personalized Strategy Insights"
+                description="This section provides tailored guidance based on your specific fleet configuration, deployment strategy, station setup, and calculated financial outcomes."
+                calculation="Analysis is based on a dynamic assessment of your input parameters and resulting projections, offering real-time strategic recommendations specific to your scenario."
                 affectingVariables={[
                   "Selected deployment strategy (Immediate, Phased, Aggressive, Deferred, or Manual)",
-                  "Total fleet size and composition",
-                  "Project timeline",
-                  "Available capital resources"
+                  "Fleet composition and vehicle parameters",
+                  "Fuel price differentials",
+                  "Station configuration and turnkey status",
+                  "Projected ROI and payback period",
+                  "Total investment and operational costs"
                 ]}
-                simpleDescription="Expert guidance on the advantages and considerations of your chosen deployment approach."
+                simpleDescription="Custom insights generated specifically for your fleet transition plan."
               />
             </h3>
             
             <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+              {/* Dynamic Strategy Summary */}
               <p>
-                The <strong>{deploymentStrategy.charAt(0).toUpperCase() + deploymentStrategy.slice(1)} {deploymentStrategy === 'immediate' ? 'Purchase' : 'Deployment'}</strong> strategy 
-                {deploymentStrategy === 'immediate' 
-                  ? ' involves purchasing all vehicles upfront, maximizing immediate savings but requiring higher initial capital.'
-                  : deploymentStrategy === 'phased'
-                    ? ' distributes your investment over time, reducing upfront capital requirements while allowing for steady cost savings.'
-                    : deploymentStrategy === 'aggressive'
-                      ? ' front-loads your investment to accelerate savings in the early years of the project.'
-                      : deploymentStrategy === 'deferred'
-                        ? ' back-loads your investment, minimizing initial capital needs but delaying maximum savings.'
-                        : ' allows you to customize the deployment schedule to your specific needs and constraints.'}
+                <strong>Strategic Overview: </strong> 
+                {(() => {
+                  // Get total fleet size
+                  const totalVehicles = vehicleParameters.lightDutyCount + vehicleParameters.mediumDutyCount + vehicleParameters.heavyDutyCount;
+                  
+                  // Get fleet composition breakdown
+                  const lightPct = Math.round((vehicleParameters.lightDutyCount / totalVehicles) * 100);
+                  const mediumPct = Math.round((vehicleParameters.mediumDutyCount / totalVehicles) * 100);
+                  const heavyPct = Math.round((vehicleParameters.heavyDutyCount / totalVehicles) * 100);
+                  
+                  // Identify dominant vehicle type
+                  const dominantType = 
+                    lightPct >= mediumPct && lightPct >= heavyPct ? "light-duty" :
+                    mediumPct >= lightPct && mediumPct >= heavyPct ? "medium-duty" : "heavy-duty";
+                    
+                  // Calculate cost per vehicle and investment spread
+                  const avgVehicleCost = results.totalInvestment / totalVehicles;
+                  
+                  let insights = `Your fleet of ${totalVehicles} vehicles (${lightPct}% light-duty, ${mediumPct}% medium-duty, ${heavyPct}% heavy-duty) `;
+                  
+                  // Add strategy-specific insight
+                  if (deploymentStrategy === 'immediate') {
+                    insights += `will be converted immediately, requiring an upfront investment of ${results.totalInvestment.toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}. `;
+                  } else if (deploymentStrategy === 'phased') {
+                    insights += `will be converted evenly over ${timeHorizon} years, spreading your investment and operational adjustments. `;
+                  } else if (deploymentStrategy === 'aggressive') {
+                    insights += `will be front-loaded in the early years to accelerate your savings and emissions reduction. `;
+                  } else if (deploymentStrategy === 'deferred') {
+                    insights += `will be gradually converted with most vehicles converted in later years, minimizing near-term capital requirements. `;
+                  } else { // manual
+                    insights += `will follow your custom conversion schedule, tailored to your specific operational constraints. `;
+                  }
+                  
+                  // Add insights based on financial results
+                  if (results.paybackPeriod <= timeHorizon / 2) {
+                    insights += `With a strong payback period of ${results.paybackPeriod.toFixed(1)} years, your investment is recovered in the first half of the analysis period.`;
+                  } else if (results.paybackPeriod <= timeHorizon) {
+                    insights += `Your investment is projected to be recovered within the ${timeHorizon}-year analysis period, with a payback period of ${results.paybackPeriod.toFixed(1)} years.`;
+                  } else {
+                    insights += `Your payback period extends beyond the ${timeHorizon}-year analysis window, indicating this may be a long-term strategic investment rather than a near-term cost saving measure.`;
+                  }
+                  
+                  return insights;
+                })()}
+              </p>
+              
+              {/* Dynamic financial insights */}
+              <p>
+                <strong>Financial Insights: </strong> 
+                {(() => {
+                  let insights = "";
+                  
+                  // Add insights based on ROI
+                  if (results.roi > 100) {
+                    insights += `With a projected ROI of ${Math.round(results.roi)}%, this investment delivers exceptional returns. `;
+                  } else if (results.roi > 50) {
+                    insights += `The projected ROI of ${Math.round(results.roi)}% indicates a strong financial case for conversion. `;
+                  } else if (results.roi > 0) {
+                    insights += `Your projected ROI of ${Math.round(results.roi)}% shows a positive but moderate financial return. `;
+                  } else {
+                    insights += `The projected ROI of ${Math.round(results.roi)}% suggests this project may need adjustment to improve financial viability. `;
+                  }
+                  
+                  // Add insights based on fuel price differential
+                  const fuelDiff = ((fuelPrices.gasolinePrice - fuelPrices.cngPrice) / fuelPrices.gasolinePrice) * 100;
+                  
+                  if (fuelDiff > 40) {
+                    insights += `The substantial price advantage of CNG (${Math.round(fuelDiff)}% lower than gasoline) is a key driver of your positive financial outcome. `;
+                  } else if (fuelDiff > 20) {
+                    insights += `CNG's moderate price advantage (${Math.round(fuelDiff)}% lower than gasoline) contributes to your savings projection. `;
+                  } else {
+                    insights += `The relatively small price differential between CNG and conventional fuel (${Math.round(fuelDiff)}%) limits the potential savings. `;
+                  }
+                  
+                  // Add station configuration insight
+                  if (stationConfig.turnkey) {
+                    insights += `Your turnkey station purchase approach impacts cash flow initially but eliminates ongoing tariff payments.`;
+                  } else {
+                    insights += `Your tariff-based station approach reduces upfront costs but adds recurring charges to your operational expenses.`;
+                  }
+                  
+                  return insights;
+                })()}
               </p>
               
               <div className="border-t my-3 dark:border-gray-700"></div>
               
               <div className="flex items-center text-blue-800 dark:text-blue-400 mb-2">
                 <CheckCircle className="h-5 w-5 mr-1" />
-                <h4 className="font-medium">Advantages</h4>
+                <h4 className="font-medium">Key Advantages</h4>
               </div>
               
               <ul className="list-disc list-inside pl-1 text-xs space-y-1">
-                {strategyInsights[deploymentStrategy].advantages.map((advantage, index) => (
-                  <li key={index}>{advantage}</li>
-                ))}
+                {/* Dynamic advantages based on results and parameters */}
+                {(() => {
+                  const advantages = [];
+                  
+                  // Add advantage based on emissions
+                  if (results.totalEmissionsSaved > 1000000) { // more than 1000 tons
+                    advantages.push(`Major environmental impact with ${(results.totalEmissionsSaved/1000).toLocaleString()} metric tons of CO₂ reduced over ${timeHorizon} years`);
+                  } else {
+                    advantages.push(`Environmental benefit of ${(results.totalEmissionsSaved/1000).toLocaleString()} metric tons of CO₂ reduced over ${timeHorizon} years`);
+                  }
+                  
+                  // Add advantage based on cost per mile reduction
+                  const costReductionPct = (results.costReduction * 100).toFixed(0);
+                  advantages.push(`${costReductionPct}% reduction in cost per mile compared to conventional fuels`);
+                  
+                  // Add strategy-specific advantages
+                  if (deploymentStrategy === 'immediate') {
+                    if (results.paybackPeriod < timeHorizon / 2) {
+                      advantages.push(`Maximizes savings with ${results.annualFuelSavings.toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} annual fuel cost reduction`);
+                    }
+                    if (stationConfig.turnkey) {
+                      advantages.push(`Eliminates long-term station financing costs with upfront purchase`);
+                    }
+                  } else if (deploymentStrategy === 'phased') {
+                    advantages.push(`Balanced approach spreading capital requirements of ${(results.totalInvestment / timeHorizon).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} annually`);
+                    advantages.push(`Allows operational adjustments based on early deployment results`);
+                  } else if (deploymentStrategy === 'aggressive') {
+                    advantages.push(`Accelerates savings by front-loading vehicle conversion in early years`);
+                    if (results.paybackPeriod < timeHorizon) {
+                      advantages.push(`Achieves payback within ${Math.ceil(results.paybackPeriod)} years while maximizing remaining time for pure savings`);
+                    }
+                  } else if (deploymentStrategy === 'deferred') {
+                    advantages.push(`Minimizes near-term capital requirements while building experience with CNG vehicles`);
+                    if (!stationConfig.turnkey) {
+                      advantages.push(`Well-matched with tariff-based station approach to minimize initial investment`);
+                    }
+                  } else { // manual
+                    advantages.push(`Custom deployment schedule aligned with your specific operational needs`);
+                  }
+                  
+                  return advantages.map((advantage, index) => (
+                    <li key={index}>{advantage}</li>
+                  ));
+                })()}
               </ul>
               
               <div className="flex items-center text-amber-800 dark:text-amber-400 mt-3 mb-2">
                 <AlertTriangle className="h-5 w-5 mr-1" />
-                <h4 className="font-medium">Considerations</h4>
+                <h4 className="font-medium">Strategic Considerations</h4>
               </div>
               
               <ul className="list-disc list-inside pl-1 text-xs space-y-1">
-                {strategyInsights[deploymentStrategy].considerations.map((consideration, index) => (
-                  <li key={index}>{consideration}</li>
-                ))}
+                {/* Dynamic considerations based on results and parameters */}
+                {(() => {
+                  const considerations = [];
+                  
+                  // Add consideration based on payback period
+                  if (results.paybackPeriod > timeHorizon) {
+                    considerations.push(`Payback period extends ${(results.paybackPeriod - timeHorizon).toFixed(1)} years beyond analysis timeframe, requiring long-term commitment`);
+                  } else if (results.paybackPeriod > timeHorizon * 0.7) {
+                    considerations.push(`Relatively long payback period of ${results.paybackPeriod.toFixed(1)} years leaves limited time for net positive returns`);
+                  }
+                  
+                  // Add consideration based on fuel price volatility
+                  considerations.push(`Sensitivity to future CNG and conventional fuel price changes - consider price hedging strategies`);
+                  
+                  // Add station-specific considerations
+                  if (stationConfig.stationType === "fast") {
+                    considerations.push(`Fast-fill station requires higher upfront investment but provides operational flexibility`);
+                  } else {
+                    considerations.push(`Time-fill station requires vehicle downtime for overnight fueling but at lower infrastructure cost`);
+                  }
+                  
+                  // Add strategy-specific considerations
+                  if (deploymentStrategy === 'immediate') {
+                    considerations.push(`Significant initial capital outlay of ${results.totalInvestment.toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}`);
+                    considerations.push(`Consider potential operational challenges with simultaneous conversion of entire fleet`);
+                  } else if (deploymentStrategy === 'phased') {
+                    considerations.push(`Extended transition period requires managing dual-fuel fleet operations for ${timeHorizon} years`);
+                  } else if (deploymentStrategy === 'aggressive') {
+                    considerations.push(`Front-loaded investment requires ${(results.totalInvestment * 0.6).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} in the first 40% of the timeline`);
+                  } else if (deploymentStrategy === 'deferred') {
+                    considerations.push(`Delayed conversion reduces near-term savings by approximately ${(results.annualFuelSavings * 0.5).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} annually in early years`);
+                  } else { // manual
+                    considerations.push(`Custom schedule requires detailed planning and implementation tracking to ensure ROI targets are met`);
+                  }
+                  
+                  return considerations.map((consideration, index) => (
+                    <li key={index}>{consideration}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </CardContent>
