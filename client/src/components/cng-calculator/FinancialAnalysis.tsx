@@ -352,14 +352,24 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
                 Investment Analysis
                 <MetricInfoTooltip
                   title="Investment Analysis"
-                  description="A breakdown of your total capital investment between vehicles and station costs. Provides insight into cost allocation and per-vehicle investment metrics."
-                  calculation="Total Investment = Vehicle Investment + Station Investment. Per-Vehicle Cost = Total Investment / Total Vehicle Count."
+                  description={stationConfig.turnkey ? 
+                    "A breakdown of your total capital investment between vehicles and station costs. Provides insight into cost allocation and per-vehicle investment metrics." :
+                    "An overview of your vehicle capital investment and associated station financing costs through the LDC investment tariff. With non-turnkey, only vehicle costs are direct capital investments."
+                  }
+                  calculation={stationConfig.turnkey ?
+                    "Total Investment = Vehicle Investment + Station Investment. Per-Vehicle Cost = Total Investment / Total Vehicle Count." :
+                    "Vehicle Investment = Total upfront vehicle costs. Station is financed via monthly LDC tariff at a rate of 1.5-1.6% of station cost (18-19.2% annually)."
+                  }
                   affectingVariables={[
                     "Vehicle counts and costs",
                     "Station type and configuration",
-                    "Business type selection"
+                    "Business type selection",
+                    "TurnKey option (Yes/No)"
                   ]}
-                  simpleDescription="Breakdown of your total project investment across vehicles and infrastructure."
+                  simpleDescription={stationConfig.turnkey ?
+                    "Breakdown of your total upfront project investment across vehicles and infrastructure." :
+                    "Summary of vehicle investments with station costs financed through monthly tariff payments."
+                  }
                 />
               </>
             )}
@@ -411,44 +421,93 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
             // When showCashflow is false, show simplified investment breakdown
             <div className="h-64 flex items-center justify-center">
               <div className="text-center w-full max-w-md">
-                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                  {formatCurrency(results.totalInvestment)}
-                </div>
-                <div className="text-base text-gray-500 dark:text-gray-400 mb-5">
-                  Total Capital Investment
-                </div>
-                
-                <div className="flex justify-center gap-10 mb-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                {stationConfig.turnkey ? (
+                  // For turnkey, show the breakdown of vehicles vs station as a capital investment
+                  <>
+                    <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                      {formatCurrency(results.totalInvestment)}
+                    </div>
+                    <div className="text-base text-gray-500 dark:text-gray-400 mb-5">
+                      Total Capital Investment
+                    </div>
+                    
+                    <div className="flex justify-center gap-10 mb-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                          {formatCurrency(totalVehicleInvestment)}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                          Vehicles ({Math.round((totalVehicleInvestment / results.totalInvestment) * 100)}%)
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                          {formatCurrency(results.totalInvestment - totalVehicleInvestment)}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                          <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                          Station ({Math.round(((results.totalInvestment - totalVehicleInvestment) / results.totalInvestment) * 100)}%)
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-full max-w-md mx-auto overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-500 rounded-full" 
+                        style={{ 
+                          width: `${Math.round((totalVehicleInvestment / results.totalInvestment) * 100)}%` 
+                        }}
+                      ></div>
+                    </div>
+                  </>
+                ) : (
+                  // For non-turnkey, show vehicle investment and station financing info
+                  <>
+                    <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                       {formatCurrency(totalVehicleInvestment)}
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                      Vehicles ({Math.round((totalVehicleInvestment / results.totalInvestment) * 100)}%)
+                    <div className="text-base text-gray-500 dark:text-gray-400 mb-5">
+                      Vehicle Capital Investment
                     </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                      {formatCurrency(results.totalInvestment - totalVehicleInvestment)}
+                    
+                    <div className="p-3 mt-2 rounded-lg border mb-2 w-full" 
+                      style={{ 
+                        backgroundColor: 'rgba(101, 67, 33, 0.1)', 
+                        borderColor: 'rgba(101, 67, 33, 0.3)'
+                      }}>
+                      <div className="text-sm font-medium mb-1 dark:text-amber-200" style={{ color: '#654321' }}>
+                        LDC Investment Tariff (Non-TurnKey)
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Monthly Rate:</span>
+                          <span className="text-sm font-semibold ml-1 dark:text-gray-200">
+                            {(stationConfig.businessType === 'aglc' || stationConfig.businessType === 'vng' ? 1.5 : 1.6).toFixed(1)}%
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Station Cost:</span>
+                          <span className="text-sm font-semibold ml-1 dark:text-gray-200">
+                            {formatCurrency(totalStationCost)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Annual Rate:</span>
+                          <span className="text-sm font-semibold ml-1 dark:text-gray-200">
+                            {(stationConfig.businessType === 'aglc' || stationConfig.businessType === 'vng' ? 18 : 19.2).toFixed(1)}%
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Annual Cost:</span>
+                          <span className="text-sm font-semibold ml-1 dark:text-gray-200">
+                            {formatCurrency(totalStationCost * (stationConfig.businessType === 'aglc' || stationConfig.businessType === 'vng' ? 0.18 : 0.192))}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      Station ({Math.round(((results.totalInvestment - totalVehicleInvestment) / results.totalInvestment) * 100)}%)
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-full max-w-md mx-auto overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-500 rounded-full" 
-                    style={{ 
-                      width: `${Math.round((totalVehicleInvestment / results.totalInvestment) * 100)}%` 
-                    }}
-                  ></div>
-                </div>
-                
-
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -472,9 +531,8 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
               <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
                 <div className="text-sm text-gray-500 mb-1 dark:text-gray-300">Total Vehicles</div>
                 <div className="text-lg font-bold text-blue-600">
-                  {results.vehicleDistribution[0].light + 
-                   results.vehicleDistribution[0].medium + 
-                   results.vehicleDistribution[0].heavy}
+                  {results.vehicleDistribution.reduce((total, year) => 
+                    total + year.light + year.medium + year.heavy, 0)}
                 </div>
               </div>
             )}
