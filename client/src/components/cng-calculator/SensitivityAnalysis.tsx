@@ -127,7 +127,7 @@ export default function SensitivityAnalysis() {
     // Highlight the current selected variation
     setVariationPercentage(Math.min(Math.max(variationPercentage, config.min), config.max));
     
-  }, [selectedVariable, results, fuelPrices]);
+  }, [selectedVariable, results, vehicleParameters, stationConfig, fuelPrices, timeHorizon, deploymentStrategy]);
 
   // Calculate the modified value based on the selected variable and percentage
   const calculateModifiedValue = (variable: SensitivityVariable, percentage: number) => {
@@ -261,23 +261,37 @@ export default function SensitivityAnalysis() {
   
   // Get the calculated values at current variation
   const getCurrentValueForVariable = () => {
-    if (!results || sensitivityData.length === 0) return null;
+    if (!results) return null;
     
-    // Find the closest data point to the current variation
-    const closestData = sensitivityData.find(d => d.percentage === variationPercentage) ||
-      sensitivityData.reduce((prev, curr) => 
-        Math.abs(curr.percentage - variationPercentage) < Math.abs(prev.percentage - variationPercentage) 
-          ? curr : prev, sensitivityData[0]);
-          
+    // For exact calculation at the current variation percentage
+    if (variationPercentage !== 0) {
+      // Calculate the exact modified value and result for the current percentage
+      const modifiedValue = calculateModifiedValue(selectedVariable, variationPercentage);
+      const result = calculateModifiedResult(selectedVariable, modifiedValue);
+      
+      return {
+        payback: formatPaybackPeriod(result.paybackPeriod),
+        roi: Math.round(result.roi) + "%",
+        netCashFlow: formatCurrency(result.netCashFlow)
+      };
+    }
+    
+    // For baseline (0% variation), use the original results
     return {
-      payback: formatPaybackPeriod(closestData?.payback || 0),
-      roi: Math.round(closestData?.roi || 0) + "%",
-      netCashFlow: formatCurrency(closestData?.netCashFlow || 0)
+      payback: formatPaybackPeriod(results.paybackPeriod),
+      roi: Math.round(results.roi) + "%",
+      netCashFlow: formatCurrency(results.netCashFlow)
     };
   }
   
-  // Get the impact values
-  const variationImpact = getCurrentValueForVariable();
+  // State to store impact values
+  const [variationImpact, setVariationImpact] = useState<{ payback: string; roi: string; netCashFlow: string } | null>(null);
+  
+  // Update impact values when variables change
+  useEffect(() => {
+    if (!results) return;
+    setVariationImpact(getCurrentValueForVariable());
+  }, [variationPercentage, selectedVariable, results, fuelPrices, vehicleParameters, stationConfig]);
 
   return (
     <Card className="bg-white rounded-lg shadow mb-6 sensitivity-analysis">
@@ -336,12 +350,19 @@ export default function SensitivityAnalysis() {
                     max={variableConfig[selectedVariable].max}
                     step={variableConfig[selectedVariable].step}
                     onValueChange={(values) => {
-                      setVariationPercentage(values[0]);
-                      // Highlight the closest data point to the current variation in the chart
-                      const closestData = sensitivityData.find(d => d.percentage === values[0]) ||
-                                         sensitivityData.reduce((prev, curr) => 
-                                           Math.abs(curr.percentage - values[0]) < Math.abs(prev.percentage - values[0]) 
-                                           ? curr : prev, sensitivityData[0]);
+                      const newPercentage = values[0];
+                      setVariationPercentage(newPercentage);
+                      
+                      // Immediately update the impact values for responsive UI
+                      if (results) {
+                        const modifiedValue = calculateModifiedValue(selectedVariable, newPercentage);
+                        const result = calculateModifiedResult(selectedVariable, modifiedValue);
+                        setVariationImpact({
+                          payback: formatPaybackPeriod(result.paybackPeriod),
+                          roi: Math.round(result.roi) + "%",
+                          netCashFlow: formatCurrency(result.netCashFlow)
+                        });
+                      }
                     }}
                     className="mb-2"
                   />
