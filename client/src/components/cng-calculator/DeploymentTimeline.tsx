@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPaybackPeriod } from "@/lib/utils";
 import { useState } from "react";
+import { MetricInfoTooltip } from "./MetricInfoTooltip";
 
 export default function DeploymentTimeline() {
   const { 
@@ -178,27 +179,90 @@ export default function DeploymentTimeline() {
                       {isFirstYear && stationCost > 0 && (
                         <>
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Vehicles</span>
+                            <span className="text-xs text-gray-500">
+                              Vehicles
+                              <MetricInfoTooltip
+                                title="Vehicle Investment"
+                                description={`This is the total cost for ${light} light-duty, ${medium} medium-duty, and ${heavy} heavy-duty vehicles converted in Year ${year}.`}
+                                calculation={`Vehicle Investment = (${light} light-duty × $${(vehicleInvestment / (light || 1)).toLocaleString()}) + (${medium} medium-duty × $${(vehicleInvestment / (medium || 1)).toLocaleString()}) + (${heavy} heavy-duty × $${(vehicleInvestment / (heavy || 1)).toLocaleString()})`}
+                                affectingVariables={[
+                                  "Vehicle counts (light, medium, heavy)",
+                                  "Incremental cost per vehicle type",
+                                  "Deployment strategy"
+                                ]}
+                                simpleDescription="Cost of CNG vehicle conversion for this year"
+                              />
+                            </span>
                             <span className="text-xs font-medium">{formatCurrency(vehicleInvestment)}</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Station</span>
+                            <span className="text-xs text-gray-500">
+                              Station
+                              <MetricInfoTooltip
+                                title="Station Investment"
+                                description="The upfront cost of building your CNG station. This is a one-time cost in Year 1 and includes all equipment, installation, and setup."
+                                calculation="Based on station type (Fast-Fill or Time-Fill), business type (AGLC, CGC, VNG), and required capacity to support your fleet's daily fuel consumption."
+                                affectingVariables={[
+                                  "Station type (Fast-Fill or Time-Fill)",
+                                  "Business type (AGLC, CGC, VNG)",
+                                  "Total fleet size and composition",
+                                  "Turnkey option (Yes = upfront cost)"
+                                ]}
+                                simpleDescription="Cost of building the CNG fueling station"
+                              />
+                            </span>
                             <span className="text-xs font-medium">{formatCurrency(stationCost)}</span>
                           </div>
                           <div className="flex items-center justify-between border-t pt-1 mt-1">
-                            <span className="text-xs text-gray-500 font-medium">Total Inv.</span>
+                            <span className="text-xs text-gray-500 font-medium">
+                              Total Inv.
+                              <MetricInfoTooltip
+                                title="Total Investment"
+                                description="The combined cost of vehicle conversions and station infrastructure for Year 1."
+                                calculation={`Total Investment = Vehicle Investment (${formatCurrency(vehicleInvestment)}) + Station Investment (${formatCurrency(stationCost)})`}
+                                simpleDescription="Total capital expenditure for this year"
+                              />
+                            </span>
                             <span className="text-xs font-medium">{formatCurrency(totalYearInvestment)}</span>
                           </div>
                         </>
                       )}
                       {(!isFirstYear || stationCost === 0) && (
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Investment</span>
+                          <span className="text-xs text-gray-500">
+                            Investment
+                            <MetricInfoTooltip
+                              title="Vehicle Investment"
+                              description={`This is the total cost for ${light} light-duty, ${medium} medium-duty, and ${heavy} heavy-duty vehicles converted in Year ${year}.`}
+                              calculation={`Vehicle Investment = (${light} light-duty × ${formatCurrency(light ? vehicleInvestment / light : 0)}) + (${medium} medium-duty × ${formatCurrency(medium ? vehicleInvestment / medium : 0)}) + (${heavy} heavy-duty × ${formatCurrency(heavy ? vehicleInvestment / heavy : 0)})`}
+                              affectingVariables={[
+                                "Vehicle counts (light, medium, heavy)",
+                                "Incremental cost per vehicle type",
+                                "Deployment strategy"
+                              ]}
+                              simpleDescription="Cost of CNG vehicle conversion for this year"
+                            />
+                          </span>
                           <span className="text-xs font-medium">{formatCurrency(vehicleInvestment)}</span>
                         </div>
                       )}
                       <div className="flex items-center justify-between mt-1">
-                        <span className="text-xs text-gray-500">Savings</span>
+                        <span className="text-xs text-gray-500">
+                          Savings
+                          <MetricInfoTooltip
+                            title="Annual Savings for Year"
+                            description={`The projected cost savings for Year ${year} based on the number of CNG vehicles in operation and their reduced fuel and maintenance costs.`}
+                            calculation="Savings = Fuel Cost Savings (CNG vs. conventional fuel) + Maintenance Cost Savings - Station Operational Costs"
+                            affectingVariables={[
+                              "Number of converted vehicles in operation",
+                              "Annual mileage per vehicle type",
+                              "Fuel prices (gasoline, diesel, CNG)",
+                              "Vehicle fuel efficiency (MPG)",
+                              "Maintenance cost differential"
+                            ]}
+                            simpleDescription="Total annual operating cost reduction"
+                          />
+                        </span>
                         <span className="text-xs font-medium text-green-600">{formatCurrency(yearSavings)}</span>
                       </div>
                     </div>
