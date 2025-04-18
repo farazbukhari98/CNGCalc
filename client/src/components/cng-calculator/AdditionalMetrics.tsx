@@ -2,6 +2,7 @@ import { useCalculator } from "@/contexts/CalculatorContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { MetricInfoTooltip } from "./MetricInfoTooltip";
+import { formatPaybackPeriod } from "@/lib/utils";
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -337,9 +338,9 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
                   
                   // Add insights based on financial results
                   if (results.paybackPeriod <= timeHorizon / 2) {
-                    insights += `With a strong payback period of ${results.paybackPeriod.toFixed(1)} years, your investment is recovered in the first half of the analysis period.`;
+                    insights += `With a strong payback period of ${formatPaybackPeriod(results.paybackPeriod)}, your investment is recovered in the first half of the analysis period.`;
                   } else if (results.paybackPeriod <= timeHorizon) {
-                    insights += `Your investment is projected to be recovered within the ${timeHorizon}-year analysis period, with a payback period of ${results.paybackPeriod.toFixed(1)} years.`;
+                    insights += `Your investment is projected to be recovered within the ${timeHorizon}-year analysis period, with a payback period of ${formatPaybackPeriod(results.paybackPeriod)}.`;
                   } else {
                     insights += `Your payback period extends beyond the ${timeHorizon}-year analysis window, indicating this may be a long-term strategic investment rather than a near-term cost saving measure.`;
                   }
@@ -407,8 +408,8 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
                   }
                   
                   // Add advantage based on cost per mile reduction
-                  const costReductionPct = (results.costReduction * 100).toFixed(0);
-                  advantages.push(`${costReductionPct}% reduction in cost per mile compared to conventional fuels`);
+                  const costReductionPct = (results.costReduction * 100);
+                  advantages.push(`${costReductionPct.toFixed(1)}% reduction in cost per mile compared to conventional fuels`);
                   
                   // Add strategy-specific advantages
                   if (deploymentStrategy === 'immediate') {
@@ -453,9 +454,9 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
                   
                   // Add consideration based on payback period
                   if (results.paybackPeriod > timeHorizon) {
-                    considerations.push(`Payback period extends ${(results.paybackPeriod - timeHorizon).toFixed(1)} years beyond analysis timeframe, requiring long-term commitment`);
+                    considerations.push(`Payback period extends beyond analysis timeframe, requiring long-term commitment (${formatPaybackPeriod(results.paybackPeriod)})`);
                   } else if (results.paybackPeriod > timeHorizon * 0.7) {
-                    considerations.push(`Relatively long payback period of ${results.paybackPeriod.toFixed(1)} years leaves limited time for net positive returns`);
+                    considerations.push(`Relatively long payback period of ${formatPaybackPeriod(results.paybackPeriod)} leaves limited time for net positive returns`);
                   }
                   
                   // Add consideration based on fuel price volatility
