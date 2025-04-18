@@ -93,14 +93,34 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
 
   // Prepare data for year-by-year vehicle investment chart (only used when showCashflow is false)
   const vehicleInvestmentData = results.vehicleDistribution
-    .map((yearData, index) => ({
-      year: `Year ${index + 1}`,
-      light: yearData.light,
-      medium: yearData.medium,
-      heavy: yearData.heavy,
-      investment: yearData.investment,
-    }))
-    .filter(data => data.investment > 0); // Only show years with investments
+    .map((yearData, index) => {
+      // Base data with vehicle counts and investment
+      const data = {
+        year: `Year ${index + 1}`,
+        light: yearData.light,
+        medium: yearData.medium,
+        heavy: yearData.heavy,
+        vehicleInvestment: yearData.investment,
+      };
+      
+      // For Year 1 with Turnkey=Yes, add station cost as a separate value
+      if (index === 0 && stationConfig.turnkey) {
+        return {
+          ...data,
+          stationCost: totalStationCost,
+          // Total investment for this year is vehicle investment + station cost
+          totalInvestment: yearData.investment + totalStationCost
+        };
+      }
+      
+      // For all other years or when Turnkey=No, only include vehicle investment
+      return {
+        ...data,
+        stationCost: 0,
+        totalInvestment: yearData.investment
+      };
+    })
+    .filter(data => data.totalInvestment > 0); // Only show years with investments
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 financial-analysis">
@@ -171,65 +191,134 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
         <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold mb-4">
-              Vehicle Investment Timeline
+              Capital Investment Timeline
               <MetricInfoTooltip
-                title="Vehicle Investment Timeline" 
-                description="This chart shows how vehicle investments are distributed across the analysis period based on the selected deployment strategy. It breaks down the number of vehicles by type (light/medium/heavy duty) and displays the corresponding investment amount for each year."
-                calculation="Stacked bars show vehicle count by type. The pink line shows the total investment amount for each year."
+                title="Capital Investment Timeline" 
+                description={stationConfig.turnkey ? 
+                  "This chart shows your complete capital investment distribution over the analysis period. For Year 1, it displays both vehicle and station investments as a stacked bar. For subsequent years, it shows only vehicle investments." :
+                  "This chart shows your vehicle capital investment distribution over the analysis period. Station costs are not included as they are financed through the LDC tariff rather than being a direct capital investment."}
+                calculation={stationConfig.turnkey ? 
+                  "Stacked bars show vehicle count by type on the left axis. Stacked investment bars on the right axis show vehicle investment and station cost (Year 1 only)." :
+                  "Stacked bars show vehicle count by type on the left axis. Red bars on the right axis show vehicle investment amounts."}
                 affectingVariables={[
                   "Deployment strategy selection",
                   "Vehicle costs by type",
+                  "Station configuration and payment method (TurnKey/Non-TurnKey)",
                   "Fleet composition (light/medium/heavy duty mix)"
                 ]}
-                simpleDescription="Year-by-year breakdown of your vehicle additions and associated investment costs."
+                simpleDescription={stationConfig.turnkey ? 
+                  "Year-by-year breakdown of your capital investments, including both vehicles and station infrastructure." :
+                  "Year-by-year breakdown of your vehicle investments only (station costs financed separately)."}
               />
             </h2>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={vehicleInvestmentData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis yAxisId="count" orientation="left" label={{ value: 'Vehicle Count', angle: -90, position: 'insideLeft' }} />
-                  <YAxis yAxisId="investment" orientation="right" tickFormatter={currencyFormatter} />
-                  <RechartsTooltip 
-                    formatter={(value, name) => {
-                      if (name === 'investment') return [formatCurrency(value as number), 'Investment'];
-                      if (name === 'light') return [value, 'Light-Duty'];
-                      if (name === 'medium') return [value, 'Medium-Duty']; 
-                      if (name === 'heavy') return [value, 'Heavy-Duty'];
-                      return [value, name];
-                    }}
-                    labelFormatter={(label) => `${label}`}
-                  />
-                  <Legend />
-                  <Bar 
-                    yAxisId="count"
-                    dataKey="light" 
-                    name="Light-Duty" 
-                    fill="rgba(96, 165, 250, 0.7)" 
-                    stackId="vehicles" 
-                  />
-                  <Bar 
-                    yAxisId="count"
-                    dataKey="medium" 
-                    name="Medium-Duty" 
-                    fill="rgba(52, 211, 153, 0.7)" 
-                    stackId="vehicles" 
-                  />
-                  <Bar 
-                    yAxisId="count"
-                    dataKey="heavy" 
-                    name="Heavy-Duty" 
-                    fill="rgba(251, 146, 60, 0.7)" 
-                    stackId="vehicles" 
-                  />
-                  <Bar 
-                    yAxisId="investment"
-                    dataKey="investment" 
-                    name="Investment" 
-                    fill="rgba(236, 72, 153, 0.8)" 
-                  />
-                </BarChart>
+                {stationConfig.turnkey ? (
+                  // For Turnkey=Yes, show stacked investment bars (vehicle + station)
+                  <BarChart data={vehicleInvestmentData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="year" />
+                    <YAxis yAxisId="count" orientation="left" label={{ value: 'Vehicle Count', angle: -90, position: 'insideLeft' }} />
+                    <YAxis yAxisId="investment" orientation="right" tickFormatter={currencyFormatter} />
+                    <RechartsTooltip 
+                      formatter={(value, name) => {
+                        if (name === 'Vehicle Investment') return [formatCurrency(value as number), name];
+                        if (name === 'Station Investment') return [formatCurrency(value as number), name];
+                        if (name === 'Light-Duty') return [value, name];
+                        if (name === 'Medium-Duty') return [value, name]; 
+                        if (name === 'Heavy-Duty') return [value, name];
+                        return [value, name];
+                      }}
+                      labelFormatter={(label) => `${label}`}
+                    />
+                    <Legend />
+                    {/* Vehicle Count Bars */}
+                    <Bar 
+                      yAxisId="count"
+                      dataKey="light" 
+                      name="Light-Duty" 
+                      fill="rgba(96, 165, 250, 0.7)" 
+                      stackId="vehicles" 
+                    />
+                    <Bar 
+                      yAxisId="count"
+                      dataKey="medium" 
+                      name="Medium-Duty" 
+                      fill="rgba(52, 211, 153, 0.7)" 
+                      stackId="vehicles" 
+                    />
+                    <Bar 
+                      yAxisId="count"
+                      dataKey="heavy" 
+                      name="Heavy-Duty" 
+                      fill="rgba(251, 146, 60, 0.7)" 
+                      stackId="vehicles" 
+                    />
+                    {/* Investment Bars - Stacked */}
+                    <Bar 
+                      yAxisId="investment"
+                      dataKey="vehicleInvestment" 
+                      name="Vehicle Investment" 
+                      fill="rgba(239, 68, 68, 0.7)" 
+                      stackId="investment" 
+                    />
+                    <Bar 
+                      yAxisId="investment"
+                      dataKey="stationCost" 
+                      name="Station Investment" 
+                      fill="rgba(59, 130, 246, 0.7)" 
+                      stackId="investment" 
+                    />
+                  </BarChart>
+                ) : (
+                  // For Turnkey=No, show only vehicle investment
+                  <BarChart data={vehicleInvestmentData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="year" />
+                    <YAxis yAxisId="count" orientation="left" label={{ value: 'Vehicle Count', angle: -90, position: 'insideLeft' }} />
+                    <YAxis yAxisId="investment" orientation="right" tickFormatter={currencyFormatter} />
+                    <RechartsTooltip 
+                      formatter={(value, name) => {
+                        if (name === 'Vehicle Investment') return [formatCurrency(value as number), name];
+                        if (name === 'Light-Duty') return [value, name];
+                        if (name === 'Medium-Duty') return [value, name]; 
+                        if (name === 'Heavy-Duty') return [value, name];
+                        return [value, name];
+                      }}
+                      labelFormatter={(label) => `${label}`}
+                    />
+                    <Legend />
+                    {/* Vehicle Count Bars */}
+                    <Bar 
+                      yAxisId="count"
+                      dataKey="light" 
+                      name="Light-Duty" 
+                      fill="rgba(96, 165, 250, 0.7)" 
+                      stackId="vehicles" 
+                    />
+                    <Bar 
+                      yAxisId="count"
+                      dataKey="medium" 
+                      name="Medium-Duty" 
+                      fill="rgba(52, 211, 153, 0.7)" 
+                      stackId="vehicles" 
+                    />
+                    <Bar 
+                      yAxisId="count"
+                      dataKey="heavy" 
+                      name="Heavy-Duty" 
+                      fill="rgba(251, 146, 60, 0.7)" 
+                      stackId="vehicles" 
+                    />
+                    {/* Vehicle Investment Bar */}
+                    <Bar 
+                      yAxisId="investment"
+                      dataKey="vehicleInvestment" 
+                      name="Vehicle Investment" 
+                      fill="rgba(239, 68, 68, 0.7)" 
+                    />
+                  </BarChart>
+                )}
               </ResponsiveContainer>
             </div>
           </CardContent>
