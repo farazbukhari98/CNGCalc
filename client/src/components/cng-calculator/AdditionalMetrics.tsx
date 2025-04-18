@@ -408,8 +408,8 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
                   }
                   
                   // Add advantage based on cost per mile reduction
-                  const costReductionPct = (results.costReduction * 100);
-                  advantages.push(`${costReductionPct.toFixed(1)}% reduction in cost per mile compared to conventional fuels`);
+                  // costReduction is already in percentage format in the results
+                  advantages.push(`${results.costReduction.toFixed(1)}% reduction in cost per mile compared to conventional fuels`);
                   
                   // Add strategy-specific advantages
                   if (deploymentStrategy === 'immediate') {
