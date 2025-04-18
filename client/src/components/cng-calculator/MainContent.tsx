@@ -373,30 +373,31 @@ export default function MainContent() {
           </div>
           <div className="flex items-center mt-3 md:mt-0 space-x-6">
             <div className="flex items-center space-x-2">
-              <Label htmlFor="cashflowToggle" className="mr-3 text-sm font-medium text-gray-700">
+              <Label htmlFor="cashflowToggle" className="mr-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Show Cash Flow
               </Label>
               <Switch
                 id="cashflowToggle"
                 checked={showCashflow}
                 onCheckedChange={setShowCashflow}
+                className="data-[state=checked]:bg-blue-500"
               />
             </div>
             <div className="flex items-center space-x-2">
-              <Label htmlFor="darkModeToggle" className="mr-3 text-sm font-medium text-gray-700">
+              <Label htmlFor="darkModeToggle" className="mr-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                 {darkMode ? "Light Mode" : "Dark Mode"}
               </Label>
               <Switch
                 id="darkModeToggle"
                 checked={darkMode}
                 onCheckedChange={toggleDarkMode}
-                className="dark-mode-transition"
+                className="dark-mode-transition data-[state=checked]:bg-blue-500"
               />
               <span className="ml-1">
                 {darkMode ? (
-                  <Sun size={18} className="text-amber-500" />
+                  <Sun size={18} className="text-amber-500 dark:text-amber-300" />
                 ) : (
-                  <Moon size={18} className="text-blue-800" />
+                  <Moon size={18} className="text-blue-800 dark:text-blue-300" />
                 )}
               </span>
             </div>

@@ -160,8 +160,8 @@ export default function GlobalSettings() {
               key={years}
               variant={timeHorizon === years ? "default" : "outline"}
               className={timeHorizon === years 
-                ? "px-3 py-1 text-sm bg-blue-600 text-white dark:bg-blue-700 dark:text-white rounded shadow hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800" 
-                : "px-3 py-1 text-sm bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"}
+                ? "px-3 py-1 text-sm bg-blue-600 text-white dark:bg-blue-500 dark:text-white rounded shadow hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800" 
+                : "px-3 py-1 text-sm bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-100 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"}
               onClick={() => updateTimeHorizon(years)}
             >
               {years} Years

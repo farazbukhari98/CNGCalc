@@ -19,7 +19,9 @@ export function TooltipToggle() {
             variant="ghost"
             size="icon"
             onClick={toggleDetailedTooltips}
-            className={showDetailedTooltips ? "bg-blue-100 text-blue-700" : ""}
+            className={showDetailedTooltips 
+              ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" 
+              : "dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100"}
           >
             <HelpCircle className="h-5 w-5" />
             <span className="sr-only">
