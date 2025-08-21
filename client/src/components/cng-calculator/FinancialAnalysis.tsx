@@ -18,9 +18,10 @@ import {
 
 type FinancialAnalysisProps = {
   showCashflow: boolean;
+  hideNegativeValues: boolean;
 };
 
-export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisProps) {
+export default function FinancialAnalysis({ showCashflow, hideNegativeValues }: FinancialAnalysisProps) {
   const { results, timeHorizon, stationConfig } = useCalculator();
 
   // If no results yet, don't render anything
@@ -91,6 +92,33 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
     return `$${value.toLocaleString()}`;
   };
 
+  // Calculate Y-axis domain for charts when hiding negative values
+  const getYAxisDomain = (data: any[], key: string) => {
+    if (!hideNegativeValues) return undefined; // Use default domain
+    
+    const values = data.map(item => item[key]).filter(val => val >= 0);
+    if (values.length === 0) return [0, 100]; // Fallback if no positive values
+    
+    const min = 0; // Always start from 0 for positive-only view
+    const max = Math.max(...values);
+    return [min, max * 1.1]; // Add 10% padding to max
+  };
+
+  // Get filtered data for charts when hiding negative values
+  const getFilteredChartData = (data: any[], valueKeys: string[]) => {
+    if (!hideNegativeValues) return data;
+    
+    return data.map(item => {
+      const filteredItem = { ...item };
+      valueKeys.forEach(key => {
+        if (filteredItem[key] < 0) {
+          filteredItem[key] = 0; // Set negative values to 0
+        }
+      });
+      return filteredItem;
+    });
+  };
+
   // Prepare data for year-by-year vehicle investment chart (only used when showCashflow is false)
   const vehicleInvestmentData = results.vehicleDistribution
     .map((yearData, index) => {
@@ -145,10 +173,16 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
             </h2>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={cashFlowData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <LineChart 
+                  data={getFilteredChartData(cashFlowData, ['cumulativeInvestment', 'cumulativeSavings'])} 
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="year" />
-                  <YAxis tickFormatter={currencyFormatter} />
+                  <YAxis 
+                    tickFormatter={currencyFormatter} 
+                    domain={hideNegativeValues ? [0, 'dataMax'] : undefined}
+                  />
                   <RechartsTooltip formatter={currencyFormatter} />
                   <Legend />
                   <Line 
@@ -379,10 +413,16 @@ export default function FinancialAnalysis({ showCashflow }: FinancialAnalysisPro
           {showCashflow ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={costSavingsData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <BarChart 
+                  data={getFilteredChartData(costSavingsData, ['vehicleInvestment', 'stationInvestment', 'financingCost', 'savings'])} 
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="year" />
-                  <YAxis tickFormatter={currencyFormatter} />
+                  <YAxis 
+                    tickFormatter={currencyFormatter} 
+                    domain={hideNegativeValues ? [0, 'dataMax'] : undefined}
+                  />
                   <RechartsTooltip formatter={currencyFormatter} />
                   <Legend />
                   <Bar 

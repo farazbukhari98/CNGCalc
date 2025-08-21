@@ -264,7 +264,7 @@ const HeatMapVisualization = ({
   );
 };
 
-export default function MultiVariableAnalysis() {
+export default function MultiVariableAnalysis({ hideNegativeValues = false }: { hideNegativeValues?: boolean }) {
   const { 
     vehicleParameters, 
     stationConfig, 
@@ -343,14 +343,22 @@ export default function MultiVariableAnalysis() {
           tertiaryVariable
         );
         
-        // Store the metric value for the heatmap
+        // Store the metric value for the heatmap, filtering negatives if requested
+        let metricValue: number;
         if (activeMetric === 'payback') {
-          row.push(result.paybackPeriod);
+          metricValue = result.paybackPeriod;
         } else if (activeMetric === 'roi') {
-          row.push(result.roi);
+          metricValue = result.roi;
         } else {
-          row.push(result.netCashFlow);
+          metricValue = result.netCashFlow;
         }
+        
+        // Apply negative value filtering
+        if (hideNegativeValues && metricValue < 0) {
+          metricValue = 0;
+        }
+        
+        row.push(metricValue);
       }
       
       // Note: we reverse the rows to match the y-axis orientation

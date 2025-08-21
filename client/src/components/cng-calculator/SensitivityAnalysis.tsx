@@ -72,7 +72,7 @@ const variableConfig = {
   }
 };
 
-export default function SensitivityAnalysis() {
+export default function SensitivityAnalysis({ hideNegativeValues = false }: { hideNegativeValues?: boolean }) {
   const { 
     vehicleParameters, 
     stationConfig, 
@@ -407,13 +407,13 @@ export default function SensitivityAnalysis() {
                       <YAxis 
                         yAxisId="payback"
                         label={{ value: 'Payback (Years)', angle: -90, position: 'insideLeft' }} 
-                        domain={['auto', 'auto']}
+                        domain={hideNegativeValues ? [0, 'dataMax'] : ['auto', 'auto']}
                       />
                       <YAxis 
                         yAxisId="roi"
                         orientation="right"
                         label={{ value: 'ROI & Cash Flow', angle: 90, position: 'insideRight' }} 
-                        domain={['auto', 'auto']}
+                        domain={hideNegativeValues ? [0, 'dataMax'] : ['auto', 'auto']}
                         tickFormatter={(value) => `${value}%`}
                       />
                       <RechartsTooltip formatter={formatTooltipValue} />

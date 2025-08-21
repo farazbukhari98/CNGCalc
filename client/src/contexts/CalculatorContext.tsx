@@ -19,6 +19,7 @@ interface CalculatorContextType {
   vehicleDistribution: VehicleDistribution[] | null;
   results: CalculationResults | null;
   sidebarCollapsed: boolean;
+  hideNegativeValues: boolean;
   
   updateVehicleParameters: (params: VehicleParameters) => void;
   updateStationConfig: (config: StationConfig) => void;
@@ -29,6 +30,7 @@ interface CalculatorContextType {
   updateManualDistribution: (year: number, vehicle: Partial<VehicleDistribution>) => void;
   calculateResults: () => void;
   toggleSidebar: () => void;
+  toggleHideNegativeValues: () => void;
 }
 
 // Create the context
@@ -72,6 +74,7 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
   const [vehicleDistribution, setVehicleDistribution] = useState<VehicleDistribution[] | null>(null);
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [hideNegativeValues, setHideNegativeValues] = useState<boolean>(false);
 
   // Automatically recalculate when any parameter changes
   useEffect(() => {
@@ -249,6 +252,11 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     setSidebarCollapsed(prev => !prev);
   };
 
+  // Method to toggle hide negative values
+  const toggleHideNegativeValues = () => {
+    setHideNegativeValues(prev => !prev);
+  };
+
   // Context value
   const value = {
     vehicleParameters,
@@ -259,6 +267,7 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     vehicleDistribution,
     results,
     sidebarCollapsed,
+    hideNegativeValues,
     
     updateVehicleParameters,
     updateStationConfig,
@@ -268,7 +277,8 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     setDistributionStrategy,
     updateManualDistribution,
     calculateResults,
-    toggleSidebar
+    toggleSidebar,
+    toggleHideNegativeValues
   };
 
   return (

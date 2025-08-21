@@ -19,7 +19,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 export default function MainContent() {
-  const { deploymentStrategy, results, vehicleParameters, stationConfig, fuelPrices, timeHorizon } = useCalculator();
+  const { deploymentStrategy, results, vehicleParameters, stationConfig, fuelPrices, timeHorizon, hideNegativeValues } = useCalculator();
   const { darkMode, toggleDarkMode } = useDarkMode();
   const [showCashflow, setShowCashflow] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
@@ -416,7 +416,7 @@ export default function MainContent() {
       
       {results && (
         <>
-          <FinancialAnalysis showCashflow={showCashflow} />
+          <FinancialAnalysis showCashflow={showCashflow} hideNegativeValues={hideNegativeValues} />
           
           <AdditionalMetrics showCashflow={showCashflow} />
           
@@ -433,7 +433,7 @@ export default function MainContent() {
               </TabsContent>
               
               <TabsContent value="sensitivity" className="mt-0">
-                <SensitivityAnalysis />
+                <SensitivityAnalysis hideNegativeValues={hideNegativeValues} />
               </TabsContent>
             </Tabs>
           </div>
