@@ -12,25 +12,46 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
     vehicleParameters,
     stationConfig,
     results,
-    timeHorizon
+    timeHorizon,
+    deploymentStrategy,
+    vehicleDistribution
   } = useCalculator();
 
-  // Calculate vehicle distribution percentages
-  const totalVehicles = 
-    vehicleParameters.lightDutyCount + 
-    vehicleParameters.mediumDutyCount + 
-    vehicleParameters.heavyDutyCount;
+  // Calculate vehicle distribution percentages (use manual distribution totals if in manual mode)
+  const getActualVehicleCounts = () => {
+    if (deploymentStrategy === 'manual' && vehicleDistribution) {
+      // Sum up totals from manual distribution
+      const totals = vehicleDistribution.reduce(
+        (acc, year) => ({
+          light: acc.light + (year.light || 0),
+          medium: acc.medium + (year.medium || 0),
+          heavy: acc.heavy + (year.heavy || 0)
+        }),
+        { light: 0, medium: 0, heavy: 0 }
+      );
+      return totals;
+    }
+    // For non-manual strategies, use original parameters
+    return {
+      light: vehicleParameters.lightDutyCount,
+      medium: vehicleParameters.mediumDutyCount,
+      heavy: vehicleParameters.heavyDutyCount
+    };
+  };
+
+  const actualCounts = getActualVehicleCounts();
+  const totalVehicles = actualCounts.light + actualCounts.medium + actualCounts.heavy;
   
   const lightDutyPercentage = totalVehicles > 0 
-    ? Math.round((vehicleParameters.lightDutyCount / totalVehicles) * 100) 
+    ? Math.round((actualCounts.light / totalVehicles) * 100) 
     : 0;
   
   const mediumDutyPercentage = totalVehicles > 0 
-    ? Math.round((vehicleParameters.mediumDutyCount / totalVehicles) * 100) 
+    ? Math.round((actualCounts.medium / totalVehicles) * 100) 
     : 0;
   
   const heavyDutyPercentage = totalVehicles > 0 
-    ? Math.round((vehicleParameters.heavyDutyCount / totalVehicles) * 100) 
+    ? Math.round((actualCounts.heavy / totalVehicles) * 100) 
     : 0;
 
   // Vehicle costs (CNG conversion costs)
@@ -38,17 +59,17 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
   const mediumDutyCost = 15000;
   const heavyDutyCost = 50000;
 
-  // Total vehicle investment
+  // Total vehicle investment (use actual counts from manual distribution if applicable)
   const totalVehicleInvestment = 
-    (vehicleParameters.lightDutyCount * lightDutyCost) +
-    (vehicleParameters.mediumDutyCount * mediumDutyCost) +
-    (vehicleParameters.heavyDutyCount * heavyDutyCost);
+    (actualCounts.light * lightDutyCost) +
+    (actualCounts.medium * mediumDutyCost) +
+    (actualCounts.heavy * heavyDutyCost);
 
-  // Calculate GGE (Gasoline Gallon Equivalent) per day for station sizing
+  // Calculate GGE (Gasoline Gallon Equivalent) per day for station sizing (use actual counts)
   const dailyGGE = 
-    (vehicleParameters.lightDutyCount * 2.5) + 
-    (vehicleParameters.mediumDutyCount * 6) + 
-    (vehicleParameters.heavyDutyCount * 15);
+    (actualCounts.light * 2.5) + 
+    (actualCounts.medium * 6) + 
+    (actualCounts.heavy * 15);
   
   // Get capacity tier for pricing
   const getCapacityTier = () => {
@@ -109,7 +130,7 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
                 <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Light Duty ({vehicleParameters.lightDutyCount})
+                  Light Duty ({actualCounts.light})
                 </span>
               </div>
               <span className="text-sm font-medium dark:text-gray-200">{lightDutyPercentage}%</span>
@@ -125,7 +146,7 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
                 <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Medium Duty ({vehicleParameters.mediumDutyCount})
+                  Medium Duty ({actualCounts.medium})
                 </span>
               </div>
               <span className="text-sm font-medium dark:text-gray-200">{mediumDutyPercentage}%</span>
@@ -141,7 +162,7 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
                 <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Heavy Duty ({vehicleParameters.heavyDutyCount})
+                  Heavy Duty ({actualCounts.heavy})
                 </span>
               </div>
               <span className="text-sm font-medium dark:text-gray-200">{heavyDutyPercentage}%</span>
