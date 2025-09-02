@@ -396,6 +396,8 @@ export function calculateROI(
   
   // Calculate yearly savings
   const yearlySavings: number[] = [];
+  const yearlyFuelSavings: number[] = [];
+  const yearlyMaintenanceSavings: number[] = [];
   const cumulativeSavings: number[] = [];
   const cumulativeInvestment: number[] = [];
   
@@ -481,10 +483,15 @@ export function calculateROI(
       annualTariffFee = stationCost * annualTariffRate;
     }
     
+    // Separate fuel and maintenance savings (before tariff fees)
+    const totalFuelSavings = lightFuelSavings + mediumFuelSavings + heavyFuelSavings;
+    
     // Total savings for the year (subtract tariff fee if applicable)
-    const yearSavings = lightFuelSavings + mediumFuelSavings + heavyFuelSavings + maintenanceSavings - annualTariffFee;
+    const yearSavings = totalFuelSavings + maintenanceSavings - annualTariffFee;
     
     yearlySavings.push(Math.round(yearSavings));
+    yearlyFuelSavings.push(Math.round(totalFuelSavings));
+    yearlyMaintenanceSavings.push(Math.round(maintenanceSavings));
     
     // Update cumulative savings
     const prevCumulativeSavings = year > 0 ? cumulativeSavings[year - 1] : 0;
@@ -645,6 +652,8 @@ export function calculateROI(
     totalInvestment,
     annualFuelSavings,
     yearlySavings,
+    yearlyFuelSavings,
+    yearlyMaintenanceSavings,
     cumulativeSavings,
     cumulativeInvestment,
     paybackPeriod,

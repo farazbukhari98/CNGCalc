@@ -118,6 +118,8 @@ export default function DeploymentTimeline() {
                 
                 // Make sure we have savings data for this year
                 const yearSavings = results.yearlySavings[year - 1] || 0;
+                const yearFuelSavings = results.yearlyFuelSavings[year - 1] || 0;
+                const yearMaintenanceSavings = results.yearlyMaintenanceSavings[year - 1] || 0;
                 
                 return (
                   <div key={year} className={`year-block bg-white border rounded-lg shadow-sm p-3 ${borderClass}`}>
@@ -248,19 +250,49 @@ export default function DeploymentTimeline() {
                       )}
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-xs text-gray-500">
-                          Savings
+                          Fuel Savings
                           <MetricInfoTooltip
-                            title="Annual Savings for Year"
-                            description={`The projected cost savings for Year ${year} based on the number of CNG vehicles in operation and their reduced fuel and maintenance costs.`}
-                            calculation="Savings = Fuel Cost Savings (CNG vs. conventional fuel) + Maintenance Cost Savings - Station Operational Costs"
+                            title="Annual Fuel Savings"
+                            description={`Fuel cost savings for Year ${year} from switching to CNG instead of gasoline/diesel.`}
+                            calculation="Fuel Savings = (Conventional Fuel Cost per Mile - CNG Cost per Mile) × Annual Miles × Number of Vehicles"
                             affectingVariables={[
                               "Number of converted vehicles in operation",
                               "Annual mileage per vehicle type",
                               "Fuel prices (gasoline, diesel, CNG)",
                               "Vehicle fuel efficiency (MPG)",
-                              "Maintenance cost differential"
+                              "Business rate adjustments"
                             ]}
-                            simpleDescription="Total annual operating cost reduction"
+                            simpleDescription="Annual fuel cost reduction from CNG"
+                          />
+                        </span>
+                        <span className="text-xs font-medium text-green-600">{formatCurrency(yearFuelSavings)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          Maintenance Savings
+                          <MetricInfoTooltip
+                            title="Annual Maintenance Savings"
+                            description={`Maintenance cost savings for Year ${year} from reduced maintenance needs of CNG vehicles.`}
+                            calculation="Maintenance Savings = (Conventional Maintenance Cost per Mile - CNG Maintenance Cost per Mile + Diesel Deduction) × Annual Miles × Number of Vehicles"
+                            affectingVariables={[
+                              "Number of converted vehicles in operation",
+                              "Annual mileage per vehicle type",
+                              "Maintenance cost differential",
+                              "Diesel deduction benefit (5¢/mile for medium/heavy duty)"
+                            ]}
+                            simpleDescription="Annual maintenance cost reduction"
+                          />
+                        </span>
+                        <span className="text-xs font-medium text-green-600">{formatCurrency(yearMaintenanceSavings)}</span>
+                      </div>
+                      <div className="flex items-center justify-between border-t pt-1 mt-1">
+                        <span className="text-xs text-gray-500 font-medium">
+                          Total Savings
+                          <MetricInfoTooltip
+                            title="Total Annual Savings"
+                            description={`Total projected savings for Year ${year} including fuel and maintenance savings, minus any operational costs.`}
+                            calculation={`Total Savings = Fuel Savings (${formatCurrency(yearFuelSavings)}) + Maintenance Savings (${formatCurrency(yearMaintenanceSavings)}) - Station Operational Costs`}
+                            simpleDescription="Combined annual operating cost reduction"
                           />
                         </span>
                         <span className="text-xs font-medium text-green-600">{formatCurrency(yearSavings)}</span>

@@ -48,6 +48,8 @@ export interface CalculationResults {
   totalInvestment: number;
   annualFuelSavings: number;
   yearlySavings: number[];
+  yearlyFuelSavings: number[];
+  yearlyMaintenanceSavings: number[];
   cumulativeSavings: number[];
   cumulativeInvestment: number[];
   paybackPeriod: number;
