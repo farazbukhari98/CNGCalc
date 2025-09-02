@@ -77,36 +77,34 @@ export default function GlobalSettings() {
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-medium text-gray-700">Calculation Settings</h3>
         
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 min-w-0">
           {/* Add to comparison button */}
           {results && canAddCurrentStrategy && (
             <>
-              <div className="flex items-center gap-1">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleAddToComparison}
-                  className="flex items-center gap-1 text-xs h-6 px-2 flex-1"
-                >
-                  <Plus className="h-3 w-3" />
-                  <span className="hidden lg:inline">Add to Comparison</span>
-                  <span className="lg:hidden">Compare</span>
-                </Button>
-                
-                {/* Add with custom name for manual strategies or when multiple allowed */}
-                {(deploymentStrategy === 'manual' || currentStrategyCount > 0) && (
-                  <Dialog open={showCustomNameDialog} onOpenChange={setShowCustomNameDialog}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="flex items-center gap-1 text-xs h-6 px-2"
-                        title="Add with custom name"
-                      >
-                        <Edit3 className="h-3 w-3" />
-                        <span className="hidden xl:inline">Add with Name</span>
-                      </Button>
-                    </DialogTrigger>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleAddToComparison}
+                className="w-full flex items-center justify-center gap-1 text-xs h-7 px-2"
+              >
+                <Plus className="h-3 w-3" />
+                <span>Add to Comparison</span>
+              </Button>
+              
+              {/* Add with custom name for manual strategies or when multiple allowed */}
+              {(deploymentStrategy === 'manual' || currentStrategyCount > 0) && (
+                <Dialog open={showCustomNameDialog} onOpenChange={setShowCustomNameDialog}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="w-full flex items-center justify-center gap-1 text-xs h-7 px-2"
+                      title="Add with custom name"
+                    >
+                      <Edit3 className="h-3 w-3" />
+                      <span>Add with Name</span>
+                    </Button>
+                  </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Add to Comparison with Custom Name</DialogTitle>
@@ -145,31 +143,27 @@ export default function GlobalSettings() {
                     </div>
                   </DialogContent>
                 </Dialog>
-                )}
-              </div>
+              )}
             </>
           )}
           
-          {/* Status indicators on second row */}
-          <div className="flex items-center gap-1">
-            {/* Already in comparison indicator - updated for multiple items */}
-            {results && currentStrategyCount > 0 && (
-              <Badge variant="outline" className="text-xs h-5 flex items-center gap-1 border-blue-500 text-blue-500 flex-1">
-                <BarChart3 className="h-3 w-3" />
-                <span className="truncate">
-                  {currentStrategyCount === 1 ? 'In comparison' : `${currentStrategyCount} added`}
-                </span>
-              </Badge>
-            )}
-            
-            {/* Max comparisons reached indicator */}
-            {!canAddMoreComparisons() && (
-              <Badge variant="outline" className="text-xs h-5 flex items-center gap-1 border-gray-400 text-gray-600 flex-1">
-                <Info className="h-3 w-3" />
-                <span className="truncate">Max (6)</span>
-              </Badge>
-            )}
-          </div>
+          {/* Status indicators */}
+          {results && currentStrategyCount > 0 && (
+            <Badge variant="outline" className="text-xs h-6 flex items-center justify-center gap-1 border-blue-500 text-blue-500 w-full">
+              <BarChart3 className="h-3 w-3" />
+              <span>
+                {currentStrategyCount === 1 ? 'In comparison' : `${currentStrategyCount} added`}
+              </span>
+            </Badge>
+          )}
+          
+          {/* Max comparisons reached indicator */}
+          {!canAddMoreComparisons() && (
+            <Badge variant="outline" className="text-xs h-6 flex items-center justify-center gap-1 border-gray-400 text-gray-600 w-full">
+              <Info className="h-3 w-3" />
+              <span>Max comparisons (6)</span>
+            </Badge>
+          )}
         </div>
       </div>
 
