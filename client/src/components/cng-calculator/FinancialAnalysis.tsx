@@ -597,7 +597,7 @@ export default function FinancialAnalysis({ showCashflow, hideNegativeValues }: 
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Monthly Rate:</span>
+                    <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Monthly Fee:</span>
                     <span className="text-sm font-semibold ml-1 dark:text-gray-200">
                       {(stationConfig.businessType === 'aglc' ? 1.5 : 1.6).toFixed(1)}%
                     </span>
@@ -611,7 +611,7 @@ export default function FinancialAnalysis({ showCashflow, hideNegativeValues }: 
                 </div>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <div>
-                    <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Annual Rate:</span>
+                    <span className="text-xs dark:text-amber-300" style={{ color: '#755c3b' }}>Annual Fee:</span>
                     <span className="text-sm font-semibold ml-1 dark:text-gray-200">
                       {(stationConfig.businessType === 'aglc' ? 18 : 19.2).toFixed(1)}%
                     </span>
