@@ -16,12 +16,8 @@ const getVehicleCosts = (vehicleParams: VehicleParameters) => {
   };
 };
 
-// Annual mileage assumptions
-const ANNUAL_MILEAGE = {
-  light: 15000,
-  medium: 20000,
-  heavy: 40000
-};
+// Diesel deduction factor (5 cents per mile)
+const DIESEL_DEDUCTION_PER_MILE = 0.05;
 
 // CNG efficiency loss percentage
 const CNG_LOSS = {
@@ -439,36 +435,36 @@ export function calculateROI(
     const cngWithBusinessRate = cngWithElectricity * (1 + businessRate);
     const adjustedCngPrice = cngWithBusinessRate * yearMultiplier;
     
-    // Calculate fuel savings for each vehicle type
+    // Calculate fuel savings for each vehicle type using vehicle-specific annual miles
     const lightFuelSavings = 
       lightInOperation * 
-      ANNUAL_MILEAGE.light * 
+      vehicleParams.lightDutyAnnualMiles * 
       ((adjustedGasolinePrice / FUEL_EFFICIENCY.light.gasoline) - 
       (adjustedCngPrice / FUEL_EFFICIENCY.light.cng));
     
     const mediumFuelSavings = 
       mediumInOperation * 
-      ANNUAL_MILEAGE.medium * 
+      vehicleParams.mediumDutyAnnualMiles * 
       ((adjustedDieselPrice / FUEL_EFFICIENCY.medium.diesel) - 
       (adjustedCngPrice / FUEL_EFFICIENCY.medium.cng));
     
     const heavyFuelSavings = 
       heavyInOperation * 
-      ANNUAL_MILEAGE.heavy * 
+      vehicleParams.heavyDutyAnnualMiles * 
       ((adjustedDieselPrice / FUEL_EFFICIENCY.heavy.diesel) - 
       (adjustedCngPrice / FUEL_EFFICIENCY.heavy.cng));
     
-    // Calculate maintenance savings based on miles driven
-    const lightMilesDriven = lightInOperation * ANNUAL_MILEAGE.light;
-    const mediumMilesDriven = mediumInOperation * ANNUAL_MILEAGE.medium;
-    const heavyMilesDriven = heavyInOperation * ANNUAL_MILEAGE.heavy;
+    // Calculate maintenance savings based on miles driven using vehicle-specific annual miles
+    const lightMilesDriven = lightInOperation * vehicleParams.lightDutyAnnualMiles;
+    const mediumMilesDriven = mediumInOperation * vehicleParams.mediumDutyAnnualMiles;
+    const heavyMilesDriven = heavyInOperation * vehicleParams.heavyDutyAnnualMiles;
     
     // Light vehicles: gasoline vs CNG maintenance
     const lightMaintenanceSavings = lightMilesDriven * (MAINTENANCE_COST.gasoline - MAINTENANCE_COST.cng);
     
-    // Medium and heavy vehicles: diesel vs CNG maintenance
-    const mediumMaintenanceSavings = mediumMilesDriven * (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng);
-    const heavyMaintenanceSavings = heavyMilesDriven * (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng);
+    // Medium and heavy vehicles: diesel vs CNG maintenance + diesel deduction benefit
+    const mediumMaintenanceSavings = mediumMilesDriven * (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng + DIESEL_DEDUCTION_PER_MILE);
+    const heavyMaintenanceSavings = heavyMilesDriven * (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng + DIESEL_DEDUCTION_PER_MILE);
     
     const maintenanceSavings = lightMaintenanceSavings + mediumMaintenanceSavings + heavyMaintenanceSavings;
     
@@ -585,16 +581,16 @@ export function calculateROI(
     }
 
     // Calculate conventional emissions using g/mile emission factors (more accurate)
-    const lightGasolineEmissions = lightInOperation * ANNUAL_MILEAGE.light * VEHICLE_EMISSION_FACTORS.light.gasoline / 1000; // convert g to kg
-    const mediumDieselEmissions = mediumInOperation * ANNUAL_MILEAGE.medium * VEHICLE_EMISSION_FACTORS.medium.diesel / 1000;
-    const heavyDieselEmissions = heavyInOperation * ANNUAL_MILEAGE.heavy * VEHICLE_EMISSION_FACTORS.heavy.diesel / 1000;
+    const lightGasolineEmissions = lightInOperation * vehicleParams.lightDutyAnnualMiles * VEHICLE_EMISSION_FACTORS.light.gasoline / 1000; // convert g to kg
+    const mediumDieselEmissions = mediumInOperation * vehicleParams.mediumDutyAnnualMiles * VEHICLE_EMISSION_FACTORS.medium.diesel / 1000;
+    const heavyDieselEmissions = heavyInOperation * vehicleParams.heavyDutyAnnualMiles * VEHICLE_EMISSION_FACTORS.heavy.diesel / 1000;
     
     const yearConventionalEmissions = lightGasolineEmissions + mediumDieselEmissions + heavyDieselEmissions;
     
     // Calculate CNG emissions using g/mile emission factors
-    const lightCngEmissions = lightInOperation * ANNUAL_MILEAGE.light * VEHICLE_EMISSION_FACTORS.light.cng / 1000; // convert g to kg
-    const mediumCngEmissions = mediumInOperation * ANNUAL_MILEAGE.medium * VEHICLE_EMISSION_FACTORS.medium.cng / 1000;
-    const heavyCngEmissions = heavyInOperation * ANNUAL_MILEAGE.heavy * VEHICLE_EMISSION_FACTORS.heavy.cng / 1000;
+    const lightCngEmissions = lightInOperation * vehicleParams.lightDutyAnnualMiles * VEHICLE_EMISSION_FACTORS.light.cng / 1000; // convert g to kg
+    const mediumCngEmissions = mediumInOperation * vehicleParams.mediumDutyAnnualMiles * VEHICLE_EMISSION_FACTORS.medium.cng / 1000;
+    const heavyCngEmissions = heavyInOperation * vehicleParams.heavyDutyAnnualMiles * VEHICLE_EMISSION_FACTORS.heavy.cng / 1000;
     
     const yearCngEmissions = lightCngEmissions + mediumCngEmissions + heavyCngEmissions;
     

@@ -36,11 +36,78 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
   // If no results yet, don't render anything
   if (!results) return null;
 
+  // Format currency
+  const formatCurrency = (value: number) => {
+    return `$${Math.abs(value).toLocaleString()}`;
+  };
+
   // Format emissions value (convert kg to metric tons)
   const formatEmissions = (value: number) => {
     const tons = value / 1000; // Convert kg to metric tons
     return `${tons.toLocaleString(undefined, { maximumFractionDigits: 1 })} tons`;
   };
+
+  // Calculate operational cost per mile for conventional vs CNG by vehicle type
+  const calculateCostPerMile = () => {
+    // Base fuel prices with annual increases applied for year 1
+    const yearMultiplier = Math.pow(1 + (fuelPrices.annualIncrease / 100), 0); // First year
+    const adjustedGasolinePrice = fuelPrices.gasolinePrice * yearMultiplier;
+    const adjustedDieselPrice = fuelPrices.dieselPrice * yearMultiplier;
+    
+    // CNG price calculation with electricity and business rate
+    const ELECTRICITY_COST_PER_GGE = 0.08;
+    const businessRate = stationConfig.businessType === 'cgc' ? 0.192 : 0.18;
+    const baseCngPrice = fuelPrices.cngPrice;
+    const cngWithElectricity = baseCngPrice + ELECTRICITY_COST_PER_GGE;
+    const cngWithBusinessRate = cngWithElectricity * (1 + businessRate);
+    const adjustedCngPrice = cngWithBusinessRate * yearMultiplier;
+    
+    // CNG efficiency loss
+    const CNG_LOSS = { light: 0.05, medium: 0.075, heavy: 0.10 };
+    
+    // Calculate cost per mile for each vehicle type
+    const lightGasCostPerMile = adjustedGasolinePrice / vehicleParameters.lightDutyMPG;
+    const lightCngCostPerMile = adjustedCngPrice / (vehicleParameters.lightDutyMPG * (1 - CNG_LOSS.light));
+    
+    const mediumDieselCostPerMile = adjustedDieselPrice / vehicleParameters.mediumDutyMPG;
+    const mediumCngCostPerMile = adjustedCngPrice / (vehicleParameters.mediumDutyMPG * (1 - CNG_LOSS.medium));
+    
+    const heavyDieselCostPerMile = adjustedDieselPrice / vehicleParameters.heavyDutyMPG;
+    const heavyCngCostPerMile = adjustedCngPrice / (vehicleParameters.heavyDutyMPG * (1 - CNG_LOSS.heavy));
+    
+    // Maintenance costs
+    const MAINTENANCE_COST = { gasoline: 0.47, diesel: 0.52, cng: 0.47 };
+    const DIESEL_DEDUCTION_PER_MILE = 0.05;
+    
+    return [
+      {
+        vehicleType: 'Light Duty',
+        conventionalFuel: lightGasCostPerMile + MAINTENANCE_COST.gasoline,
+        cngFuel: lightCngCostPerMile + MAINTENANCE_COST.cng,
+        fuelSavings: (lightGasCostPerMile - lightCngCostPerMile) + (MAINTENANCE_COST.gasoline - MAINTENANCE_COST.cng),
+        annualMiles: vehicleParameters.lightDutyAnnualMiles,
+        fuelType: 'Gasoline'
+      },
+      {
+        vehicleType: 'Medium Duty',
+        conventionalFuel: mediumDieselCostPerMile + MAINTENANCE_COST.diesel,
+        cngFuel: mediumCngCostPerMile + MAINTENANCE_COST.cng,
+        fuelSavings: (mediumDieselCostPerMile - mediumCngCostPerMile) + (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng) + DIESEL_DEDUCTION_PER_MILE,
+        annualMiles: vehicleParameters.mediumDutyAnnualMiles,
+        fuelType: 'Diesel'
+      },
+      {
+        vehicleType: 'Heavy Duty',
+        conventionalFuel: heavyDieselCostPerMile + MAINTENANCE_COST.diesel,
+        cngFuel: heavyCngCostPerMile + MAINTENANCE_COST.cng,
+        fuelSavings: (heavyDieselCostPerMile - heavyCngCostPerMile) + (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng) + DIESEL_DEDUCTION_PER_MILE,
+        annualMiles: vehicleParameters.heavyDutyAnnualMiles,
+        fuelType: 'Diesel'
+      }
+    ];
+  };
+
+  const operationalMetrics = calculateCostPerMile();
 
   // Prepare data for emissions chart
   const emissionsChartData = Array.from({ length: timeHorizon }, (_, i) => {
@@ -50,6 +117,14 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
       cumulative: results.cumulativeEmissionsSaved[i] / 1000 || 0 // Convert to metric tons
     };
   });
+
+  // Prepare data for operational metrics chart
+  const operationalChartData = operationalMetrics.map(metric => ({
+    ...metric,
+    annualConventionalCost: metric.conventionalFuel * metric.annualMiles,
+    annualCngCost: metric.cngFuel * metric.annualMiles,
+    annualSavings: metric.fuelSavings * metric.annualMiles
+  }));
 
   // Strategy advantages and considerations
   const strategyInsights = {
@@ -254,240 +329,149 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
                 simpleDescription="Key metrics showing how CNG reduces your cost per mile compared to conventional fuels."
               />
             </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Cost per Mile (Gasoline)</span>
-                <span className="text-sm font-medium dark:text-gray-200">${results.costPerMileGasoline.toFixed(3)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Cost per Mile (CNG)</span>
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">${results.costPerMileCNG.toFixed(3)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Cost Reduction</span>
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">{results.costReduction.toFixed(1)}%</span>
-              </div>
-              {/* Annual fuel savings - only show when showCashflow is true */}
-              {showCashflow && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Annual Fuel Savings</span>
-                  <span className="text-sm font-medium text-green-600 dark:text-green-400">${results.annualFuelSavings.toLocaleString()}</span>
+            {/* Operational Metrics Chart */}
+            <div className="h-64 mb-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={operationalChartData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis 
+                    dataKey="vehicleType" 
+                    tick={{ fontSize: 11 }}
+                    interval={0}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => `$${value.toLocaleString()}`}
+                    tick={{ fontSize: 11 }}
+                    label={{ 
+                      value: 'Annual Cost', 
+                      angle: -90, 
+                      position: 'insideLeft',
+                      style: { fontSize: '11px' }
+                    }}
+                  />
+                  <Tooltip 
+                    formatter={(value: any, name: string) => [
+                      `$${value.toLocaleString()}`, 
+                      name === 'annualConventionalCost' ? 'Conventional Fuel' : 
+                      name === 'annualCngCost' ? 'CNG Cost' : 'Annual Savings'
+                    ]}
+                    labelFormatter={(label) => `${label} Vehicles`}
+                  />
+                  <Legend />
+                  <Bar 
+                    dataKey="annualConventionalCost" 
+                    name="Conventional Fuel Cost" 
+                    fill="#ef4444" 
+                    opacity={0.8}
+                  />
+                  <Bar 
+                    dataKey="annualCngCost" 
+                    name="CNG Cost" 
+                    fill="#3b82f6" 
+                    opacity={0.8}
+                  />
+                  <Bar 
+                    dataKey="annualSavings" 
+                    name="Annual Savings" 
+                    fill="#22c55e" 
+                    opacity={0.8}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Summary metrics */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">Total Annual Savings</div>
+                <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                  ${operationalChartData.reduce((sum, item) => sum + item.annualSavings, 0).toLocaleString()}
                 </div>
-              )}
-              <div className="border-t my-2 dark:border-gray-700"></div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">Best Performing Type</div>
+                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  {operationalChartData.reduce((best, current) => 
+                    current.fuelSavings > best.fuelSavings ? current : best
+                  ).vehicleType}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
         
-        {/* Strategy Insights */}
+        {/* Key Performance Summary */}
         <Card className="bg-white rounded-lg shadow dark:bg-gray-800">
           <CardContent className="p-5">
             <h3 className="text-lg font-semibold mb-3">
-              Personalized Strategy Insights
+              Key Performance Summary
               <MetricInfoTooltip
-                title="Personalized Strategy Insights"
-                description="This section provides tailored guidance based on your specific fleet configuration, deployment strategy, station setup, and calculated financial outcomes."
-                calculation="Analysis is based on a dynamic assessment of your input parameters and resulting projections, offering real-time strategic recommendations specific to your scenario."
+                title="Key Performance Summary"
+                description="Summary of key financial and operational metrics for your CNG conversion project."
+                calculation="Based on calculated payback period, ROI, total investment, and operational cost savings."
                 affectingVariables={[
-                  "Selected deployment strategy (Immediate, Phased, Aggressive, Deferred, or Manual)",
-                  "Fleet composition and vehicle parameters",
-                  "Fuel price differentials",
-                  "Station configuration and turnkey status",
-                  "Projected ROI and payback period",
-                  "Total investment and operational costs"
+                  "Total fleet size and composition",
+                  "Fuel price differentials", 
+                  "Annual mileage by vehicle type",
+                  "Deployment strategy timing"
                 ]}
-                simpleDescription="Custom insights generated specifically for your fleet transition plan."
+                simpleDescription="High-level overview of your CNG conversion project performance."
               />
             </h3>
             
-            <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-              {/* Dynamic Strategy Summary */}
-              <p>
-                <strong>Strategic Overview: </strong> 
+            {/* Key Performance Metrics Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">Payback Period</div>
+                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  {formatPaybackPeriod(results.paybackPeriod)}
+                </div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">ROI</div>
+                <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                  {results.roi.toFixed(1)}%
+                </div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">Total Investment</div>
+                <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  ${results.totalInvestment.toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">Fleet Size</div>
+                <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {vehicleParameters.lightDutyCount + vehicleParameters.mediumDutyCount + vehicleParameters.heavyDutyCount} vehicles
+                </div>
+              </div>
+            </div>
+
+            {/* Deployment Strategy Summary */}
+            <div className="bg-blue-50 p-3 rounded-lg dark:bg-blue-900/20">
+              <div className="text-xs text-blue-700 dark:text-blue-300 font-medium mb-1">
+                {deploymentStrategy.charAt(0).toUpperCase() + deploymentStrategy.slice(1)} Deployment Strategy
+              </div>
+              <div className="text-sm text-blue-800 dark:text-blue-200">
                 {(() => {
-                  // Get total fleet size
                   const totalVehicles = vehicleParameters.lightDutyCount + vehicleParameters.mediumDutyCount + vehicleParameters.heavyDutyCount;
                   
-                  // Get fleet composition breakdown
-                  const lightPct = Math.round((vehicleParameters.lightDutyCount / totalVehicles) * 100);
-                  const mediumPct = Math.round((vehicleParameters.mediumDutyCount / totalVehicles) * 100);
-                  const heavyPct = Math.round((vehicleParameters.heavyDutyCount / totalVehicles) * 100);
-                  
-                  // Identify dominant vehicle type
-                  const dominantType = 
-                    lightPct >= mediumPct && lightPct >= heavyPct ? "light-duty" :
-                    mediumPct >= lightPct && mediumPct >= heavyPct ? "medium-duty" : "heavy-duty";
-                    
-                  // Calculate cost per vehicle and investment spread
-                  const avgVehicleCost = results.totalInvestment / totalVehicles;
-                  
-                  let insights = `Your fleet of ${totalVehicles} vehicles (${lightPct}% light-duty, ${mediumPct}% medium-duty, ${heavyPct}% heavy-duty) `;
-                  
-                  // Add strategy-specific insight
                   if (deploymentStrategy === 'immediate') {
-                    insights += `will be converted immediately, requiring an upfront investment of ${results.totalInvestment.toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}. `;
+                    return `All ${totalVehicles} vehicles converted immediately for maximum savings.`;
                   } else if (deploymentStrategy === 'phased') {
-                    insights += `will be converted evenly over ${timeHorizon} years, spreading your investment and operational adjustments. `;
+                    return `${Math.ceil(totalVehicles / timeHorizon)} vehicles converted annually over ${timeHorizon} years.`;
                   } else if (deploymentStrategy === 'aggressive') {
-                    insights += `will be front-loaded in the early years to accelerate your savings and emissions reduction. `;
+                    return `Front-loaded deployment to accelerate savings and reduce long-term fuel costs.`;
                   } else if (deploymentStrategy === 'deferred') {
-                    insights += `will be gradually converted with most vehicles converted in later years, minimizing near-term capital requirements. `;
-                  } else { // manual
-                    insights += `will follow your custom conversion schedule, tailored to your specific operational constraints. `;
-                  }
-                  
-                  // Add insights based on financial results
-                  if (results.paybackPeriod <= timeHorizon / 2) {
-                    insights += `With a strong payback period of ${formatPaybackPeriod(results.paybackPeriod)}, your investment is recovered in the first half of the analysis period.`;
-                  } else if (results.paybackPeriod <= timeHorizon) {
-                    insights += `Your investment is projected to be recovered within the ${timeHorizon}-year analysis period, with a payback period of ${formatPaybackPeriod(results.paybackPeriod)}.`;
+                    return `Gradual conversion prioritizing later years to minimize upfront capital.`;
                   } else {
-                    insights += `Your payback period extends beyond the ${timeHorizon}-year analysis window, indicating this may be a long-term strategic investment rather than a near-term cost saving measure.`;
+                    return `Custom deployment schedule tailored to operational requirements.`;
                   }
-                  
-                  return insights;
                 })()}
-              </p>
-              
-              {/* Dynamic financial insights */}
-              <p>
-                <strong>Financial Insights: </strong> 
-                {(() => {
-                  let insights = "";
-                  
-                  // Add insights based on ROI
-                  if (results.roi > 100) {
-                    insights += `With a projected ROI of ${Math.round(results.roi)}%, this investment delivers exceptional returns. `;
-                  } else if (results.roi > 50) {
-                    insights += `The projected ROI of ${Math.round(results.roi)}% indicates a strong financial case for conversion. `;
-                  } else if (results.roi > 0) {
-                    insights += `Your projected ROI of ${Math.round(results.roi)}% shows a positive but moderate financial return. `;
-                  } else {
-                    insights += `The projected ROI of ${Math.round(results.roi)}% suggests this project may need adjustment to improve financial viability. `;
-                  }
-                  
-                  // Add insights based on fuel price differential
-                  const fuelDiff = ((fuelPrices.gasolinePrice - fuelPrices.cngPrice) / fuelPrices.gasolinePrice) * 100;
-                  
-                  if (fuelDiff > 40) {
-                    insights += `The substantial price advantage of CNG (${Math.round(fuelDiff)}% lower than gasoline) is a key driver of your positive financial outcome. `;
-                  } else if (fuelDiff > 20) {
-                    insights += `CNG's moderate price advantage (${Math.round(fuelDiff)}% lower than gasoline) contributes to your savings projection. `;
-                  } else {
-                    insights += `The relatively small price differential between CNG and conventional fuel (${Math.round(fuelDiff)}%) limits the potential savings. `;
-                  }
-                  
-                  // Add station configuration insight
-                  if (stationConfig.turnkey) {
-                    insights += `Your turnkey station purchase approach impacts cash flow initially but eliminates ongoing tariff payments.`;
-                  } else {
-                    insights += `Your tariff-based station approach reduces upfront costs but adds recurring charges to your operational expenses.`;
-                  }
-                  
-                  return insights;
-                })()}
-              </p>
-              
-              <div className="border-t my-3 dark:border-gray-700"></div>
-              
-              <div className="flex items-center text-blue-800 dark:text-blue-400 mb-2">
-                <CheckCircle className="h-5 w-5 mr-1" />
-                <h4 className="font-medium">Key Advantages</h4>
               </div>
-              
-              <ul className="list-disc list-inside pl-1 text-xs space-y-1">
-                {/* Dynamic advantages based on results and parameters */}
-                {(() => {
-                  const advantages = [];
-                  
-                  // Add advantage based on emissions
-                  if (results.totalEmissionsSaved > 1000000) { // more than 1000 tons
-                    advantages.push(`Major environmental impact with ${(results.totalEmissionsSaved/1000).toLocaleString()} metric tons of CO₂ reduced over ${timeHorizon} years`);
-                  } else {
-                    advantages.push(`Environmental benefit of ${(results.totalEmissionsSaved/1000).toLocaleString()} metric tons of CO₂ reduced over ${timeHorizon} years`);
-                  }
-                  
-                  // Add advantage based on cost per mile reduction
-                  // costReduction is already in percentage format in the results
-                  advantages.push(`${results.costReduction.toFixed(1)}% reduction in cost per mile compared to conventional fuels`);
-                  
-                  // Add strategy-specific advantages
-                  if (deploymentStrategy === 'immediate') {
-                    if (results.paybackPeriod < timeHorizon / 2) {
-                      advantages.push(`Maximizes savings with ${results.annualFuelSavings.toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} annual fuel cost reduction`);
-                    }
-                    if (stationConfig.turnkey) {
-                      advantages.push(`Eliminates long-term station financing costs with upfront purchase`);
-                    }
-                  } else if (deploymentStrategy === 'phased') {
-                    advantages.push(`Balanced approach spreading capital requirements of ${(results.totalInvestment / timeHorizon).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} annually`);
-                    advantages.push(`Allows operational adjustments based on early deployment results`);
-                  } else if (deploymentStrategy === 'aggressive') {
-                    advantages.push(`Accelerates savings by front-loading vehicle conversion in early years`);
-                    if (results.paybackPeriod < timeHorizon) {
-                      advantages.push(`Achieves payback within ${Math.ceil(results.paybackPeriod)} years while maximizing remaining time for pure savings`);
-                    }
-                  } else if (deploymentStrategy === 'deferred') {
-                    advantages.push(`Minimizes near-term capital requirements while building experience with CNG vehicles`);
-                    if (!stationConfig.turnkey) {
-                      advantages.push(`Well-matched with tariff-based station approach to minimize initial investment`);
-                    }
-                  } else { // manual
-                    advantages.push(`Custom deployment schedule aligned with your specific operational needs`);
-                  }
-                  
-                  return advantages.map((advantage, index) => (
-                    <li key={index}>{advantage}</li>
-                  ));
-                })()}
-              </ul>
-              
-              <div className="flex items-center text-amber-800 dark:text-amber-400 mt-3 mb-2">
-                <AlertTriangle className="h-5 w-5 mr-1" />
-                <h4 className="font-medium">Strategic Considerations</h4>
-              </div>
-              
-              <ul className="list-disc list-inside pl-1 text-xs space-y-1">
-                {/* Dynamic considerations based on results and parameters */}
-                {(() => {
-                  const considerations = [];
-                  
-                  // Add consideration based on payback period
-                  if (results.paybackPeriod > timeHorizon) {
-                    considerations.push(`Payback period extends beyond analysis timeframe, requiring long-term commitment (${formatPaybackPeriod(results.paybackPeriod)})`);
-                  } else if (results.paybackPeriod > timeHorizon * 0.7) {
-                    considerations.push(`Relatively long payback period of ${formatPaybackPeriod(results.paybackPeriod)} leaves limited time for net positive returns`);
-                  }
-                  
-                  // Add consideration based on fuel price volatility
-                  considerations.push(`Sensitivity to future CNG and conventional fuel price changes - consider price hedging strategies`);
-                  
-                  // Add station-specific considerations
-                  if (stationConfig.stationType === "fast") {
-                    considerations.push(`Fast-fill station requires higher upfront investment but provides operational flexibility`);
-                  } else {
-                    considerations.push(`Time-fill station requires vehicle downtime for overnight fueling but at lower infrastructure cost`);
-                  }
-                  
-                  // Add strategy-specific considerations
-                  if (deploymentStrategy === 'immediate') {
-                    considerations.push(`Significant initial capital outlay of ${results.totalInvestment.toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}`);
-                    considerations.push(`Consider potential operational challenges with simultaneous conversion of entire fleet`);
-                  } else if (deploymentStrategy === 'phased') {
-                    considerations.push(`Extended transition period requires managing dual-fuel fleet operations for ${timeHorizon} years`);
-                  } else if (deploymentStrategy === 'aggressive') {
-                    considerations.push(`Front-loaded investment requires ${(results.totalInvestment * 0.6).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} in the first 40% of the timeline`);
-                  } else if (deploymentStrategy === 'deferred') {
-                    considerations.push(`Delayed conversion reduces near-term savings by approximately ${(results.annualFuelSavings * 0.5).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} annually in early years`);
-                  } else { // manual
-                    considerations.push(`Custom schedule requires detailed planning and implementation tracking to ensure ROI targets are met`);
-                  }
-                  
-                  return considerations.map((consideration, index) => (
-                    <li key={index}>{consideration}</li>
-                  ));
-                })()}
-              </ul>
             </div>
           </CardContent>
         </Card>

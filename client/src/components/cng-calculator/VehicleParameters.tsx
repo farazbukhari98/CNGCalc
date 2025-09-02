@@ -1,5 +1,5 @@
 import { useCalculator } from "@/contexts/CalculatorContext";
-import { Info, DollarSign, Clock, Gauge } from "lucide-react";
+import { Info, DollarSign, Clock, Gauge, Navigation } from "lucide-react";
 import { 
   Tooltip,
   TooltipContent,
@@ -308,6 +308,86 @@ export default function VehicleParameters() {
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Fuel efficiency directly impacts cost savings and emissions reductions
+              </p>
+            </div>
+            
+            <Separator />
+            
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Annual Miles Driven</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Light Duty
+                  </label>
+                  <div className="flex items-center">
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                        <Navigation className="h-3.5 w-3.5 text-gray-500" />
+                      </div>
+                      <input
+                        type="number"
+                        min="1000"
+                        max="100000"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm pl-7 py-1"
+                        value={vehicleParameters.lightDutyAnnualMiles}
+                        onChange={(e) => updateVehicleParameters({ 
+                          ...vehicleParameters, 
+                          lightDutyAnnualMiles: parseNumber(e.target.value)
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Medium Duty
+                  </label>
+                  <div className="flex items-center">
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                        <Navigation className="h-3.5 w-3.5 text-gray-500" />
+                      </div>
+                      <input
+                        type="number"
+                        min="1000"
+                        max="150000"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm pl-7 py-1"
+                        value={vehicleParameters.mediumDutyAnnualMiles}
+                        onChange={(e) => updateVehicleParameters({ 
+                          ...vehicleParameters, 
+                          mediumDutyAnnualMiles: parseNumber(e.target.value)
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Heavy Duty
+                  </label>
+                  <div className="flex items-center">
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                        <Navigation className="h-3.5 w-3.5 text-gray-500" />
+                      </div>
+                      <input
+                        type="number"
+                        min="1000"
+                        max="200000"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm pl-7 py-1"
+                        value={vehicleParameters.heavyDutyAnnualMiles}
+                        onChange={(e) => updateVehicleParameters({ 
+                          ...vehicleParameters, 
+                          heavyDutyAnnualMiles: parseNumber(e.target.value)
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Annual mileage directly affects fuel savings and emissions calculations
               </p>
             </div>
           </div>

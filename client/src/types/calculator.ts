@@ -12,6 +12,9 @@ export interface VehicleParameters {
   lightDutyMPG: number;       // Miles per gallon
   mediumDutyMPG: number;      // Miles per gallon 
   heavyDutyMPG: number;       // Miles per gallon
+  lightDutyAnnualMiles: number; // Annual miles driven
+  mediumDutyAnnualMiles: number; // Annual miles driven
+  heavyDutyAnnualMiles: number;  // Annual miles driven
 }
 
 // Station configuration

@@ -53,7 +53,11 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     // Default values for MPG (Miles Per Gallon)
     lightDutyMPG: 12,
     mediumDutyMPG: 10,
-    heavyDutyMPG: 5
+    heavyDutyMPG: 5,
+    // Default values for Annual Miles
+    lightDutyAnnualMiles: 15000,
+    mediumDutyAnnualMiles: 20000,
+    heavyDutyAnnualMiles: 40000
   });
 
   const [stationConfig, setStationConfig] = useState<StationConfig>({
