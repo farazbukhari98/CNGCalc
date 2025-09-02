@@ -29,7 +29,7 @@ export default function FinancialAnalysis({ showCashflow, hideNegativeValues }: 
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString()}`;
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   // Calculate total vehicle investment across all years (sum of all distributed investments)

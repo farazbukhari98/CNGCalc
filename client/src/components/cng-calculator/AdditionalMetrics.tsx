@@ -38,7 +38,7 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return `$${Math.abs(value).toLocaleString()}`;
+    return `$${Math.abs(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   // Format emissions value (convert kg to metric tons)
@@ -388,7 +388,7 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
               <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
                 <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">Total Annual Savings</div>
                 <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                  ${operationalChartData.reduce((sum, item) => sum + item.annualSavings, 0).toLocaleString()}
+                  ${operationalChartData.reduce((sum, item) => sum + item.annualSavings, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">

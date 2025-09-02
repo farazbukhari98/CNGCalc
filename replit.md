@@ -7,6 +7,7 @@ The application features an interactive interface with configurable vehicle para
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Number formatting: Currency values should display 2 decimal places, percentages should display 1 decimal place.
 
 # System Architecture
 

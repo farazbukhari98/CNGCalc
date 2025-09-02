@@ -94,7 +94,7 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString()}`;
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (

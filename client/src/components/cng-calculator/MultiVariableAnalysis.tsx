@@ -145,9 +145,9 @@ const HeatMapVisualization = ({
     if (metric === 'payback') {
       return formatPaybackPeriod(value);
     } else if (metric === 'roi') {
-      return `${Math.round(value)}%`;
+      return `${value.toFixed(1)}%`;
     } else {
-      return `$${value.toLocaleString()}`;
+      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
   };
   
@@ -476,7 +476,7 @@ export default function MultiVariableAnalysis({ hideNegativeValues = false }: { 
   
   // Format currency
   const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString()}`;
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
   
   return (

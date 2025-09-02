@@ -241,7 +241,7 @@ export default function SensitivityAnalysis({ hideNegativeValues = false }: { hi
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString()}`;
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   // Format for chart tooltips

@@ -19,7 +19,7 @@ export default function DeploymentTimeline() {
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString()}`;
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   // Only show years up to the selected time horizon
