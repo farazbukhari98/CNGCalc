@@ -171,7 +171,7 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
             </h3>
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Vehicles</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Vehicles (incremental)</span>
                 <span className="text-sm font-medium dark:text-gray-200">{formatCurrency(totalVehicleInvestment)}</span>
               </div>
               <div className="flex items-center justify-between mb-2">
