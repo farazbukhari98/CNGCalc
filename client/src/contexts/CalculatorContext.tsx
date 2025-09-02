@@ -55,9 +55,9 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     mediumDutyMPG: 10,
     heavyDutyMPG: 5,
     // Default values for Annual Miles
-    lightDutyAnnualMiles: 15000,
+    lightDutyAnnualMiles: 20000,
     mediumDutyAnnualMiles: 20000,
-    heavyDutyAnnualMiles: 40000
+    heavyDutyAnnualMiles: 20000
   });
 
   const [stationConfig, setStationConfig] = useState<StationConfig>({
@@ -70,7 +70,7 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     gasolinePrice: 3.38,
     dieselPrice: 3.84,
     cngPrice: 0.82, // Base CNG rate before business rate and electricity cost
-    annualIncrease: 2.5
+    annualIncrease: 0
   });
 
   const [timeHorizon, setTimeHorizon] = useState<number>(15); // Default to 15 years
