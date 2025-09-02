@@ -81,9 +81,12 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
     const baseCost = baseCosts[stationConfig.stationType][tier];
     
     // Apply business type adjustment
-    const businessMultiplier = stationConfig.businessType === 'aglc' ? 1.0 : 0.95;
+    const businessMultiplier = stationConfig.businessType === 'cgc' ? 0.95 : 1.0;
     
-    return Math.round(baseCost * businessMultiplier);
+    // Apply turnkey markup
+    const turnkeyMultiplier = stationConfig.turnkey ? 1.2 : 1.0; // 20% markup for turnkey
+    
+    return Math.round(baseCost * businessMultiplier * turnkeyMultiplier);
   };
 
   const stationCost = getStationCost();
