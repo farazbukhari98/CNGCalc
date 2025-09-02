@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useCalculator } from "@/contexts/CalculatorContext";
 import { useComparison } from "@/contexts/ComparisonContext";
-import { Info, BarChart3, Plus, Truck, Eye, EyeOff } from "lucide-react";
+import { Info, BarChart3, Plus, Truck, Eye, EyeOff, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
   Tooltip,
   TooltipContent,
@@ -9,6 +11,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function GlobalSettings() {
   const { 
@@ -26,8 +35,12 @@ export default function GlobalSettings() {
   const { 
     addComparisonItem, 
     isInComparison,
-    comparisonItems
+    comparisonItems,
+    canAddMoreComparisons
   } = useComparison();
+
+  const [showCustomNameDialog, setShowCustomNameDialog] = useState(false);
+  const [customName, setCustomName] = useState("");
 
   // Strategy descriptions
   const strategyDescriptions = {
@@ -39,10 +52,22 @@ export default function GlobalSettings() {
   };
 
   const handleAddToComparison = () => {
-    if (results && !isInComparison(deploymentStrategy)) {
+    if (results && canAddMoreComparisons()) {
       addComparisonItem(deploymentStrategy, results);
     }
   };
+
+  const handleAddWithCustomName = () => {
+    if (results && canAddMoreComparisons() && customName.trim()) {
+      addComparisonItem(deploymentStrategy, results, customName.trim());
+      setCustomName("");
+      setShowCustomNameDialog(false);
+    }
+  };
+
+  // Count how many of the current strategy type are already in comparison
+  const currentStrategyCount = comparisonItems.filter(item => item.strategy === deploymentStrategy).length;
+  const canAddCurrentStrategy = canAddMoreComparisons() && (deploymentStrategy === 'manual' || !isInComparison(deploymentStrategy));
 
   // Check if manual deployment is selected
   const isManualMode = deploymentStrategy === 'manual';
@@ -52,27 +77,95 @@ export default function GlobalSettings() {
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-medium text-gray-700">Calculation Settings</h3>
         
-        {/* Add to comparison button */}
-        {results && !isInComparison(deploymentStrategy) && comparisonItems.length < 4 && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleAddToComparison}
-            className="flex items-center gap-1 text-xs h-7 px-2"
-          >
-            <Plus className="h-3 w-3" />
-            <span className="hidden sm:inline">Add to Comparison</span>
-            <span className="sm:hidden">Compare</span>
-          </Button>
-        )}
-        
-        {/* Already in comparison indicator */}
-        {results && isInComparison(deploymentStrategy) && (
-          <Badge variant="outline" className="text-xs h-7 flex items-center gap-1 border-blue-500 text-blue-500">
-            <BarChart3 className="h-3 w-3" />
-            <span>In comparison</span>
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Add to comparison button */}
+          {results && canAddCurrentStrategy && (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleAddToComparison}
+                className="flex items-center gap-1 text-xs h-7 px-2"
+              >
+                <Plus className="h-3 w-3" />
+                <span className="hidden sm:inline">Add to Comparison</span>
+                <span className="sm:hidden">Compare</span>
+              </Button>
+              
+              {/* Add with custom name for manual strategies or when multiple allowed */}
+              {(deploymentStrategy === 'manual' || currentStrategyCount > 0) && (
+                <Dialog open={showCustomNameDialog} onOpenChange={setShowCustomNameDialog}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="flex items-center gap-1 text-xs h-7 px-2"
+                    >
+                      <Edit3 className="h-3 w-3" />
+                      <span className="hidden sm:inline">Add with Name</span>
+                      <span className="sm:hidden">Name</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Add to Comparison with Custom Name</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Custom Name for this Strategy
+                        </label>
+                        <Input
+                          value={customName}
+                          onChange={(e) => setCustomName(e.target.value)}
+                          placeholder={`Enter name for ${deploymentStrategy} strategy...`}
+                          maxLength={50}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          This helps identify different variations when comparing multiple {deploymentStrategy} strategies.
+                        </p>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setShowCustomNameDialog(false)}
+                          size="sm"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handleAddWithCustomName}
+                          disabled={!customName.trim()}
+                          size="sm"
+                        >
+                          Add to Comparison
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </>
+          )}
+          
+          {/* Already in comparison indicator - updated for multiple items */}
+          {results && currentStrategyCount > 0 && (
+            <Badge variant="outline" className="text-xs h-7 flex items-center gap-1 border-blue-500 text-blue-500">
+              <BarChart3 className="h-3 w-3" />
+              <span>
+                {currentStrategyCount === 1 ? 'In comparison' : `${currentStrategyCount} in comparison`}
+              </span>
+            </Badge>
+          )}
+          
+          {/* Max comparisons reached indicator */}
+          {!canAddMoreComparisons() && (
+            <Badge variant="outline" className="text-xs h-7 flex items-center gap-1 border-gray-400 text-gray-600">
+              <Info className="h-3 w-3" />
+              <span>Max comparisons (6)</span>
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Vehicle Counts Section */}

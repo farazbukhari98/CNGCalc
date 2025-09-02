@@ -38,13 +38,18 @@ Preferred communication style: Simple, everyday language.
 ## Core Business Logic
 - **Calculator Engine**: Complex financial modeling for CNG conversion analysis including:
   - Multi-vehicle type support (Light, Medium, Heavy duty)
+  - Dynamic annual miles parameters per vehicle type (configurable by user)
   - Station sizing and cost calculations based on fleet requirements
   - Fuel efficiency loss calculations for CNG conversion
-  - Maintenance cost differentials between fuel types
+  - Maintenance cost differentials between fuel types with diesel deduction factor (5¢/mile)
   - Emission reduction calculations with industry-standard factors
 - **Deployment Strategies**: Multiple vehicle rollout strategies (Immediate, Phased, Aggressive, Deferred, Manual)
 - **Sensitivity Analysis**: Real-time parameter variation analysis for decision support
-- **Comparison Tools**: Side-by-side strategy comparison with visual analytics
+- **Enhanced Comparison Tools**: 
+  - Support for comparing up to 6 strategies simultaneously (increased from 4)
+  - Multiple variations of the same strategy type with custom naming
+  - Particularly useful for comparing different manual deployment schedules
+  - Interactive charts showing operational metrics and fuel cost savings deltas
 
 ## External Dependencies
 

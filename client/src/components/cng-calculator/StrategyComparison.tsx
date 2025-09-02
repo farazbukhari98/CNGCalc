@@ -202,8 +202,8 @@ export default function StrategyComparison() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Strategy Comparison</h2>
           <div className="flex space-x-2">
-            {/* Add current strategy button if not already added */}
-            {results && !isInComparison(deploymentStrategy) && comparisonItems.length < 4 && (
+            {/* Add current strategy button - updated logic */}
+            {results && (deploymentStrategy === 'manual' || !isInComparison(deploymentStrategy)) && comparisonItems.length < 6 && (
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -229,26 +229,47 @@ export default function StrategyComparison() {
           </div>
         </div>
 
-        {/* Strategy badges */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {comparisonItems.map((item, index) => (
-            <Badge 
-              key={item.id} 
-              variant="outline" 
-              className="pl-2 flex items-center gap-1 border-2"
-              style={{ borderColor: getStrategyColor(index) }}
-            >
-              <span style={{ color: getStrategyColor(index) }}>{item.strategyName}</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-5 w-5 ml-1 text-gray-400 hover:text-gray-700"
-                onClick={() => removeComparisonItem(item.id)}
+        {/* Strategy badges with improved organization */}
+        <div className="space-y-2 mb-4">
+          <div className="flex flex-wrap gap-2">
+            {comparisonItems.map((item, index) => (
+              <Badge 
+                key={item.id} 
+                variant="outline" 
+                className="pl-2 flex items-center gap-1 border-2 relative"
+                style={{ borderColor: getStrategyColor(index) }}
               >
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          ))}
+                <span 
+                  style={{ color: getStrategyColor(index) }}
+                  className="text-sm font-medium"
+                >
+                  {item.strategyName}
+                </span>
+                {item.customName && (
+                  <span className="text-xs text-gray-500">
+                    ({item.strategy})
+                  </span>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-5 w-5 ml-1 text-gray-400 hover:text-gray-700"
+                  onClick={() => removeComparisonItem(item.id)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            ))}
+          </div>
+          
+          {comparisonItems.length > 0 && (
+            <div className="text-xs text-gray-500 flex items-center justify-between">
+              <span>Comparing {comparisonItems.length} strategies (max 6)</span>
+              <span className="text-blue-600">
+                Hover over chart lines to see detailed metrics
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Comparison Tabs */}

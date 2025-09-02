@@ -5,15 +5,23 @@ interface ComparisonItem {
   id: string;
   strategy: DeploymentStrategy;
   strategyName: string;
+  customName?: string; // Allow custom naming for variations
   results: CalculationResults;
+  manualDistribution?: number[][]; // Store manual distribution if applicable
 }
 
 interface ComparisonContextType {
   comparisonItems: ComparisonItem[];
-  addComparisonItem: (strategy: DeploymentStrategy, results: CalculationResults) => void;
+  addComparisonItem: (
+    strategy: DeploymentStrategy, 
+    results: CalculationResults, 
+    customName?: string,
+    manualDistribution?: number[][]
+  ) => void;
   removeComparisonItem: (id: string) => void;
   clearComparisonItems: () => void;
   isInComparison: (strategy: DeploymentStrategy) => boolean;
+  canAddMoreComparisons: () => boolean;
 }
 
 const ComparisonContext = createContext<ComparisonContextType | undefined>(undefined);
@@ -32,22 +40,36 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
     return strategyNames[strategy];
   };
 
-  const addComparisonItem = (strategy: DeploymentStrategy, results: CalculationResults) => {
-    // Only allow 4 comparison items max
-    if (comparisonItems.length >= 4) {
+  const addComparisonItem = (
+    strategy: DeploymentStrategy, 
+    results: CalculationResults, 
+    customName?: string,
+    manualDistribution?: number[][]
+  ) => {
+    // Only allow 6 comparison items max (increased to support multiple variations)
+    if (comparisonItems.length >= 6) {
       return;
     }
 
-    // Don't add if this strategy is already in the comparison
-    if (isInComparison(strategy)) {
-      return;
+    // Generate a unique display name
+    const baseStrategyName = getStrategyName(strategy);
+    let displayName = customName || baseStrategyName;
+    
+    // If no custom name and strategy already exists, add a number suffix
+    if (!customName) {
+      const existingCount = comparisonItems.filter(item => item.strategy === strategy).length;
+      if (existingCount > 0) {
+        displayName = `${baseStrategyName} ${existingCount + 1}`;
+      }
     }
 
     const newItem: ComparisonItem = {
-      id: `${strategy}-${Date.now()}`,
+      id: `${strategy}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       strategy,
-      strategyName: getStrategyName(strategy),
-      results
+      strategyName: displayName,
+      customName,
+      results,
+      manualDistribution
     };
 
     setComparisonItems([...comparisonItems, newItem]);
@@ -62,7 +84,16 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
   };
 
   const isInComparison = (strategy: DeploymentStrategy) => {
-    return comparisonItems.some(item => item.strategy === strategy);
+    // For non-manual strategies, only check if any version exists
+    if (strategy !== 'manual') {
+      return comparisonItems.some(item => item.strategy === strategy);
+    }
+    // For manual strategies, always allow more since each can be different
+    return false;
+  };
+
+  const canAddMoreComparisons = () => {
+    return comparisonItems.length < 6;
   };
 
   return (
@@ -72,7 +103,8 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
         addComparisonItem,
         removeComparisonItem,
         clearComparisonItems,
-        isInComparison
+        isInComparison,
+        canAddMoreComparisons
       }}
     >
       {children}
