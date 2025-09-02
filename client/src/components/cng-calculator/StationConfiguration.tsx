@@ -56,7 +56,10 @@ export default function StationConfiguration() {
     // Apply business type adjustment
     const businessMultiplier = stationConfig.businessType === 'aglc' ? 1.0 : 0.95;
     
-    return Math.round(baseCost * businessMultiplier);
+    // Apply turnkey markup
+    const turnkeyMultiplier = stationConfig.turnkey ? 1.2 : 1.0; // 20% markup for turnkey
+    
+    return Math.round(baseCost * businessMultiplier * turnkeyMultiplier);
   };
 
   return (

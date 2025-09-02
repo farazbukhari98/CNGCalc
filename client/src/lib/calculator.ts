@@ -70,7 +70,10 @@ const TIME_FILL_STATIONS = [
 export function calculateStationCost(config: StationConfig, vehicleParams?: VehicleParameters): number {
   // If no vehicle params provided, return default costs
   if (!vehicleParams) {
-    return config.stationType === 'fast' ? 2200000 : 1200000; // Default to medium size
+    const defaultCost = config.stationType === 'fast' ? 2200000 : 1200000; // Default to medium size
+    // Apply turnkey markup if applicable
+    const turnkeyMultiplier = config.turnkey ? 1.2 : 1.0; // 20% markup for turnkey
+    return Math.round(defaultCost * turnkeyMultiplier);
   }
   
   // Calculate GGE (Gasoline Gallon Equivalent) per day
@@ -112,7 +115,10 @@ export function calculateStationCost(config: StationConfig, vehicleParams?: Vehi
   // Apply business type adjustment
   const businessMultiplier = config.businessType === 'cgc' ? 0.95 : 1.0; // CGC is 0.95, AGLC and VNG are 1.0
   
-  return Math.round(baseCost * businessMultiplier);
+  // Apply turnkey markup
+  const turnkeyMultiplier = config.turnkey ? 1.2 : 1.0; // 20% markup for turnkey
+  
+  return Math.round(baseCost * businessMultiplier * turnkeyMultiplier);
 }
 
 // Distribute vehicles across years based on strategy
