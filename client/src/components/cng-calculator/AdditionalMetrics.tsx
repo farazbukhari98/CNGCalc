@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { MetricInfoTooltip } from "./MetricInfoTooltip";
 import { formatPaybackPeriod } from "@/lib/utils";
+import { calculateStationCost } from "@/lib/calculator";
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -436,16 +437,124 @@ export default function AdditionalMetrics({ showCashflow }: AdditionalMetricsPro
                   {results.roi.toFixed(1)}%
                 </div>
               </div>
-              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
-                <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">Total Investment</div>
-                <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  ${results.totalInvestment.toLocaleString()}
+            </div>
+            
+            {/* Investment Breakdown */}
+            <div className="mb-4">
+              <div className="bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20">
+                <div className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-3">
+                  Investment
+                  <MetricInfoTooltip
+                    title="Investment Breakdown"
+                    description="Detailed breakdown of capital investment required for your CNG conversion project."
+                    calculation="Vehicle Investment + Station Cost (with applicable tariffs for Time-fill AGL stations)"
+                    affectingVariables={[
+                      "Vehicle counts and conversion costs",
+                      "Station type (Fast-Fill/Time-Fill)",
+                      "Business type selection",
+                      "TurnKey vs Non-TurnKey option"
+                    ]}
+                    simpleDescription="Total upfront capital required broken down by component."
+                  />
                 </div>
+                {(() => {
+                  const totalVehicleInvestment = results.vehicleDistribution.reduce((sum, dist) => sum + dist.investment, 0);
+                  const stationCost = calculateStationCost(stationConfig, vehicleParameters);
+                  const isTimeFillAgl = stationConfig.stationType === 'time' && (stationConfig.businessType === 'aglc' || stationConfig.businessType === 'vng');
+                  const monthlyTariffRate = 1.5 / 100; // 1.5% monthly for AGL Time-fill
+                  const annualTariffCost = isTimeFillAgl ? stationCost * monthlyTariffRate * 12 : 0;
+                  
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-blue-600 dark:text-blue-400">Vehicles (Inc)</span>
+                        <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">{formatCurrency(totalVehicleInvestment)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-blue-600 dark:text-blue-400">
+                          Station{isTimeFillAgl ? ' + Tariff' : ''}
+                          {isTimeFillAgl && (
+                            <div className="text-xs text-blue-500 dark:text-blue-300 mt-1">
+                              ({formatCurrency(annualTariffCost)}/year tariff)
+                            </div>
+                          )}
+                        </span>
+                        <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                          {formatCurrency(stationConfig.turnkey ? stationCost : (isTimeFillAgl ? annualTariffCost : stationCost))}
+                        </span>
+                      </div>
+                      <div className="border-t pt-2 border-blue-200 dark:border-blue-700">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Investment</span>
+                          <span className="text-lg font-bold text-blue-800 dark:text-blue-200">
+                            {formatCurrency(results.totalInvestment)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
+            </div>
+            
+            {/* Savings Summary */}
+            <div className="mb-4">
+              <div className="bg-green-50 p-4 rounded-lg dark:bg-green-900/20">
+                <div className="text-sm font-medium text-green-700 dark:text-green-300 mb-3">
+                  Savings
+                  <MetricInfoTooltip
+                    title="Savings Summary"
+                    description="Total savings generated from CNG conversion over the analysis period."
+                    calculation="Cumulative fuel and maintenance savings minus total investment"
+                    affectingVariables={[
+                      "Fuel price differentials",
+                      "Annual mileage by vehicle type",
+                      "Maintenance cost differences",
+                      "Deployment timeline"
+                    ]}
+                    simpleDescription="Net financial benefit after accounting for all costs."
+                  />
+                </div>
+                {(() => {
+                  const totalSavingsOverHorizon = results.cumulativeSavings[results.cumulativeSavings.length - 1];
+                  const netSavings = totalSavingsOverHorizon - results.totalInvestment;
+                  
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-green-600 dark:text-green-400">Total Savings ({timeHorizon}-Year)</span>
+                        <span className="text-sm font-semibold text-green-800 dark:text-green-200">{formatCurrency(totalSavingsOverHorizon)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-green-600 dark:text-green-400">Less: Total Investment</span>
+                        <span className="text-sm font-semibold text-red-600 dark:text-red-400">({formatCurrency(results.totalInvestment)})</span>
+                      </div>
+                      <div className="border-t pt-2 border-green-200 dark:border-green-700">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-green-700 dark:text-green-300">Net Benefit</span>
+                          <span className={`text-lg font-bold ${netSavings >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {formatCurrency(netSavings)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+            
+            {/* Additional Metrics */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
                 <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">Fleet Size</div>
                 <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
                   {vehicleParameters.lightDutyCount + vehicleParameters.mediumDutyCount + vehicleParameters.heavyDutyCount} vehicles
+                </div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg dark:bg-gray-700">
+                <div className="text-xs text-gray-500 mb-1 dark:text-gray-300">Annual Savings</div>
+                <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                  {formatCurrency(results.yearlySavings[results.yearlySavings.length - 1] || 0)}
                 </div>
               </div>
             </div>
