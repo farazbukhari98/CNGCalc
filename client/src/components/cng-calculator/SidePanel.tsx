@@ -10,7 +10,7 @@ import { useCalculator } from "@/contexts/CalculatorContext";
 export default function SidePanel() {
   
   const [openSections, setOpenSections] = useState({
-    globalSettings: true,
+    globalSettings: false,
     vehicleParams: false,
     stationConfig: false,
     fuelPrices: false,
