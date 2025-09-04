@@ -463,18 +463,14 @@ export function calculateROI(
       (adjustedCngPrice / FUEL_EFFICIENCY.heavy.cng));
     
     // Calculate maintenance savings based on miles driven using vehicle-specific annual miles
-    const lightMilesDriven = lightInOperation * vehicleParams.lightDutyAnnualMiles;
     const mediumMilesDriven = mediumInOperation * vehicleParams.mediumDutyAnnualMiles;
     const heavyMilesDriven = heavyInOperation * vehicleParams.heavyDutyAnnualMiles;
     
-    // Light vehicles: gasoline vs CNG maintenance
-    const lightMaintenanceSavings = lightMilesDriven * (MAINTENANCE_COST.gasoline - MAINTENANCE_COST.cng);
+    // Maintenance savings: $0.05 per mile for diesel vehicles only
+    const mediumMaintenanceSavings = mediumMilesDriven * DIESEL_DEDUCTION_PER_MILE;
+    const heavyMaintenanceSavings = heavyMilesDriven * DIESEL_DEDUCTION_PER_MILE;
     
-    // Medium and heavy vehicles: diesel vs CNG maintenance + diesel deduction benefit
-    const mediumMaintenanceSavings = mediumMilesDriven * (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng + DIESEL_DEDUCTION_PER_MILE);
-    const heavyMaintenanceSavings = heavyMilesDriven * (MAINTENANCE_COST.diesel - MAINTENANCE_COST.cng + DIESEL_DEDUCTION_PER_MILE);
-    
-    const maintenanceSavings = lightMaintenanceSavings + mediumMaintenanceSavings + heavyMaintenanceSavings;
+    const maintenanceSavings = mediumMaintenanceSavings + heavyMaintenanceSavings;
     
     // Calculate annual LDC investment tariff for non-turnkey option
     // This is a fixed monthly cost that continues for the entire period
