@@ -186,9 +186,15 @@ export default function DeploymentTimeline() {
                     <div className="border-t pt-2">
                       {isFirstYear && stationCost > 0 && (
                         <>
-                          <div className="flex items-center justify-between">
+                          {/* Investment header */}
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs text-gray-700 font-medium">Investment</span>
+                            <span></span>
+                          </div>
+                          {/* Investment breakdown - indented */}
+                          <div className="flex items-center justify-between ml-3">
                             <span className="text-xs text-gray-500">
-                              Vehicles
+                              Vehicles (Inc)
                               <MetricInfoTooltip
                                 title="Vehicle Investment"
                                 description={`This is the total cost for ${light} light-duty, ${medium} medium-duty, and ${heavy} heavy-duty vehicles converted in Year ${year}.`}
@@ -203,7 +209,7 @@ export default function DeploymentTimeline() {
                             </span>
                             <span className="text-xs font-medium">{formatCurrency(vehicleInvestment)}</span>
                           </div>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between ml-3 mb-1">
                             <span className="text-xs text-gray-500">
                               Station
                               <MetricInfoTooltip
@@ -221,9 +227,10 @@ export default function DeploymentTimeline() {
                             </span>
                             <span className="text-xs font-medium">{formatCurrency(stationCost)}</span>
                           </div>
-                          <div className="flex items-center justify-between border-t pt-1 mt-1">
-                            <span className="text-xs text-gray-500 font-medium">
-                              Total Inv.
+                          {/* Total Investment */}
+                          <div className="flex items-center justify-between border-t pt-1 mt-1 mb-2">
+                            <span className="text-xs text-gray-700 font-medium">
+                              Total Investment
                               <MetricInfoTooltip
                                 title="Total Investment"
                                 description="The combined cost of vehicle conversions and station infrastructure for Year 1."
@@ -236,8 +243,8 @@ export default function DeploymentTimeline() {
                         </>
                       )}
                       {(!isFirstYear || stationCost === 0) && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-gray-700 font-medium">
                             Investment
                             <MetricInfoTooltip
                               title="Vehicle Investment"
@@ -254,9 +261,16 @@ export default function DeploymentTimeline() {
                           <span className="text-xs font-medium">{formatCurrency(vehicleInvestment)}</span>
                         </div>
                       )}
-                      <div className="flex items-center justify-between mt-1">
+                      
+                      {/* Savings Section */}
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-700 font-medium">Savings</span>
+                        <span></span>
+                      </div>
+                      {/* Savings breakdown - indented */}
+                      <div className="flex items-center justify-between ml-3">
                         <span className="text-xs text-gray-500">
-                          Fuel Savings
+                          Fuel
                           <MetricInfoTooltip
                             title="Annual Fuel Savings"
                             description={`Fuel cost savings for Year ${year} from switching to CNG instead of gasoline/diesel.`}
@@ -273,17 +287,16 @@ export default function DeploymentTimeline() {
                         </span>
                         <span className="text-xs font-medium text-green-600">{formatCurrency(yearFuelSavings)}</span>
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between ml-3 mb-1">
                         <span className="text-xs text-gray-500">
-                          Maintenance Savings
+                          Maintenance
                           <MetricInfoTooltip
                             title="Annual Maintenance Savings"
                             description={`Maintenance cost savings for Year ${year} from reduced maintenance needs of CNG vehicles.`}
-                            calculation="Maintenance Savings = (Conventional Maintenance Cost per Mile - CNG Maintenance Cost per Mile + Diesel Deduction) × Annual Miles × Number of Vehicles"
+                            calculation="Maintenance Savings = $0.05 per mile for diesel vehicles (medium and heavy duty)"
                             affectingVariables={[
-                              "Number of converted vehicles in operation",
+                              "Number of converted diesel vehicles in operation",
                               "Annual mileage per vehicle type",
-                              "Maintenance cost differential",
                               "Diesel deduction benefit (5¢/mile for medium/heavy duty)"
                             ]}
                             simpleDescription="Annual maintenance cost reduction"
@@ -291,8 +304,9 @@ export default function DeploymentTimeline() {
                         </span>
                         <span className="text-xs font-medium text-green-600">{formatCurrency(yearMaintenanceSavings)}</span>
                       </div>
+                      {/* Total Savings */}
                       <div className="flex items-center justify-between border-t pt-1 mt-1">
-                        <span className="text-xs text-gray-500 font-medium">
+                        <span className="text-xs text-gray-700 font-medium">
                           Total Savings
                           <MetricInfoTooltip
                             title="Total Annual Savings"
