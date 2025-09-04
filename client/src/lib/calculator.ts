@@ -401,6 +401,7 @@ export function calculateROI(
   const yearlySavings: number[] = [];
   const yearlyFuelSavings: number[] = [];
   const yearlyMaintenanceSavings: number[] = [];
+  const yearlyTariffFees: number[] = [];
   const cumulativeSavings: number[] = [];
   const cumulativeInvestment: number[] = [];
   
@@ -499,6 +500,7 @@ export function calculateROI(
     yearlySavings.push(Math.round(yearSavings));
     yearlyFuelSavings.push(Math.round(totalFuelSavings));
     yearlyMaintenanceSavings.push(Math.round(maintenanceSavings));
+    yearlyTariffFees.push(Math.round(annualTariffFee));
     
     // Update cumulative savings
     const prevCumulativeSavings = year > 0 ? cumulativeSavings[year - 1] : 0;
@@ -661,6 +663,7 @@ export function calculateROI(
     yearlySavings,
     yearlyFuelSavings,
     yearlyMaintenanceSavings,
+    yearlyTariffFees,
     cumulativeSavings,
     cumulativeInvestment,
     paybackPeriod,

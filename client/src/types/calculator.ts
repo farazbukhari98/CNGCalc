@@ -53,6 +53,7 @@ export interface CalculationResults {
   yearlySavings: number[];
   yearlyFuelSavings: number[];
   yearlyMaintenanceSavings: number[];
+  yearlyTariffFees: number[];
   cumulativeSavings: number[];
   cumulativeInvestment: number[];
   paybackPeriod: number;

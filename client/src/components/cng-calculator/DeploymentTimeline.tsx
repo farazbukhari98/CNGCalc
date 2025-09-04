@@ -118,8 +118,16 @@ export default function DeploymentTimeline() {
                 const isFirstYear = year === 1;
                 // Calculate station cost properly using the calculator function
                 const calculatedStationCost = calculateStationCost(stationConfig, vehicleParameters);
-                // Station cost should be shown in Year 1 for turnkey, or never for non-turnkey (handled by tariffs)
-                const stationCost = (isFirstYear && stationConfig.turnkey) ? calculatedStationCost : 0;
+                // Station cost logic: 
+                // - Turnkey: Show full station cost in Year 1 only
+                // - Non-turnkey: Show annual tariff fee in every year
+                let stationCost = 0;
+                if (stationConfig.turnkey) {
+                  stationCost = isFirstYear ? calculatedStationCost : 0;
+                } else {
+                  // Non-turnkey: Show annual tariff fee (available from results.yearlyTariffFees)
+                  stationCost = results.yearlyTariffFees[year - 1] || 0;
+                }
                 const totalYearInvestment = vehicleInvestment + stationCost;
                 
                 // Make sure we have savings data for this year
@@ -184,7 +192,8 @@ export default function DeploymentTimeline() {
                     </div>
                     
                     <div className="border-t pt-3">
-                      {isFirstYear && stationCost > 0 && (
+                      {/* Always show investment breakdown in hierarchical format */}
+                      {(vehicleInvestment > 0 || stationCost > 0) && (
                         <>
                           {/* Investment header */}
                           <div className="flex items-center justify-between mb-2">
@@ -213,16 +222,22 @@ export default function DeploymentTimeline() {
                             <span className="text-xs text-gray-500">
                               Station
                               <MetricInfoTooltip
-                                title="Station Investment"
-                                description="The upfront cost of building your CNG station. This is a one-time cost in Year 1 and includes all equipment, installation, and setup."
-                                calculation="Based on station type (Fast-Fill or Time-Fill), business type (AGLC, CGC, VNG), and required capacity to support your fleet's daily fuel consumption."
+                                title={stationConfig.turnkey ? "Station Investment" : "Station Tariff Fee"}
+                                description={stationConfig.turnkey 
+                                  ? "The upfront cost of building your CNG station. This is a one-time cost in Year 1 and includes all equipment, installation, and setup."
+                                  : `Annual tariff fee for non-turnkey station option. This is ${stationConfig.businessType === 'cgc' ? '1.6%' : '1.5%'} of the total station cost, charged annually.`
+                                }
+                                calculation={stationConfig.turnkey 
+                                  ? "Based on station type (Fast-Fill or Time-Fill), business type (AGLC, CGC, VNG), and required capacity to support your fleet's daily fuel consumption."
+                                  : `Annual Tariff = Total Station Cost (${formatCurrency(calculatedStationCost)}) × ${stationConfig.businessType === 'cgc' ? '1.6%' : '1.5%'} × 12 months`
+                                }
                                 affectingVariables={[
                                   "Station type (Fast-Fill or Time-Fill)",
                                   "Business type (AGLC, CGC, VNG)",
                                   "Total fleet size and composition",
-                                  "Turnkey option (Yes = upfront cost)"
+                                  stationConfig.turnkey ? "Turnkey option (Yes = upfront cost)" : "Non-turnkey annual tariff rate"
                                 ]}
-                                simpleDescription="Cost of building the CNG fueling station"
+                                simpleDescription={stationConfig.turnkey ? "Cost of building the CNG fueling station" : "Annual fee for non-turnkey station financing"}
                               />
                             </span>
                             <span className="text-xs font-medium">{formatCurrency(stationCost)}</span>
@@ -233,33 +248,14 @@ export default function DeploymentTimeline() {
                               Total Investment
                               <MetricInfoTooltip
                                 title="Total Investment"
-                                description="The combined cost of vehicle conversions and station infrastructure for Year 1."
-                                calculation={`Total Investment = Vehicle Investment (${formatCurrency(vehicleInvestment)}) + Station Investment (${formatCurrency(stationCost)})`}
+                                description={`The combined cost of vehicle conversions and station ${stationConfig.turnkey ? 'infrastructure' : 'tariff fees'} for Year ${year}.`}
+                                calculation={`Total Investment = Vehicle Investment (${formatCurrency(vehicleInvestment)}) + Station ${stationConfig.turnkey ? 'Investment' : 'Tariff'} (${formatCurrency(stationCost)})`}
                                 simpleDescription="Total capital expenditure for this year"
                               />
                             </span>
                             <span className="text-sm font-semibold">{formatCurrency(totalYearInvestment)}</span>
                           </div>
                         </>
-                      )}
-                      {(!isFirstYear || stationCost === 0) && (
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm text-gray-700 font-medium">
-                            Investment
-                            <MetricInfoTooltip
-                              title="Vehicle Investment"
-                              description={`This is the total cost for ${light} light-duty, ${medium} medium-duty, and ${heavy} heavy-duty vehicles converted in Year ${year}.`}
-                              calculation={`Vehicle Investment = (${light} light-duty × ${formatCurrency(light ? vehicleInvestment / light : 0)}) + (${medium} medium-duty × ${formatCurrency(medium ? vehicleInvestment / medium : 0)}) + (${heavy} heavy-duty × ${formatCurrency(heavy ? vehicleInvestment / heavy : 0)})`}
-                              affectingVariables={[
-                                "Vehicle counts (light, medium, heavy)",
-                                "Incremental cost per vehicle type",
-                                "Deployment strategy"
-                              ]}
-                              simpleDescription="Cost of CNG vehicle conversion for this year"
-                            />
-                          </span>
-                          <span className="text-sm font-semibold">{formatCurrency(vehicleInvestment)}</span>
-                        </div>
                       )}
                       
                       {/* Savings Section */}
