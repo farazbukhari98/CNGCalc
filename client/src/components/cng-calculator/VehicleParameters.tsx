@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function VehicleParameters() {
   const { 
@@ -388,6 +389,77 @@ export default function VehicleParameters() {
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Annual mileage directly affects fuel savings and emissions calculations
+              </p>
+            </div>
+            
+            <Separator />
+            
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fuel Type</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Light Duty
+                  </label>
+                  <Select
+                    value={vehicleParameters.lightDutyFuelType}
+                    onValueChange={(value: 'gasoline' | 'diesel') => updateVehicleParameters({
+                      ...vehicleParameters,
+                      lightDutyFuelType: value
+                    })}
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue placeholder="Select fuel type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gasoline">Gasoline</SelectItem>
+                      <SelectItem value="diesel">Diesel</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Medium Duty
+                  </label>
+                  <Select
+                    value={vehicleParameters.mediumDutyFuelType}
+                    onValueChange={(value: 'gasoline' | 'diesel') => updateVehicleParameters({
+                      ...vehicleParameters,
+                      mediumDutyFuelType: value
+                    })}
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue placeholder="Select fuel type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gasoline">Gasoline</SelectItem>
+                      <SelectItem value="diesel">Diesel</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Heavy Duty
+                  </label>
+                  <Select
+                    value={vehicleParameters.heavyDutyFuelType}
+                    onValueChange={(value: 'gasoline' | 'diesel') => updateVehicleParameters({
+                      ...vehicleParameters,
+                      heavyDutyFuelType: value
+                    })}
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue placeholder="Select fuel type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gasoline">Gasoline</SelectItem>
+                      <SelectItem value="diesel">Diesel</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Fuel type affects pricing calculations and maintenance savings (diesel vehicles receive additional maintenance savings)
               </p>
             </div>
           </div>

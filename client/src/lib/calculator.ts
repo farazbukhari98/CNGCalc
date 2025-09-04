@@ -358,13 +358,16 @@ export function calculateROI(
   const FUEL_EFFICIENCY = {
     light: { 
       gasoline: vehicleParams.lightDutyMPG,
+      diesel: vehicleParams.lightDutyMPG,
       cng: vehicleParams.lightDutyMPG * (1 - CNG_LOSS.light) 
     },
     medium: { 
+      gasoline: vehicleParams.mediumDutyMPG,
       diesel: vehicleParams.mediumDutyMPG, 
       cng: vehicleParams.mediumDutyMPG * (1 - CNG_LOSS.medium) 
     },
     heavy: { 
+      gasoline: vehicleParams.heavyDutyMPG,
       diesel: vehicleParams.heavyDutyMPG, 
       cng: vehicleParams.heavyDutyMPG * (1 - CNG_LOSS.heavy) 
     }
@@ -443,34 +446,42 @@ export function calculateROI(
     const cngWithBusinessRate = cngWithElectricity * (1 + businessRate);
     const adjustedCngPrice = cngWithBusinessRate * yearMultiplier;
     
-    // Calculate fuel savings for each vehicle type using vehicle-specific annual miles
+    // Calculate fuel savings for each vehicle type using vehicle-specific annual miles and fuel types
+    const lightConventionalPrice = vehicleParams.lightDutyFuelType === 'gasoline' ? adjustedGasolinePrice : adjustedDieselPrice;
+    const lightConventionalEfficiency = vehicleParams.lightDutyFuelType === 'gasoline' ? FUEL_EFFICIENCY.light.gasoline : FUEL_EFFICIENCY.light.diesel;
     const lightFuelSavings = 
       lightInOperation * 
       vehicleParams.lightDutyAnnualMiles * 
-      ((adjustedGasolinePrice / FUEL_EFFICIENCY.light.gasoline) - 
+      ((lightConventionalPrice / lightConventionalEfficiency) - 
       (adjustedCngPrice / FUEL_EFFICIENCY.light.cng));
     
+    const mediumConventionalPrice = vehicleParams.mediumDutyFuelType === 'gasoline' ? adjustedGasolinePrice : adjustedDieselPrice;
+    const mediumConventionalEfficiency = vehicleParams.mediumDutyFuelType === 'gasoline' ? FUEL_EFFICIENCY.medium.gasoline : FUEL_EFFICIENCY.medium.diesel;
     const mediumFuelSavings = 
       mediumInOperation * 
       vehicleParams.mediumDutyAnnualMiles * 
-      ((adjustedDieselPrice / FUEL_EFFICIENCY.medium.diesel) - 
+      ((mediumConventionalPrice / mediumConventionalEfficiency) - 
       (adjustedCngPrice / FUEL_EFFICIENCY.medium.cng));
     
+    const heavyConventionalPrice = vehicleParams.heavyDutyFuelType === 'gasoline' ? adjustedGasolinePrice : adjustedDieselPrice;
+    const heavyConventionalEfficiency = vehicleParams.heavyDutyFuelType === 'gasoline' ? FUEL_EFFICIENCY.heavy.gasoline : FUEL_EFFICIENCY.heavy.diesel;
     const heavyFuelSavings = 
       heavyInOperation * 
       vehicleParams.heavyDutyAnnualMiles * 
-      ((adjustedDieselPrice / FUEL_EFFICIENCY.heavy.diesel) - 
+      ((heavyConventionalPrice / heavyConventionalEfficiency) - 
       (adjustedCngPrice / FUEL_EFFICIENCY.heavy.cng));
     
     // Calculate maintenance savings based on miles driven using vehicle-specific annual miles
+    const lightMilesDriven = lightInOperation * vehicleParams.lightDutyAnnualMiles;
     const mediumMilesDriven = mediumInOperation * vehicleParams.mediumDutyAnnualMiles;
     const heavyMilesDriven = heavyInOperation * vehicleParams.heavyDutyAnnualMiles;
     
     // Maintenance savings: $0.05 per mile for diesel vehicles only
-    const mediumMaintenanceSavings = mediumMilesDriven * DIESEL_DEDUCTION_PER_MILE;
-    const heavyMaintenanceSavings = heavyMilesDriven * DIESEL_DEDUCTION_PER_MILE;
+    const lightMaintenanceSavings = vehicleParams.lightDutyFuelType === 'diesel' ? lightMilesDriven * DIESEL_DEDUCTION_PER_MILE : 0;
+    const mediumMaintenanceSavings = vehicleParams.mediumDutyFuelType === 'diesel' ? mediumMilesDriven * DIESEL_DEDUCTION_PER_MILE : 0;
+    const heavyMaintenanceSavings = vehicleParams.heavyDutyFuelType === 'diesel' ? heavyMilesDriven * DIESEL_DEDUCTION_PER_MILE : 0;
     
-    const maintenanceSavings = mediumMaintenanceSavings + heavyMaintenanceSavings;
+    const maintenanceSavings = lightMaintenanceSavings + mediumMaintenanceSavings + heavyMaintenanceSavings;
     
     // Calculate annual LDC investment tariff for non-turnkey option
     // This is a fixed monthly cost that continues for the entire period

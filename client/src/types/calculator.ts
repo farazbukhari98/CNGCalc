@@ -15,6 +15,9 @@ export interface VehicleParameters {
   lightDutyAnnualMiles: number; // Annual miles driven
   mediumDutyAnnualMiles: number; // Annual miles driven
   heavyDutyAnnualMiles: number;  // Annual miles driven
+  lightDutyFuelType: 'gasoline' | 'diesel';   // Fuel type for light duty vehicles
+  mediumDutyFuelType: 'gasoline' | 'diesel';  // Fuel type for medium duty vehicles
+  heavyDutyFuelType: 'gasoline' | 'diesel';   // Fuel type for heavy duty vehicles
 }
 
 // Station configuration
