@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { formatPaybackPeriod } from "@/lib/utils";
 import { useState } from "react";
 import { MetricInfoTooltip } from "./MetricInfoTooltip";
+import { calculateStationCost } from "@/lib/calculator";
 
 export default function DeploymentTimeline() {
   const { 
@@ -14,7 +15,9 @@ export default function DeploymentTimeline() {
     updateDeploymentStrategy,
     updateManualDistribution,
     vehicleDistribution,
-    results
+    results,
+    stationConfig,
+    vehicleParameters
   } = useCalculator();
 
   // Format currency
@@ -113,8 +116,11 @@ export default function DeploymentTimeline() {
                 
                 // For year 1, also show station cost separately
                 const isFirstYear = year === 1;
-                const stationCost = isFirstYear ? (results.cumulativeInvestment[0] - vehicleInvestment) : 0;
-                const totalYearInvestment = vehicleInvestment + (isFirstYear ? stationCost : 0);
+                // Calculate station cost properly using the calculator function
+                const calculatedStationCost = calculateStationCost(stationConfig, vehicleParameters);
+                // Station cost should be shown in Year 1 for turnkey, or never for non-turnkey (handled by tariffs)
+                const stationCost = (isFirstYear && stationConfig.turnkey) ? calculatedStationCost : 0;
+                const totalYearInvestment = vehicleInvestment + stationCost;
                 
                 // Make sure we have savings data for this year
                 const yearSavings = results.yearlySavings[year - 1] || 0;
