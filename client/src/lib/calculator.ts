@@ -432,8 +432,7 @@ export function calculateROI(
     const adjustedGasolinePrice = fuelPrices.gasolinePrice * yearMultiplier;
     const adjustedDieselPrice = fuelPrices.dieselPrice * yearMultiplier;
     
-    // Calculate CNG price with electricity cost and business rate
-    const ELECTRICITY_COST_PER_GGE = 0.08; // $0.08 per GGE
+    // Calculate CNG price with business rate (electricity already included in base price)
     let businessRate;
     if (stationConfig.businessType === 'cgc') {
       businessRate = BUSINESS_RATES.cgc;
@@ -443,8 +442,7 @@ export function calculateROI(
       businessRate = BUSINESS_RATES.aglc;
     }
     const baseCngPrice = fuelPrices.cngPrice;
-    const cngWithElectricity = baseCngPrice + ELECTRICITY_COST_PER_GGE;
-    const cngWithBusinessRate = cngWithElectricity * (1 + businessRate);
+    const cngWithBusinessRate = baseCngPrice * (1 + businessRate);
     const adjustedCngPrice = cngWithBusinessRate * yearMultiplier;
     
     // Calculate fuel savings for each vehicle type using vehicle-specific annual miles and fuel types
@@ -637,8 +635,7 @@ export function calculateROI(
   // Calculate cost per mile metrics
   const costPerMileGasoline = fuelPrices.gasolinePrice / FUEL_EFFICIENCY.light.gasoline;
   
-  // Calculate full CNG price with electricity and business rate
-  const ELECTRICITY_COST_PER_GGE = 0.08; // $0.08 per GGE
+  // Calculate full CNG price with business rate (electricity already included in base price)
   let businessRate;
   if (stationConfig.businessType === 'cgc') {
     businessRate = BUSINESS_RATES.cgc;
@@ -647,7 +644,7 @@ export function calculateROI(
   } else {
     businessRate = BUSINESS_RATES.aglc;
   }
-  const fullCngPrice = (fuelPrices.cngPrice + ELECTRICITY_COST_PER_GGE) * (1 + businessRate);
+  const fullCngPrice = fuelPrices.cngPrice * (1 + businessRate);
   const costPerMileCNG = fullCngPrice / FUEL_EFFICIENCY.light.cng;
   
   const costReduction = ((costPerMileGasoline - costPerMileCNG) / costPerMileGasoline) * 100;
