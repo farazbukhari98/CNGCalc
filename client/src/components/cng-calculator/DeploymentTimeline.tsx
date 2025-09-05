@@ -242,19 +242,6 @@ export default function DeploymentTimeline() {
                             </span>
                             <span className="text-xs font-medium">{formatCurrency(stationCost)}</span>
                           </div>
-                          {/* Total Investment */}
-                          <div className="flex items-center justify-between border-t border-gray-200 pt-2 mb-3">
-                            <span className="text-sm text-gray-700 font-medium">
-                              Total Investment
-                              <MetricInfoTooltip
-                                title="Total Investment"
-                                description={`The combined cost of vehicle conversions and station ${stationConfig.turnkey ? 'infrastructure' : 'tariff fees'} for Year ${year}.`}
-                                calculation={`Total Investment = Vehicle Investment (${formatCurrency(vehicleInvestment)}) + Station ${stationConfig.turnkey ? 'Investment' : 'Tariff'} (${formatCurrency(stationCost)})`}
-                                simpleDescription="Total capital expenditure for this year"
-                              />
-                            </span>
-                            <span className="text-sm font-semibold">{formatCurrency(totalYearInvestment)}</span>
-                          </div>
                         </>
                       )}
                       
