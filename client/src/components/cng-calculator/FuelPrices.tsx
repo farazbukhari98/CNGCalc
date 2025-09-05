@@ -112,6 +112,7 @@ export default function FuelPrices() {
               </TooltipTrigger>
               <TooltipContent>
                 <p>CNG price per gasoline gallon equivalent (GGE)</p>
+                <p className="text-xs text-gray-400 mt-1">Note: Electricity costs are included in this price</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
