@@ -445,30 +445,24 @@ export function calculateROI(
     const cngWithBusinessRate = baseCngPrice * (1 + businessRate);
     const adjustedCngPrice = cngWithBusinessRate * yearMultiplier;
     
-    // Calculate fuel savings for each vehicle type using vehicle-specific annual miles and fuel types
+    // Calculate fuel savings for each vehicle type using proper fuel efficiency accounting
     const lightConventionalPrice = vehicleParams.lightDutyFuelType === 'gasoline' ? adjustedGasolinePrice : adjustedDieselPrice;
     const lightConventionalEfficiency = vehicleParams.lightDutyFuelType === 'gasoline' ? FUEL_EFFICIENCY.light.gasoline : FUEL_EFFICIENCY.light.diesel;
     const lightFuelSavings = 
-      lightInOperation * 
-      vehicleParams.lightDutyAnnualMiles * 
-      ((lightConventionalPrice / lightConventionalEfficiency) - 
-      (adjustedCngPrice / FUEL_EFFICIENCY.light.cng));
+      ((lightInOperation * vehicleParams.lightDutyAnnualMiles) / lightConventionalEfficiency) * lightConventionalPrice -
+      ((lightInOperation * vehicleParams.lightDutyAnnualMiles) / FUEL_EFFICIENCY.light.cng) * adjustedCngPrice;
     
     const mediumConventionalPrice = vehicleParams.mediumDutyFuelType === 'gasoline' ? adjustedGasolinePrice : adjustedDieselPrice;
     const mediumConventionalEfficiency = vehicleParams.mediumDutyFuelType === 'gasoline' ? FUEL_EFFICIENCY.medium.gasoline : FUEL_EFFICIENCY.medium.diesel;
     const mediumFuelSavings = 
-      mediumInOperation * 
-      vehicleParams.mediumDutyAnnualMiles * 
-      ((mediumConventionalPrice / mediumConventionalEfficiency) - 
-      (adjustedCngPrice / FUEL_EFFICIENCY.medium.cng));
+      ((mediumInOperation * vehicleParams.mediumDutyAnnualMiles) / mediumConventionalEfficiency) * mediumConventionalPrice -
+      ((mediumInOperation * vehicleParams.mediumDutyAnnualMiles) / FUEL_EFFICIENCY.medium.cng) * adjustedCngPrice;
     
     const heavyConventionalPrice = vehicleParams.heavyDutyFuelType === 'gasoline' ? adjustedGasolinePrice : adjustedDieselPrice;
     const heavyConventionalEfficiency = vehicleParams.heavyDutyFuelType === 'gasoline' ? FUEL_EFFICIENCY.heavy.gasoline : FUEL_EFFICIENCY.heavy.diesel;
     const heavyFuelSavings = 
-      heavyInOperation * 
-      vehicleParams.heavyDutyAnnualMiles * 
-      ((heavyConventionalPrice / heavyConventionalEfficiency) - 
-      (adjustedCngPrice / FUEL_EFFICIENCY.heavy.cng));
+      ((heavyInOperation * vehicleParams.heavyDutyAnnualMiles) / heavyConventionalEfficiency) * heavyConventionalPrice -
+      ((heavyInOperation * vehicleParams.heavyDutyAnnualMiles) / FUEL_EFFICIENCY.heavy.cng) * adjustedCngPrice;
     
     // Calculate maintenance savings based on miles driven using vehicle-specific annual miles
     const lightMilesDriven = lightInOperation * vehicleParams.lightDutyAnnualMiles;
