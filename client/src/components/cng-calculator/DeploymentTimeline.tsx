@@ -156,6 +156,13 @@ export default function DeploymentTimeline() {
                   cumulativeMaintenanceSavings += results.yearlyMaintenanceSavings[i] || 0;
                   cumulativeTotalSavings += results.yearlySavings[i] || 0;
                 }
+
+                // Calculate individual year savings for the back of the card
+                const yearFuelSavings = results.yearlyFuelSavings[year - 1] || 0;
+                const yearMaintenanceSavings = results.yearlyMaintenanceSavings[year - 1] || 0;
+                
+                // Check if this card is flipped
+                const isFlipped = flippedCards.has(year);
                 
                 return (
                   <div key={year} className={`year-block bg-white border rounded-lg shadow-sm p-3 ${borderClass}`}>
