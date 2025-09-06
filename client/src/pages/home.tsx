@@ -12,19 +12,21 @@ export default function Home() {
         {!sidebarCollapsed && (
           <>
             <Panel 
+              id="sidebar"
+              order={1}
               defaultSize={25} 
-              minSize={20} 
-              maxSize={40}
-              className="bg-gray-50 border-r border-gray-200"
+              minSize={15} 
+              maxSize={50}
             >
               <SidePanel />
             </Panel>
-            <PanelResizeHandle className="w-2 bg-gray-200 hover:bg-gray-300 transition-colors cursor-col-resize flex items-center justify-center group">
-              <div className="w-1 h-8 bg-gray-400 rounded-full group-hover:bg-gray-600 transition-colors"></div>
-            </PanelResizeHandle>
+            <PanelResizeHandle className="w-1 bg-gray-300 hover:bg-blue-400 transition-colors cursor-col-resize data-[resize-handle-active]:bg-blue-500" />
           </>
         )}
-        <Panel className="bg-white">
+        <Panel 
+          id="main-content"
+          order={2}
+        >
           <MainContent />
         </Panel>
       </PanelGroup>
