@@ -24,7 +24,7 @@ export default function SidePanel() {
   };
 
   return (
-    <div className="w-full md:w-80 bg-white shadow-lg md:h-full overflow-y-auto dark-mode-transition dark:bg-gray-800">
+    <div className="w-full h-full bg-white shadow-lg overflow-y-auto dark-mode-transition dark:bg-gray-800">
       {/* Side Panel Header */}
       <div className="p-4 bg-blue-800 text-white dark:bg-blue-900">
         <h1 className="text-xl font-bold">CNG Fleet Calculator</h1>
