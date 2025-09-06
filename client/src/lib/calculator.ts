@@ -354,22 +354,22 @@ export function calculateROI(
   strategy: DeploymentStrategy,
   vehicleDistribution: VehicleDistribution[]
 ): CalculationResults {
-  // Create fuel efficiency object from vehicle parameters
+  // Create fuel efficiency object from vehicle parameters (no efficiency loss for CNG)
   const FUEL_EFFICIENCY = {
     light: { 
       gasoline: vehicleParams.lightDutyMPG,
       diesel: vehicleParams.lightDutyMPG,
-      cng: vehicleParams.lightDutyMPG * (1 - CNG_LOSS.light) 
+      cng: vehicleParams.lightDutyMPG 
     },
     medium: { 
       gasoline: vehicleParams.mediumDutyMPG,
       diesel: vehicleParams.mediumDutyMPG, 
-      cng: vehicleParams.mediumDutyMPG * (1 - CNG_LOSS.medium) 
+      cng: vehicleParams.mediumDutyMPG 
     },
     heavy: { 
       gasoline: vehicleParams.heavyDutyMPG,
       diesel: vehicleParams.heavyDutyMPG, 
-      cng: vehicleParams.heavyDutyMPG * (1 - CNG_LOSS.heavy) 
+      cng: vehicleParams.heavyDutyMPG 
     }
   };
   // Calculate total vehicle investment
