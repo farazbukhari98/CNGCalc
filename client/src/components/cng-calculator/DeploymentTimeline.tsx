@@ -94,7 +94,7 @@ export default function DeploymentTimeline() {
                     : "px-3 py-1 text-xs rounded bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"}
                   onClick={() => setDistributionStrategy('aggressive')}
                 >
-                  Front-Loaded
+                  Aggressive Distribution
                 </Button>
                 <Button
                   size="sm"
@@ -104,23 +104,22 @@ export default function DeploymentTimeline() {
                     : "px-3 py-1 text-xs rounded bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"}
                   onClick={() => setDistributionStrategy('deferred')}
                 >
-                  Back-Loaded
+                  Deferred Distribution
                 </Button>
               </>
             )}
           </div>
         </div>
-        
-        {/* Timeline Visualization - Only show if we have results */}
+
         {results && vehicleDistribution && (
-          <div className="timeline-scroll overflow-x-auto">
-            <div className="min-w-max grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="timeline-scroll">
+            <div className="flex gap-3 min-w-full pb-2">
               {years.map((year) => {
-                // Make sure we have data for this year, default to empty values if not
                 const yearData = vehicleDistribution[year - 1] || { light: 0, medium: 0, heavy: 0, investment: 0 };
                 const { light, medium, heavy } = yearData;
-                let borderClass = "vehicle-type-light";
                 
+                // Determine border color based on dominant vehicle type
+                let borderClass = "vehicle-type-light"; // default
                 if (medium >= light && medium >= heavy) {
                   borderClass = "vehicle-type-medium";
                 } else if (heavy >= light && heavy >= medium) {
@@ -163,68 +162,75 @@ export default function DeploymentTimeline() {
                 
                 // Check if this card is flipped
                 const isFlipped = flippedCards.has(year);
-                
+
                 return (
-                  <div key={year} className={`year-block bg-white border rounded-lg shadow-sm p-3 ${borderClass}`}>
-                    <div className="text-sm font-medium text-gray-700 mb-2">Year {year}</div>
-                    
-                    <div className="space-y-2 mb-3">
-                      {deploymentStrategy === 'manual' ? (
-                        <>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Light Duty</span>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={light}
-                              onChange={(e) => handleInputChange(year, 'light', e.target.value)}
-                              className="text-xs w-16 h-6 p-1"
-                            />
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Medium Duty</span>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={medium}
-                              onChange={(e) => handleInputChange(year, 'medium', e.target.value)}
-                              className="text-xs w-16 h-6 p-1"
-                            />
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Heavy Duty</span>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={heavy}
-                              onChange={(e) => handleInputChange(year, 'heavy', e.target.value)}
-                              className="text-xs w-16 h-6 p-1"
-                            />
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Light Duty</span>
-                            <span className="text-xs font-medium">{light}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Medium Duty</span>
-                            <span className="text-xs font-medium">{medium}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Heavy Duty</span>
-                            <span className="text-xs font-medium">{heavy}</span>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    
-                    <div className="border-t pt-3">
-                      {/* Always show investment breakdown in hierarchical format */}
-                      {(vehicleInvestment > 0 || stationCost > 0) && (
-                        <>
-                          {/* Investment header */}
+                  <div 
+                    key={year} 
+                    className={`flip-card year-block ${borderClass} ${isFlipped ? 'flipped' : ''}`}
+                    onClick={() => toggleCardFlip(year)}
+                  >
+                    <div className="flip-card-inner">
+                      {/* Front of card - cumulative view */}
+                      <div className="flip-card-front bg-white border rounded-lg shadow-sm p-3">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Year {year}</div>
+                        
+                        <div className="space-y-2 mb-3">
+                          {deploymentStrategy === 'manual' ? (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Light Duty</span>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={light}
+                                  onChange={(e) => handleInputChange(year, 'light', e.target.value)}
+                                  className="text-xs w-16 h-6 p-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Medium Duty</span>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={medium}
+                                  onChange={(e) => handleInputChange(year, 'medium', e.target.value)}
+                                  className="text-xs w-16 h-6 p-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Heavy Duty</span>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={heavy}
+                                  onChange={(e) => handleInputChange(year, 'heavy', e.target.value)}
+                                  className="text-xs w-16 h-6 p-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Light Duty</span>
+                                <span className="text-xs font-medium">{light}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Medium Duty</span>
+                                <span className="text-xs font-medium">{medium}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Heavy Duty</span>
+                                <span className="text-xs font-medium">{heavy}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Investment breakdown - hierarchical */}
+                        <div className="mb-3">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-gray-700 font-medium">Investment</span>
                             <span></span>
@@ -234,99 +240,142 @@ export default function DeploymentTimeline() {
                             <span className="text-xs text-gray-500">
                               Vehicles (Inc)
                               <MetricInfoTooltip
-                                title="Vehicle Investment"
-                                description={`This is the total cost for ${light} light-duty, ${medium} medium-duty, and ${heavy} heavy-duty vehicles converted in Year ${year}.`}
-                                calculation={`Vehicle Investment = (${light} light-duty × $${(vehicleInvestment / (light || 1)).toLocaleString()}) + (${medium} medium-duty × $${(vehicleInvestment / (medium || 1)).toLocaleString()}) + (${heavy} heavy-duty × $${(vehicleInvestment / (heavy || 1)).toLocaleString()})`}
+                                title="Vehicle Investment (Incremental)"
+                                description={`Vehicle conversion cost for the ${yearData.light + yearData.medium + yearData.heavy} vehicles being converted in Year ${year}.`}
+                                calculation="Vehicle Investment = (Light Duty × Cost) + (Medium Duty × Cost) + (Heavy Duty × Cost)"
                                 affectingVariables={[
-                                  "Vehicle counts (light, medium, heavy)",
-                                  "Incremental cost per vehicle type",
-                                  "Deployment strategy"
+                                  "Number of vehicles being converted this year",
+                                  "CNG conversion cost per vehicle type",
+                                  "Vehicle deployment schedule"
                                 ]}
-                                simpleDescription="Cost of CNG vehicle conversion for this year"
+                                simpleDescription="Incremental vehicle conversion cost for this year"
                               />
                             </span>
-                            <span className="text-xs font-medium">{formatCurrency(vehicleInvestment)}</span>
+                            <span className="text-xs font-medium text-blue-600">{formatCurrency(vehicleInvestment)}</span>
                           </div>
                           <div className="flex items-center justify-between ml-4 mb-2">
                             <span className="text-xs text-gray-500">
                               Station
                               <MetricInfoTooltip
-                                title={stationConfig.turnkey ? "Station Investment" : "Station Tariff Fee"}
+                                title={stationConfig.turnkey ? "Station Investment" : "Annual Tariff Fee"}
                                 description={stationConfig.turnkey 
-                                  ? "The upfront cost of building your CNG station. This is a one-time cost in Year 1 and includes all equipment, installation, and setup."
-                                  : `Annual tariff fee for non-turnkey station option. This is ${stationConfig.businessType === 'cgc' ? '1.6%' : '1.5%'} of the total station cost, charged annually.`
-                                }
+                                  ? `Full station cost paid upfront in Year 1 for turnkey installation.`
+                                  : `Annual tariff fee for non-turnkey option (${stationConfig.businessType === 'cgc' ? '1.6%' : '1.5%'} of station cost annually).`}
                                 calculation={stationConfig.turnkey 
-                                  ? "Based on station type (Fast-Fill or Time-Fill), business type (AGLC, CGC, VNG), and required capacity to support your fleet's daily fuel consumption."
-                                  : `Annual Tariff = Total Station Cost (${formatCurrency(calculatedStationCost)}) × ${stationConfig.businessType === 'cgc' ? '1.6%' : '1.5%'} × 12 months`
-                                }
+                                  ? "Station Investment = Full station cost (Year 1 only)"
+                                  : `Annual Tariff Fee = Station Cost × ${stationConfig.businessType === 'cgc' ? '1.6%' : '1.5%'}`}
                                 affectingVariables={[
-                                  "Station type (Fast-Fill or Time-Fill)",
-                                  "Business type (AGLC, CGC, VNG)",
-                                  "Total fleet size and composition",
-                                  stationConfig.turnkey ? "Turnkey option (Yes = upfront cost)" : "Non-turnkey annual tariff rate"
+                                  "Station type (fast-fill vs time-fill)",
+                                  "Station size and capacity requirements",
+                                  "Business type (AGLC, VNG, CGC)",
+                                  "Payment option (turnkey vs non-turnkey)"
                                 ]}
-                                simpleDescription={stationConfig.turnkey ? "Cost of building the CNG fueling station" : "Annual fee for non-turnkey station financing"}
+                                simpleDescription={stationConfig.turnkey ? "Upfront station cost" : "Annual station fee"}
                               />
                             </span>
-                            <span className="text-xs font-medium">{formatCurrency(stationCost)}</span>
+                            <span className="text-xs font-medium text-blue-600">{formatCurrency(stationCost)}</span>
                           </div>
-                        </>
-                      )}
-                      
-                      {/* Savings Section */}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-700 font-medium">Savings</span>
-                        <span></span>
+                        </div>
+
+                        {/* Savings breakdown - hierarchical */}
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-700 font-medium">Savings</span>
+                            <span></span>
+                          </div>
+                          {/* Savings breakdown - indented */}
+                          <div className="flex items-center justify-between ml-4 mb-1.5">
+                            <span className="text-xs text-gray-500">
+                              Fuel
+                              <MetricInfoTooltip
+                                title="Cumulative Fuel Savings"
+                                description={`Total fuel cost savings accumulated from Year 1 through Year ${year} from switching to CNG instead of gasoline/diesel.`}
+                                calculation="Cumulative Fuel Savings = Sum of annual fuel savings from Year 1 to current year"
+                                affectingVariables={[
+                                  "Number of converted vehicles in operation each year",
+                                  "Annual mileage per vehicle type",
+                                  "Fuel prices (gasoline, diesel, CNG)",
+                                  "Vehicle fuel efficiency (MPG)"
+                                ]}
+                                simpleDescription="Total fuel cost reduction from CNG to date"
+                              />
+                            </span>
+                            <span className="text-xs font-medium text-green-600">{formatCurrency(cumulativeFuelSavings)}</span>
+                          </div>
+                          <div className="flex items-center justify-between ml-4 mb-2">
+                            <span className="text-xs text-gray-500">
+                              Maintenance
+                              <MetricInfoTooltip
+                                title="Cumulative Maintenance Savings"
+                                description={`Total maintenance cost savings accumulated from Year 1 through Year ${year} from reduced maintenance needs of CNG vehicles.`}
+                                calculation="Cumulative Maintenance Savings = Sum of annual maintenance savings from Year 1 to current year ($0.05 per mile for diesel vehicles)"
+                                affectingVariables={[
+                                  "Number of converted diesel vehicles in operation each year",
+                                  "Annual mileage per vehicle type",
+                                  "Deployment timing and vehicle rollout schedule"
+                                ]}
+                                simpleDescription="Total maintenance cost reduction to date"
+                              />
+                            </span>
+                            <span className="text-xs font-medium text-green-600">{formatCurrency(cumulativeMaintenanceSavings)}</span>
+                          </div>
+                          {/* Total Savings */}
+                          <div className="flex items-center justify-between border-t border-gray-200 pt-2">
+                            <span className="text-sm text-gray-700 font-medium">
+                              Total Savings
+                              <MetricInfoTooltip
+                                title="Total Cumulative Savings"
+                                description={`Total savings accumulated from Year 1 through Year ${year} including fuel and maintenance savings, minus any operational costs.`}
+                                calculation={`Total Cumulative Savings = Cumulative Fuel Savings (${formatCurrency(cumulativeFuelSavings)}) + Cumulative Maintenance Savings (${formatCurrency(cumulativeMaintenanceSavings)}) - Station Operational Costs`}
+                                simpleDescription="Combined operating cost reduction to date"
+                              />
+                            </span>
+                            <span className="text-sm font-semibold text-green-600">{formatCurrency(cumulativeTotalSavings)}</span>
+                          </div>
+                        </div>
                       </div>
-                      {/* Savings breakdown - indented */}
-                      <div className="flex items-center justify-between ml-4 mb-1.5">
-                        <span className="text-xs text-gray-500">
-                          Fuel
-                          <MetricInfoTooltip
-                            title="Cumulative Fuel Savings"
-                            description={`Total fuel cost savings accumulated from Year 1 through Year ${year} from switching to CNG instead of gasoline/diesel.`}
-                            calculation="Cumulative Fuel Savings = Sum of annual fuel savings from Year 1 to current year"
-                            affectingVariables={[
-                              "Number of converted vehicles in operation each year",
-                              "Annual mileage per vehicle type",
-                              "Fuel prices (gasoline, diesel, CNG)",
-                              "Vehicle fuel efficiency (MPG)"
-                            ]}
-                            simpleDescription="Total fuel cost reduction from CNG to date"
-                          />
-                        </span>
-                        <span className="text-xs font-medium text-green-600">{formatCurrency(cumulativeFuelSavings)}</span>
-                      </div>
-                      <div className="flex items-center justify-between ml-4 mb-2">
-                        <span className="text-xs text-gray-500">
-                          Maintenance
-                          <MetricInfoTooltip
-                            title="Cumulative Maintenance Savings"
-                            description={`Total maintenance cost savings accumulated from Year 1 through Year ${year} from reduced maintenance needs of CNG vehicles.`}
-                            calculation="Cumulative Maintenance Savings = Sum of annual maintenance savings from Year 1 to current year ($0.05 per mile for diesel vehicles)"
-                            affectingVariables={[
-                              "Number of converted diesel vehicles in operation each year",
-                              "Annual mileage per vehicle type",
-                              "Deployment timing and vehicle rollout schedule"
-                            ]}
-                            simpleDescription="Total maintenance cost reduction to date"
-                          />
-                        </span>
-                        <span className="text-xs font-medium text-green-600">{formatCurrency(cumulativeMaintenanceSavings)}</span>
-                      </div>
-                      {/* Total Savings */}
-                      <div className="flex items-center justify-between border-t border-gray-200 pt-2">
-                        <span className="text-sm text-gray-700 font-medium">
-                          Total Savings
-                          <MetricInfoTooltip
-                            title="Total Cumulative Savings"
-                            description={`Total savings accumulated from Year 1 through Year ${year} including fuel and maintenance savings, minus any operational costs.`}
-                            calculation={`Total Cumulative Savings = Cumulative Fuel Savings (${formatCurrency(cumulativeFuelSavings)}) + Cumulative Maintenance Savings (${formatCurrency(cumulativeMaintenanceSavings)}) - Station Operational Costs`}
-                            simpleDescription="Combined operating cost reduction to date"
-                          />
-                        </span>
-                        <span className="text-sm font-semibold text-green-600">{formatCurrency(cumulativeTotalSavings)}</span>
+
+                      {/* Back of card - annual view */}
+                      <div className="flip-card-back bg-gray-50 border rounded-lg shadow-sm p-3">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Year {year} - Annual Details</div>
+                        
+                        {/* Annual Investment */}
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-700 font-medium">Annual Investment</span>
+                            <span></span>
+                          </div>
+                          <div className="flex items-center justify-between ml-4 mb-1.5">
+                            <span className="text-xs text-gray-500">Vehicle Investment</span>
+                            <span className="text-xs font-medium text-blue-600">{formatCurrency(vehicleInvestment)}</span>
+                          </div>
+                          <div className="flex items-center justify-between ml-4 mb-2">
+                            <span className="text-xs text-gray-500">Station Cost</span>
+                            <span className="text-xs font-medium text-blue-600">{formatCurrency(stationCost)}</span>
+                          </div>
+                        </div>
+
+                        {/* Annual Savings */}
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-700 font-medium">Annual Savings</span>
+                            <span></span>
+                          </div>
+                          <div className="flex items-center justify-between ml-4 mb-1.5">
+                            <span className="text-xs text-gray-500">Fuel Savings</span>
+                            <span className="text-xs font-medium text-green-600">{formatCurrency(yearFuelSavings)}</span>
+                          </div>
+                          <div className="flex items-center justify-between ml-4 mb-2">
+                            <span className="text-xs text-gray-500">Maintenance Savings</span>
+                            <span className="text-xs font-medium text-green-600">{formatCurrency(yearMaintenanceSavings)}</span>
+                          </div>
+                          <div className="flex items-center justify-between border-t border-gray-200 pt-2">
+                            <span className="text-sm text-gray-700 font-medium">Total Annual Savings</span>
+                            <span className="text-sm font-semibold text-green-600">{formatCurrency(yearFuelSavings + yearMaintenanceSavings)}</span>
+                          </div>
+                        </div>
+
+                        <div className="text-xs text-gray-400 text-center mt-2">Click to flip back</div>
                       </div>
                     </div>
                   </div>
