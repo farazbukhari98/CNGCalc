@@ -127,6 +127,42 @@ export default function StationConfiguration() {
         </p>
       </div>
       
+      {/* Station Sizing Method */}
+      <div className="border-t pt-3 mt-3">
+        <Label className="block text-sm font-medium text-gray-700 mb-2">Station Sizing Method</Label>
+        <RadioGroup 
+          className="grid grid-cols-1 gap-3"
+          value={stationConfig.sizingMethod}
+          onValueChange={(value) => updateStationConfig({...stationConfig, sizingMethod: value as 'total' | 'peak'})}
+        >
+          <div className="relative">
+            <RadioGroupItem value="total" id="sizingTotal" className="absolute opacity-0" />
+            <Label 
+              htmlFor="sizingTotal" 
+              className="flex flex-col items-start p-3 bg-gray-50 border rounded-md cursor-pointer hover:bg-blue-50 data-[state=checked]:bg-blue-50 data-[state=checked]:border-blue-500"
+            >
+              <span className="text-sm font-medium">Total Vehicle Count</span>
+              <span className="text-xs text-gray-500 mt-1">Size station for all {vehicleParameters.lightDutyCount + vehicleParameters.mediumDutyCount + vehicleParameters.heavyDutyCount} vehicles from day one</span>
+            </Label>
+          </div>
+          <div className="relative">
+            <RadioGroupItem value="peak" id="sizingPeak" className="absolute opacity-0" />
+            <Label 
+              htmlFor="sizingPeak" 
+              className="flex flex-col items-start p-3 bg-gray-50 border rounded-md cursor-pointer hover:bg-blue-50 data-[state=checked]:bg-blue-50 data-[state=checked]:border-blue-500"
+            >
+              <span className="text-sm font-medium">Peak Year Usage</span>
+              <span className="text-xs text-gray-500 mt-1">Size station based on highest vehicle count in any deployment year</span>
+            </Label>
+          </div>
+        </RadioGroup>
+        <p className="text-xs text-gray-500 mt-1">
+          {stationConfig.sizingMethod === 'total' 
+            ? "Station will be sized for maximum capacity regardless of deployment timeline" 
+            : "Station will be sized for the peak year of your deployment strategy"}
+        </p>
+      </div>
+      
       {/* Turnkey Option */}
       <div className="border-t pt-3 mt-3">
         <Label className="block text-sm font-medium text-gray-700 mb-2">Turnkey Option</Label>
