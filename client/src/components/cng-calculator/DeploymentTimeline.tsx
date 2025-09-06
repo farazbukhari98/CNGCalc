@@ -111,7 +111,7 @@ export default function DeploymentTimeline() {
           </div>
         </div>
 
-        {results && vehicleDistribution && (
+        {results && vehicleDistribution ? (
           <div className="timeline-scroll">
             <div className="flex gap-3 min-w-full pb-2">
               {years.map((year) => {
@@ -164,15 +164,8 @@ export default function DeploymentTimeline() {
                 const isFlipped = flippedCards.has(year);
 
                 return (
-                  <div 
-                    key={year} 
-                    className={`flip-card year-block ${borderClass} ${isFlipped ? 'flipped' : ''}`}
-                    onClick={() => toggleCardFlip(year)}
-                  >
-                    <div className="flip-card-inner">
-                      {/* Front of card - cumulative view */}
-                      <div className="flip-card-front bg-white border rounded-lg shadow-sm p-3">
-                        <div className="text-sm font-medium text-gray-700 mb-2">Year {year}</div>
+                  <div key={year} className={`year-block bg-white border rounded-lg shadow-sm p-3 ${borderClass}`}>
+                    <div className="text-sm font-medium text-gray-700 mb-2">Year {year}</div>
                         
                         <div className="space-y-2 mb-3">
                           {deploymentStrategy === 'manual' ? (
@@ -333,55 +326,14 @@ export default function DeploymentTimeline() {
                             <span className="text-sm font-semibold text-green-600">{formatCurrency(cumulativeTotalSavings)}</span>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Back of card - annual view */}
-                      <div className="flip-card-back bg-gray-50 border rounded-lg shadow-sm p-3">
-                        <div className="text-sm font-medium text-gray-700 mb-2">Year {year} - Annual Details</div>
-                        
-                        {/* Annual Investment */}
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-700 font-medium">Annual Investment</span>
-                            <span></span>
-                          </div>
-                          <div className="flex items-center justify-between ml-4 mb-1.5">
-                            <span className="text-xs text-gray-500">Vehicle Investment</span>
-                            <span className="text-xs font-medium text-blue-600">{formatCurrency(vehicleInvestment)}</span>
-                          </div>
-                          <div className="flex items-center justify-between ml-4 mb-2">
-                            <span className="text-xs text-gray-500">Station Cost</span>
-                            <span className="text-xs font-medium text-blue-600">{formatCurrency(stationCost)}</span>
-                          </div>
-                        </div>
-
-                        {/* Annual Savings */}
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-700 font-medium">Annual Savings</span>
-                            <span></span>
-                          </div>
-                          <div className="flex items-center justify-between ml-4 mb-1.5">
-                            <span className="text-xs text-gray-500">Fuel Savings</span>
-                            <span className="text-xs font-medium text-green-600">{formatCurrency(yearFuelSavings)}</span>
-                          </div>
-                          <div className="flex items-center justify-between ml-4 mb-2">
-                            <span className="text-xs text-gray-500">Maintenance Savings</span>
-                            <span className="text-xs font-medium text-green-600">{formatCurrency(yearMaintenanceSavings)}</span>
-                          </div>
-                          <div className="flex items-center justify-between border-t border-gray-200 pt-2">
-                            <span className="text-sm text-gray-700 font-medium">Total Annual Savings</span>
-                            <span className="text-sm font-semibold text-green-600">{formatCurrency(yearFuelSavings + yearMaintenanceSavings)}</span>
-                          </div>
-                        </div>
-
-                        <div className="text-xs text-gray-400 text-center mt-2">Click to flip back</div>
-                      </div>
-                    </div>
                   </div>
                 );
               })}
             </div>
+          </div>
+        ) : (
+          <div className="text-center text-gray-500 py-4">
+            Loading deployment timeline...
           </div>
         )}
       </CardContent>
