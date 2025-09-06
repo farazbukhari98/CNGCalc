@@ -20,6 +20,9 @@ export default function DeploymentTimeline() {
     vehicleParameters
   } = useCalculator();
 
+  // State for tracking which cards are flipped
+  const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
+
   // Format currency
   const formatCurrency = (value: number) => {
     return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -36,6 +39,19 @@ export default function DeploymentTimeline() {
     // Update the distribution
     updateManualDistribution(year, {
       [vehicleType]: numValue
+    });
+  };
+
+  // Function to toggle card flip
+  const toggleCardFlip = (year: number) => {
+    setFlippedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(year)) {
+        newSet.delete(year);
+      } else {
+        newSet.add(year);
+      }
+      return newSet;
     });
   };
 
