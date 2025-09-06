@@ -130,10 +130,16 @@ export default function DeploymentTimeline() {
                 }
                 const totalYearInvestment = vehicleInvestment + stationCost;
                 
-                // Make sure we have savings data for this year
-                const yearSavings = results.yearlySavings[year - 1] || 0;
-                const yearFuelSavings = results.yearlyFuelSavings[year - 1] || 0;
-                const yearMaintenanceSavings = results.yearlyMaintenanceSavings[year - 1] || 0;
+                // Calculate cumulative savings up to this year
+                let cumulativeFuelSavings = 0;
+                let cumulativeMaintenanceSavings = 0;
+                let cumulativeTotalSavings = 0;
+                
+                for (let i = 0; i < year; i++) {
+                  cumulativeFuelSavings += results.yearlyFuelSavings[i] || 0;
+                  cumulativeMaintenanceSavings += results.yearlyMaintenanceSavings[i] || 0;
+                  cumulativeTotalSavings += results.yearlySavings[i] || 0;
+                }
                 
                 return (
                   <div key={year} className={`year-block bg-white border rounded-lg shadow-sm p-3 ${borderClass}`}>
@@ -255,50 +261,49 @@ export default function DeploymentTimeline() {
                         <span className="text-xs text-gray-500">
                           Fuel
                           <MetricInfoTooltip
-                            title="Annual Fuel Savings"
-                            description={`Fuel cost savings for Year ${year} from switching to CNG instead of gasoline/diesel.`}
-                            calculation="Fuel Savings = (Conventional Fuel Cost per Mile - CNG Cost per Mile) × Annual Miles × Number of Vehicles"
+                            title="Cumulative Fuel Savings"
+                            description={`Total fuel cost savings accumulated from Year 1 through Year ${year} from switching to CNG instead of gasoline/diesel.`}
+                            calculation="Cumulative Fuel Savings = Sum of annual fuel savings from Year 1 to current year"
                             affectingVariables={[
-                              "Number of converted vehicles in operation",
+                              "Number of converted vehicles in operation each year",
                               "Annual mileage per vehicle type",
                               "Fuel prices (gasoline, diesel, CNG)",
-                              "Vehicle fuel efficiency (MPG)",
-                              "Business rate adjustments"
+                              "Vehicle fuel efficiency (MPG)"
                             ]}
-                            simpleDescription="Annual fuel cost reduction from CNG"
+                            simpleDescription="Total fuel cost reduction from CNG to date"
                           />
                         </span>
-                        <span className="text-xs font-medium text-green-600">{formatCurrency(yearFuelSavings)}</span>
+                        <span className="text-xs font-medium text-green-600">{formatCurrency(cumulativeFuelSavings)}</span>
                       </div>
                       <div className="flex items-center justify-between ml-4 mb-2">
                         <span className="text-xs text-gray-500">
                           Maintenance
                           <MetricInfoTooltip
-                            title="Annual Maintenance Savings"
-                            description={`Maintenance cost savings for Year ${year} from reduced maintenance needs of CNG vehicles.`}
-                            calculation="Maintenance Savings = $0.05 per mile for diesel vehicles (medium and heavy duty)"
+                            title="Cumulative Maintenance Savings"
+                            description={`Total maintenance cost savings accumulated from Year 1 through Year ${year} from reduced maintenance needs of CNG vehicles.`}
+                            calculation="Cumulative Maintenance Savings = Sum of annual maintenance savings from Year 1 to current year ($0.05 per mile for diesel vehicles)"
                             affectingVariables={[
-                              "Number of converted diesel vehicles in operation",
+                              "Number of converted diesel vehicles in operation each year",
                               "Annual mileage per vehicle type",
-                              "Diesel deduction benefit (5¢/mile for medium/heavy duty)"
+                              "Deployment timing and vehicle rollout schedule"
                             ]}
-                            simpleDescription="Annual maintenance cost reduction"
+                            simpleDescription="Total maintenance cost reduction to date"
                           />
                         </span>
-                        <span className="text-xs font-medium text-green-600">{formatCurrency(yearMaintenanceSavings)}</span>
+                        <span className="text-xs font-medium text-green-600">{formatCurrency(cumulativeMaintenanceSavings)}</span>
                       </div>
                       {/* Total Savings */}
                       <div className="flex items-center justify-between border-t border-gray-200 pt-2">
                         <span className="text-sm text-gray-700 font-medium">
                           Total Savings
                           <MetricInfoTooltip
-                            title="Total Annual Savings"
-                            description={`Total projected savings for Year ${year} including fuel and maintenance savings, minus any operational costs.`}
-                            calculation={`Total Savings = Fuel Savings (${formatCurrency(yearFuelSavings)}) + Maintenance Savings (${formatCurrency(yearMaintenanceSavings)}) - Station Operational Costs`}
-                            simpleDescription="Combined annual operating cost reduction"
+                            title="Total Cumulative Savings"
+                            description={`Total savings accumulated from Year 1 through Year ${year} including fuel and maintenance savings, minus any operational costs.`}
+                            calculation={`Total Cumulative Savings = Cumulative Fuel Savings (${formatCurrency(cumulativeFuelSavings)}) + Cumulative Maintenance Savings (${formatCurrency(cumulativeMaintenanceSavings)}) - Station Operational Costs`}
+                            simpleDescription="Combined operating cost reduction to date"
                           />
                         </span>
-                        <span className="text-sm font-semibold text-green-600">{formatCurrency(yearSavings)}</span>
+                        <span className="text-sm font-semibold text-green-600">{formatCurrency(cumulativeTotalSavings)}</span>
                       </div>
                     </div>
                   </div>
