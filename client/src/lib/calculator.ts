@@ -432,18 +432,9 @@ export function calculateROI(
     const adjustedGasolinePrice = fuelPrices.gasolinePrice * yearMultiplier;
     const adjustedDieselPrice = fuelPrices.dieselPrice * yearMultiplier;
     
-    // Calculate CNG price with business rate (electricity already included in base price)
-    let businessRate;
-    if (stationConfig.businessType === 'cgc') {
-      businessRate = BUSINESS_RATES.cgc;
-    } else if (stationConfig.businessType === 'vng') {
-      businessRate = BUSINESS_RATES.vng;
-    } else {
-      businessRate = BUSINESS_RATES.aglc;
-    }
+    // Calculate CNG price without business rate (electricity already included in base price)
     const baseCngPrice = fuelPrices.cngPrice;
-    const cngWithBusinessRate = baseCngPrice * (1 + businessRate);
-    const adjustedCngPrice = cngWithBusinessRate * yearMultiplier;
+    const adjustedCngPrice = baseCngPrice * yearMultiplier;
     
     // Calculate fuel savings for each vehicle type using proper fuel efficiency accounting
     const lightConventionalPrice = vehicleParams.lightDutyFuelType === 'gasoline' ? adjustedGasolinePrice : adjustedDieselPrice;
@@ -629,17 +620,8 @@ export function calculateROI(
   // Calculate cost per mile metrics
   const costPerMileGasoline = fuelPrices.gasolinePrice / FUEL_EFFICIENCY.light.gasoline;
   
-  // Calculate full CNG price with business rate (electricity already included in base price)
-  let businessRate;
-  if (stationConfig.businessType === 'cgc') {
-    businessRate = BUSINESS_RATES.cgc;
-  } else if (stationConfig.businessType === 'vng') {
-    businessRate = BUSINESS_RATES.vng;
-  } else {
-    businessRate = BUSINESS_RATES.aglc;
-  }
-  const fullCngPrice = fuelPrices.cngPrice * (1 + businessRate);
-  const costPerMileCNG = fullCngPrice / FUEL_EFFICIENCY.light.cng;
+  // Calculate CNG price without business rate (electricity already included in base price)
+  const costPerMileCNG = fuelPrices.cngPrice / FUEL_EFFICIENCY.light.cng;
   
   const costReduction = ((costPerMileGasoline - costPerMileCNG) / costPerMileGasoline) * 100;
   

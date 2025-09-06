@@ -57,7 +57,7 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     // Default values for Annual Miles
     lightDutyAnnualMiles: 20000,
     mediumDutyAnnualMiles: 20000,
-    heavyDutyAnnualMiles: 20000,
+    heavyDutyAnnualMiles: 40000,
     // Default fuel types: light duty gasoline, medium/heavy duty diesel
     lightDutyFuelType: 'gasoline',
     mediumDutyFuelType: 'diesel',
