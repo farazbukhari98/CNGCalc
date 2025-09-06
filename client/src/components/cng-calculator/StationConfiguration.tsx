@@ -127,7 +127,10 @@ export default function StationConfiguration() {
         </div>
         <Progress value={capacityPercentage} className="h-2 mt-2" />
         <p className="text-xs text-gray-500 mt-1">
-          Based on vehicle counts: Light (2.5 GGE/day), Medium (6 GGE/day), Heavy (15 GGE/day)
+          {stationConfig.sizingMethod === 'peak' ? 
+            `Peak year vehicles: ${vehicleCounts.lightDutyCount} Light, ${vehicleCounts.mediumDutyCount} Medium, ${vehicleCounts.heavyDutyCount} Heavy (2.5/6/15 GGE/day)` :
+            `Total vehicles: ${vehicleCounts.lightDutyCount} Light, ${vehicleCounts.mediumDutyCount} Medium, ${vehicleCounts.heavyDutyCount} Heavy (2.5/6/15 GGE/day)`
+          }
         </p>
       </div>
       
@@ -156,7 +159,7 @@ export default function StationConfiguration() {
               className="flex flex-col items-start p-3 bg-gray-50 border rounded-md cursor-pointer hover:bg-blue-50 data-[state=checked]:bg-blue-50 data-[state=checked]:border-blue-500"
             >
               <span className="text-sm font-medium">Peak Year Usage</span>
-              <span className="text-xs text-gray-500 mt-1">Size station based on highest vehicle count in any deployment year</span>
+              <span className="text-xs text-gray-500 mt-1">Size station for peak year: {vehicleCounts.lightDutyCount + vehicleCounts.mediumDutyCount + vehicleCounts.heavyDutyCount} vehicles max</span>
             </Label>
           </div>
         </RadioGroup>
