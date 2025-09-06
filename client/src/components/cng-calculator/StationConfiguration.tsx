@@ -3,20 +3,51 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { calculateStationCost } from "@/lib/calculator";
 
 export default function StationConfiguration() {
   const { 
     stationConfig, 
     updateStationConfig,
-    vehicleParameters
+    vehicleParameters,
+    vehicleDistribution
   } = useCalculator();
 
-  // Calculate GGE (Gasoline Gallon Equivalent) per day
+  // Determine vehicle counts based on sizing method for display
+  let vehicleCounts: { lightDutyCount: number, mediumDutyCount: number, heavyDutyCount: number };
+  
+  if (stationConfig.sizingMethod === 'peak' && vehicleDistribution) {
+    // Use peak year vehicle counts from deployment strategy
+    let maxLight = 0;
+    let maxMedium = 0;
+    let maxHeavy = 0;
+
+    vehicleDistribution.forEach(year => {
+      maxLight = Math.max(maxLight, year.light || 0);
+      maxMedium = Math.max(maxMedium, year.medium || 0);
+      maxHeavy = Math.max(maxHeavy, year.heavy || 0);
+    });
+
+    vehicleCounts = {
+      lightDutyCount: maxLight,
+      mediumDutyCount: maxMedium,
+      heavyDutyCount: maxHeavy
+    };
+  } else {
+    // Use total vehicle counts (default behavior)
+    vehicleCounts = {
+      lightDutyCount: vehicleParameters.lightDutyCount,
+      mediumDutyCount: vehicleParameters.mediumDutyCount,
+      heavyDutyCount: vehicleParameters.heavyDutyCount
+    };
+  }
+
+  // Calculate GGE (Gasoline Gallon Equivalent) per day for display
   // Light duty: 2.5 GGE/day, Medium duty: 6 GGE/day, Heavy duty: 15 GGE/day
   const dailyGGE = 
-    (vehicleParameters.lightDutyCount * 2.5) + 
-    (vehicleParameters.mediumDutyCount * 6) + 
-    (vehicleParameters.heavyDutyCount * 15);
+    (vehicleCounts.lightDutyCount * 2.5) + 
+    (vehicleCounts.mediumDutyCount * 6) + 
+    (vehicleCounts.heavyDutyCount * 15);
   
   // Max capacity reference points 
   const maxCapacity = stationConfig.stationType === 'fast' ? 1000 : 800; // in GGE per day
@@ -30,36 +61,9 @@ export default function StationConfiguration() {
     return 'xlarge';
   };
   
-  // Estimate station cost based on capacity tier, type and business model
+  // Use centralized station cost calculation
   const getStationCost = () => {
-    const tier = getCapacityTier();
-    
-    // Tiered pricing based on capacity
-    const baseCosts = {
-      fast: {
-        small: 1800000,    // $1.8M for small fast-fill
-        medium: 2200000,   // $2.2M for medium fast-fill
-        large: 2700000,    // $2.7M for large fast-fill
-        xlarge: 3100000    // $3.1M for extra large fast-fill
-      },
-      time: {
-        small: 491000,     // $491K for small time-fill
-        medium: 1200000,   // $1.2M for medium time-fill
-        large: 2100000,    // $2.1M for large time-fill
-        xlarge: 3500000    // $3.5M for extra large time-fill
-      }
-    };
-    
-    // Get base cost from the pricing tiers
-    const baseCost = baseCosts[stationConfig.stationType][tier];
-    
-    // Apply business type adjustment
-    const businessMultiplier = stationConfig.businessType === 'aglc' ? 1.0 : 0.95;
-    
-    // Apply turnkey markup
-    const turnkeyMultiplier = stationConfig.turnkey ? 1.2 : 1.0; // 20% markup for turnkey
-    
-    return Math.round(baseCost * businessMultiplier * turnkeyMultiplier);
+    return calculateStationCost(stationConfig, vehicleParameters, vehicleDistribution);
   };
 
   return (

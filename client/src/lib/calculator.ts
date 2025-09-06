@@ -66,8 +66,32 @@ const TIME_FILL_STATIONS = [
   { size: 5, capacity: 864001, cost: 3506651 }
 ];
 
+// Helper function to find peak year vehicle count from vehicle distribution
+function getPeakYearVehicleCount(vehicleDistribution: VehicleDistribution[] | null): { lightDutyCount: number, mediumDutyCount: number, heavyDutyCount: number } {
+  if (!vehicleDistribution || vehicleDistribution.length === 0) {
+    return { lightDutyCount: 0, mediumDutyCount: 0, heavyDutyCount: 0 };
+  }
+
+  let maxLight = 0;
+  let maxMedium = 0;
+  let maxHeavy = 0;
+
+  // Find the maximum vehicle count across all years for each type
+  vehicleDistribution.forEach(year => {
+    maxLight = Math.max(maxLight, year.light || 0);
+    maxMedium = Math.max(maxMedium, year.medium || 0);
+    maxHeavy = Math.max(maxHeavy, year.heavy || 0);
+  });
+
+  return {
+    lightDutyCount: maxLight,
+    mediumDutyCount: maxMedium,
+    heavyDutyCount: maxHeavy
+  };
+}
+
 // Station cost calculation
-export function calculateStationCost(config: StationConfig, vehicleParams?: VehicleParameters): number {
+export function calculateStationCost(config: StationConfig, vehicleParams?: VehicleParameters, vehicleDistribution?: VehicleDistribution[] | null): number {
   // If no vehicle params provided, return default costs
   if (!vehicleParams) {
     const defaultCost = config.stationType === 'fast' ? 2200000 : 1200000; // Default to medium size
@@ -76,12 +100,27 @@ export function calculateStationCost(config: StationConfig, vehicleParams?: Vehi
     return Math.round(defaultCost * turnkeyMultiplier);
   }
   
+  // Determine vehicle counts based on sizing method
+  let vehicleCounts: { lightDutyCount: number, mediumDutyCount: number, heavyDutyCount: number };
+  
+  if (config.sizingMethod === 'peak' && vehicleDistribution) {
+    // Use peak year vehicle counts from deployment strategy
+    vehicleCounts = getPeakYearVehicleCount(vehicleDistribution);
+  } else {
+    // Use total vehicle counts (default behavior)
+    vehicleCounts = {
+      lightDutyCount: vehicleParams.lightDutyCount,
+      mediumDutyCount: vehicleParams.mediumDutyCount,
+      heavyDutyCount: vehicleParams.heavyDutyCount
+    };
+  }
+
   // Calculate GGE (Gasoline Gallon Equivalent) per day
   // Light duty: 2.5 GGE/day, Medium duty: 6 GGE/day, Heavy duty: 15 GGE/day
   const dailyGGE = 
-    (vehicleParams.lightDutyCount * 2.5) + 
-    (vehicleParams.mediumDutyCount * 6) + 
-    (vehicleParams.heavyDutyCount * 15);
+    (vehicleCounts.lightDutyCount * 2.5) + 
+    (vehicleCounts.mediumDutyCount * 6) + 
+    (vehicleCounts.heavyDutyCount * 15);
   
   // Get capacity tier for pricing
   const getCapacityTier = () => {
@@ -380,7 +419,7 @@ export function calculateROI(
     (vehicleParams.heavyDutyCount * vehicleCosts.heavy);
   
   // Calculate station cost based on vehicle parameters
-  const stationCost = calculateStationCost(stationConfig, vehicleParams);
+  const stationCost = calculateStationCost(stationConfig, vehicleParams, vehicleDistribution);
   
   // Total investment - only include station cost upfront if turnkey is true
   const totalInvestment = totalVehicleInvestment + (stationConfig.turnkey ? stationCost : 0);
