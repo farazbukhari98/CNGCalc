@@ -25,6 +25,7 @@ export interface StationConfig {
   stationType: "fast" | "time";
   businessType: "aglc" | "cgc" | "vng";
   turnkey: boolean; // Yes = upfront cost, No = financed cost
+  sizingMethod: "total" | "peak"; // Total vehicles vs peak year usage
 }
 
 // Fuel prices
