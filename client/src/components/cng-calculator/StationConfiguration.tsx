@@ -203,11 +203,26 @@ export default function StationConfiguration() {
 
       {/* Cost Estimate */}
       <div className="border-t pt-3 mt-3">
-        <div className="flex items-center justify-between">
-          <Label className="block text-sm font-medium text-gray-700">Estimated Station Cost</Label>
-          <span className="text-sm font-medium text-gray-900">${getStationCost().toLocaleString()}</span>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="block text-sm font-medium text-gray-700">Base Station Cost</Label>
+            <span className="text-sm font-medium text-gray-600">
+              ${stationSizeInfo?.baseCost.toLocaleString() || 'Calculating...'}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <Label className="block text-sm font-medium text-gray-700">Quoted Price</Label>
+            <span className="text-sm font-medium text-gray-900">
+              ${stationSizeInfo?.finalCost.toLocaleString() || getStationCost().toLocaleString()}
+            </span>
+          </div>
         </div>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 mt-2">
+          {stationConfig.turnkey 
+            ? "Base cost + 20% turnkey markup" 
+            : `Base cost ${stationConfig.businessType === 'cgc' ? '- 5% CGC discount' : ''}`}
+        </p>
+        <p className="text-xs text-gray-500">
           {stationConfig.turnkey 
             ? "Includes installation and equipment (paid upfront)" 
             : "Includes installation and equipment (LDC investment tariff)"}

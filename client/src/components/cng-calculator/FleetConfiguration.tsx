@@ -2,6 +2,7 @@ import { useCalculator } from "@/contexts/CalculatorContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPaybackPeriod } from "@/lib/utils";
 import { MetricInfoTooltip } from "./MetricInfoTooltip";
+import { calculateStationCost } from "@/lib/calculator";
 
 interface FleetConfigurationProps {
   showCashflow: boolean;
@@ -86,43 +87,9 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
     (actualCounts.medium * mediumAnnualGGE) + 
     (actualCounts.heavy * heavyAnnualGGE);
   
-  // Get capacity tier for pricing based on annual GGE consumption
-  const getCapacityTier = () => {
-    if (annualGGE < 73000) return 'small';        // < 200 GGE/day equivalent
-    if (annualGGE < 182135) return 'medium';      // 200-499 GGE/day equivalent
-    if (annualGGE < 291635) return 'large';       // 500-799 GGE/day equivalent
-    return 'xlarge';                              // 800+ GGE/day equivalent
-  };
-  
-  const tier = getCapacityTier();
-  
-  // Tiered pricing based on capacity
+  // Use centralized station cost calculation
   const getStationCost = () => {
-    const baseCosts = {
-      fast: {
-        small: 1800000,    // $1.8M for small fast-fill
-        medium: 2200000,   // $2.2M for medium fast-fill
-        large: 2700000,    // $2.7M for large fast-fill
-        xlarge: 3100000    // $3.1M for extra large fast-fill
-      },
-      time: {
-        small: 491000,     // $491K for small time-fill
-        medium: 1200000,   // $1.2M for medium time-fill
-        large: 2100000,    // $2.1M for large time-fill
-        xlarge: 3500000    // $3.5M for extra large time-fill
-      }
-    };
-    
-    // Get base cost from the pricing tiers
-    const baseCost = baseCosts[stationConfig.stationType][tier];
-    
-    // Apply business type adjustment
-    const businessMultiplier = stationConfig.businessType === 'cgc' ? 0.95 : 1.0;
-    
-    // Apply turnkey markup
-    const turnkeyMultiplier = stationConfig.turnkey ? 1.2 : 1.0; // 20% markup for turnkey
-    
-    return Math.round(baseCost * businessMultiplier * turnkeyMultiplier);
+    return calculateStationCost(stationConfig, vehicleParameters, vehicleDistribution);
   };
 
   const stationCost = getStationCost();

@@ -187,7 +187,7 @@ export function calculateStationCost(config: StationConfig, vehicleParams?: Vehi
 }
 
 // Get station size information
-export function getStationSizeInfo(config: StationConfig, vehicleParams?: VehicleParameters, vehicleDistribution?: VehicleDistribution[] | null): { size: number; capacity: number; annualGGE: number } | null {
+export function getStationSizeInfo(config: StationConfig, vehicleParams?: VehicleParameters, vehicleDistribution?: VehicleDistribution[] | null): { size: number; capacity: number; annualGGE: number; baseCost: number; finalCost: number } | null {
   if (!vehicleParams) return null;
   
   // Determine vehicle counts based on sizing method
@@ -250,10 +250,17 @@ export function getStationSizeInfo(config: StationConfig, vehicleParams?: Vehicl
     }
   }
   
+  // Calculate final cost with business adjustments and markup
+  const businessMultiplier = config.businessType === 'cgc' ? 0.95 : 1.0;
+  const turnkeyMultiplier = config.turnkey ? 1.2 : 1.0;
+  const finalCost = Math.round(selectedStation.cost * businessMultiplier * turnkeyMultiplier);
+  
   return {
     size: selectedStation.size,
     capacity: selectedStation.capacity,
-    annualGGE: Math.round(annualGGE)
+    annualGGE: Math.round(annualGGE),
+    baseCost: selectedStation.cost,
+    finalCost: finalCost
   };
 }
 
