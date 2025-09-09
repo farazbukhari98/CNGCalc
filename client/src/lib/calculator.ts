@@ -186,6 +186,102 @@ export function calculateStationCost(config: StationConfig, vehicleParams?: Vehi
   return Math.round(baseCost * businessMultiplier * turnkeyMultiplier);
 }
 
+// Apply vehicle lifecycle management to deployment distribution
+export function applyVehicleLifecycle(
+  baseDistribution: VehicleDistribution[],
+  vehicleParams: VehicleParameters,
+  timeHorizon: number
+): VehicleDistribution[] {
+  const vehicleCosts = getVehicleCosts(vehicleParams);
+  const VEHICLE_LIFESPAN = 7; // All vehicles have 7-year lifespan
+  
+  // Create enhanced distribution array
+  const enhancedDistribution: VehicleDistribution[] = [];
+  
+  // Track cumulative vehicles purchased by year for replacement calculation
+  const cumulativePurchases = {
+    light: 0,
+    medium: 0,
+    heavy: 0
+  };
+  
+  for (let yearIndex = 0; yearIndex < timeHorizon; yearIndex++) {
+    const currentYear = baseDistribution[yearIndex] || { light: 0, medium: 0, heavy: 0, investment: 0 };
+    
+    // New vehicle purchases this year
+    const newPurchases = {
+      light: currentYear.light,
+      medium: currentYear.medium,
+      heavy: currentYear.heavy
+    };
+    
+    // Calculate replacements needed this year (vehicles purchased 7 years ago)
+    const replacementYear = yearIndex - VEHICLE_LIFESPAN;
+    let replacements = { light: 0, medium: 0, heavy: 0 };
+    
+    if (replacementYear >= 0 && baseDistribution[replacementYear]) {
+      replacements = {
+        light: baseDistribution[replacementYear].light,
+        medium: baseDistribution[replacementYear].medium,
+        heavy: baseDistribution[replacementYear].heavy
+      };
+    }
+    
+    // Calculate replacement investment
+    const replacementInvestment = 
+      (replacements.light * vehicleCosts.light) + 
+      (replacements.medium * vehicleCosts.medium) + 
+      (replacements.heavy * vehicleCosts.heavy);
+    
+    // Update cumulative purchases (add new purchases)
+    cumulativePurchases.light += newPurchases.light;
+    cumulativePurchases.medium += newPurchases.medium;
+    cumulativePurchases.heavy += newPurchases.heavy;
+    
+    // Calculate total active vehicles this year
+    // This is cumulative purchases minus vehicles that have been replaced
+    let totalReplacedLight = 0;
+    let totalReplacedMedium = 0;
+    let totalReplacedHeavy = 0;
+    
+    // Sum up all replacements from previous years
+    for (let prevYear = 0; prevYear < yearIndex; prevYear++) {
+      const replYear = prevYear - VEHICLE_LIFESPAN;
+      if (replYear >= 0 && baseDistribution[replYear]) {
+        totalReplacedLight += baseDistribution[replYear].light;
+        totalReplacedMedium += baseDistribution[replYear].medium;
+        totalReplacedHeavy += baseDistribution[replYear].heavy;
+      }
+    }
+    
+    const totalActiveLight = cumulativePurchases.light - totalReplacedLight + replacements.light;
+    const totalActiveMedium = cumulativePurchases.medium - totalReplacedMedium + replacements.medium;
+    const totalActiveHeavy = cumulativePurchases.heavy - totalReplacedHeavy + replacements.heavy;
+    
+    // Create enhanced year entry
+    enhancedDistribution.push({
+      // Original purchase data
+      light: newPurchases.light,
+      medium: newPurchases.medium,
+      heavy: newPurchases.heavy,
+      investment: currentYear.investment,
+      
+      // Replacement data
+      lightReplacements: replacements.light,
+      mediumReplacements: replacements.medium,
+      heavyReplacements: replacements.heavy,
+      replacementInvestment: replacementInvestment,
+      
+      // Total active vehicles
+      totalActiveLight: totalActiveLight,
+      totalActiveMedium: totalActiveMedium,
+      totalActiveHeavy: totalActiveHeavy
+    });
+  }
+  
+  return enhancedDistribution;
+}
+
 // Get station size information
 export function getStationSizeInfo(config: StationConfig, vehicleParams?: VehicleParameters, vehicleDistribution?: VehicleDistribution[] | null): { size: number; capacity: number; annualGGE: number; baseCost: number; finalCost: number } | null {
   if (!vehicleParams) return null;

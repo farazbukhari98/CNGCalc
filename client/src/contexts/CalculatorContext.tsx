@@ -7,7 +7,7 @@ import {
   CalculationResults,
   VehicleDistribution 
 } from "@/types/calculator";
-import { calculateROI, distributeVehicles } from "@/lib/calculator";
+import { calculateROI, distributeVehicles, applyVehicleLifecycle } from "@/lib/calculator";
 
 // Context type
 interface CalculatorContextType {
@@ -88,22 +88,30 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
   // Automatically recalculate when any parameter changes
   useEffect(() => {
     // First, distribute vehicles based on strategy
-    const distribution = distributeVehicles(
+    const baseDistribution = distributeVehicles(
       vehicleParameters,
       timeHorizon,
       deploymentStrategy
     );
-    setVehicleDistribution(distribution);
+    
+    // Apply vehicle lifecycle management
+    const enhancedDistribution = applyVehicleLifecycle(
+      baseDistribution,
+      vehicleParameters,
+      timeHorizon
+    );
+    
+    setVehicleDistribution(enhancedDistribution);
     
     // Then calculate ROI and other metrics
-    if (distribution) {
+    if (enhancedDistribution) {
       const calculationResults = calculateROI(
         vehicleParameters,
         stationConfig,
         fuelPrices,
         timeHorizon,
         deploymentStrategy,
-        distribution
+        enhancedDistribution
       );
       setResults(calculationResults);
     }
@@ -138,22 +146,30 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     setDeploymentStrategy(strategy);
     
     // Always recalculate distribution when strategy changes
-    const distribution = distributeVehicles(
+    const baseDistribution = distributeVehicles(
       vehicleParameters,
       timeHorizon,
       strategy
     );
-    setVehicleDistribution(distribution);
+    
+    // Apply vehicle lifecycle management
+    const enhancedDistribution = applyVehicleLifecycle(
+      baseDistribution,
+      vehicleParameters,
+      timeHorizon
+    );
+    
+    setVehicleDistribution(enhancedDistribution);
     
     // Recalculate results with the new distribution
-    if (distribution) {
+    if (enhancedDistribution) {
       const calculationResults = calculateROI(
         vehicleParameters,
         stationConfig,
         fuelPrices,
         timeHorizon,
         strategy,
-        distribution
+        enhancedDistribution
       );
       setResults(calculationResults);
     }
@@ -163,22 +179,30 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
   const setDistributionStrategy = (strategy: DeploymentStrategy) => {
     if (strategy !== 'manual') {
       setDeploymentStrategy(strategy);
-      const distribution = distributeVehicles(
+      const baseDistribution = distributeVehicles(
         vehicleParameters,
         timeHorizon,
         strategy
       );
-      setVehicleDistribution(distribution);
+      
+      // Apply vehicle lifecycle management
+      const enhancedDistribution = applyVehicleLifecycle(
+        baseDistribution,
+        vehicleParameters,
+        timeHorizon
+      );
+      
+      setVehicleDistribution(enhancedDistribution);
       
       // Recalculate with new distribution
-      if (distribution) {
+      if (enhancedDistribution) {
         const calculationResults = calculateROI(
           vehicleParameters,
           stationConfig,
           fuelPrices,
           timeHorizon,
           strategy,
-          distribution
+          enhancedDistribution
         );
         setResults(calculationResults);
       }
