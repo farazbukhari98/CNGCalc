@@ -111,8 +111,8 @@ export default function DeploymentTimeline() {
                   borderClass = "vehicle-type-heavy";
                 }
                 
-                // Calculate year's financial data
-                const vehicleInvestment = yearData.investment || 0;
+                // Calculate year's financial data (include replacement investment)
+                const vehicleInvestment = (yearData.investment || 0) + (yearData.replacementInvestment || 0);
                 
                 // For year 1, also show station cost separately
                 const isFirstYear = year === 1;
@@ -145,56 +145,102 @@ export default function DeploymentTimeline() {
                   <div key={year} className={`year-block bg-white border rounded-lg shadow-sm p-3 ${borderClass}`}>
                     <div className="text-sm font-medium text-gray-700 mb-2">Year {year}</div>
                     
-                    <div className="space-y-2 mb-3">
-                      {deploymentStrategy === 'manual' ? (
-                        <>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Light Duty</span>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={light}
-                              onChange={(e) => handleInputChange(year, 'light', e.target.value)}
-                              className="text-xs w-16 h-6 p-1"
-                            />
+                    <div className="space-y-3 mb-3">
+                      {/* New Vehicle Purchases Section */}
+                      <div>
+                        <div className="text-xs font-medium text-blue-700 mb-1">New Purchases</div>
+                        <div className="space-y-1 pl-2">
+                          {deploymentStrategy === 'manual' ? (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Light Duty</span>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={light}
+                                  onChange={(e) => handleInputChange(year, 'light', e.target.value)}
+                                  className="text-xs w-16 h-6 p-1"
+                                />
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Medium Duty</span>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={medium}
+                                  onChange={(e) => handleInputChange(year, 'medium', e.target.value)}
+                                  className="text-xs w-16 h-6 p-1"
+                                />
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Heavy Duty</span>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={heavy}
+                                  onChange={(e) => handleInputChange(year, 'heavy', e.target.value)}
+                                  className="text-xs w-16 h-6 p-1"
+                                />
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Light Duty</span>
+                                <span className="text-xs font-medium">{light}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Medium Duty</span>
+                                <span className="text-xs font-medium">{medium}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">Heavy Duty</span>
+                                <span className="text-xs font-medium">{heavy}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Replacement Vehicles Section */}
+                      {(yearData.lightReplacements || yearData.mediumReplacements || yearData.heavyReplacements) && (
+                        <div>
+                          <div className="text-xs font-medium text-orange-700 mb-1">Replacements (7-year cycle)</div>
+                          <div className="space-y-1 pl-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">Light Duty</span>
+                              <span className="text-xs font-medium">{yearData.lightReplacements || 0}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">Medium Duty</span>
+                              <span className="text-xs font-medium">{yearData.mediumReplacements || 0}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">Heavy Duty</span>
+                              <span className="text-xs font-medium">{yearData.heavyReplacements || 0}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Medium Duty</span>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={medium}
-                              onChange={(e) => handleInputChange(year, 'medium', e.target.value)}
-                              className="text-xs w-16 h-6 p-1"
-                            />
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Heavy Duty</span>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={heavy}
-                              onChange={(e) => handleInputChange(year, 'heavy', e.target.value)}
-                              className="text-xs w-16 h-6 p-1"
-                            />
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Light Duty</span>
-                            <span className="text-xs font-medium">{light}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Medium Duty</span>
-                            <span className="text-xs font-medium">{medium}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Heavy Duty</span>
-                            <span className="text-xs font-medium">{heavy}</span>
-                          </div>
-                        </>
+                        </div>
                       )}
+
+                      {/* Total Active Fleet Section */}
+                      <div className="border-t pt-2">
+                        <div className="text-xs font-medium text-green-700 mb-1">Total Active Fleet</div>
+                        <div className="space-y-1 pl-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Light Duty</span>
+                            <span className="text-xs font-bold">{yearData.totalActiveLight || 0}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Medium Duty</span>
+                            <span className="text-xs font-bold">{yearData.totalActiveMedium || 0}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Heavy Duty</span>
+                            <span className="text-xs font-bold">{yearData.totalActiveHeavy || 0}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     
                     <div className="border-t pt-3">

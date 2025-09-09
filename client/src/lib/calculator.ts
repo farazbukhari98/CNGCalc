@@ -611,12 +611,15 @@ export function calculateROI(
       cng: vehicleParams.heavyDutyMPG 
     }
   };
-  // Calculate total vehicle investment
+  // Calculate total vehicle investment including replacements
   const vehicleCosts = getVehicleCosts(vehicleParams);
-  const totalVehicleInvestment = 
-    (vehicleParams.lightDutyCount * vehicleCosts.light) + 
-    (vehicleParams.mediumDutyCount * vehicleCosts.medium) + 
-    (vehicleParams.heavyDutyCount * vehicleCosts.heavy);
+  let totalVehicleInvestment = 0;
+  
+  // Sum up all vehicle investments (new purchases + replacements) over time horizon
+  for (let year = 0; year < timeHorizon && year < vehicleDistribution.length; year++) {
+    const yearData = vehicleDistribution[year];
+    totalVehicleInvestment += (yearData.investment || 0) + (yearData.replacementInvestment || 0);
+  }
   
   // Calculate station cost based on vehicle parameters
   const stationCost = calculateStationCost(stationConfig, vehicleParams, vehicleDistribution);
@@ -728,8 +731,9 @@ export function calculateROI(
     const prevCumulativeSavings = year > 0 ? cumulativeSavings[year - 1] : 0;
     cumulativeSavings.push(Math.round(prevCumulativeSavings + yearSavings));
     
-    // Update cumulative investment
-    const yearInvestment = year < ensuredDistribution.length ? ensuredDistribution[year].investment : 0;
+    // Update cumulative investment (including replacements)
+    const yearInvestment = year < ensuredDistribution.length ? 
+      (ensuredDistribution[year].investment || 0) + (ensuredDistribution[year].replacementInvestment || 0) : 0;
     cumulativeInvestmentToDate += yearInvestment;
     cumulativeInvestment.push(Math.round(cumulativeInvestmentToDate));
   }
