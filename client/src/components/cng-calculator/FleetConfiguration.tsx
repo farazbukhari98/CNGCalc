@@ -65,18 +65,33 @@ export default function FleetConfiguration({ showCashflow }: FleetConfigurationP
     (actualCounts.medium * mediumDutyCost) +
     (actualCounts.heavy * heavyDutyCost);
 
-  // Calculate GGE (Gasoline Gallon Equivalent) per day for station sizing (use actual counts)
-  const dailyGGE = 
-    (actualCounts.light * 2.5) + 
-    (actualCounts.medium * 6) + 
-    (actualCounts.heavy * 15);
+  // Calculate annual GGE (Gasoline Gallon Equivalent) consumption for station sizing (use actual counts)
+  // Formula: (Annual Miles / (MPG × CNG Efficiency Factor)) × Vehicle Count
   
-  // Get capacity tier for pricing
+  // CNG efficiency factors (fuel economy reduction)
+  const cngEfficiencyFactors = {
+    light: 0.95,    // 95% efficiency (5% reduction)
+    medium: 0.925,  // 92.5% efficiency (7.5% reduction)  
+    heavy: 0.90     // 90% efficiency (10% reduction)
+  };
+  
+  // Calculate annual GGE per vehicle type
+  const lightAnnualGGE = vehicleParameters.lightDutyAnnualMiles / (vehicleParameters.lightDutyMPG * cngEfficiencyFactors.light);
+  const mediumAnnualGGE = vehicleParameters.mediumDutyAnnualMiles / (vehicleParameters.mediumDutyMPG * cngEfficiencyFactors.medium);
+  const heavyAnnualGGE = vehicleParameters.heavyDutyAnnualMiles / (vehicleParameters.heavyDutyMPG * cngEfficiencyFactors.heavy);
+  
+  // Total annual GGE consumption for the fleet (use actual counts)
+  const annualGGE = 
+    (actualCounts.light * lightAnnualGGE) + 
+    (actualCounts.medium * mediumAnnualGGE) + 
+    (actualCounts.heavy * heavyAnnualGGE);
+  
+  // Get capacity tier for pricing based on annual GGE consumption
   const getCapacityTier = () => {
-    if (dailyGGE < 200) return 'small';
-    if (dailyGGE < 500) return 'medium';
-    if (dailyGGE < 800) return 'large';
-    return 'xlarge';
+    if (annualGGE < 73000) return 'small';        // < 200 GGE/day equivalent
+    if (annualGGE < 182135) return 'medium';      // 200-499 GGE/day equivalent
+    if (annualGGE < 291635) return 'large';       // 500-799 GGE/day equivalent
+    return 'xlarge';                              // 800+ GGE/day equivalent
   };
   
   const tier = getCapacityTier();

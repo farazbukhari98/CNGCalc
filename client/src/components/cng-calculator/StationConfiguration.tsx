@@ -42,23 +42,37 @@ export default function StationConfiguration() {
     };
   }
 
-  // Calculate GGE (Gasoline Gallon Equivalent) per day for display
-  // Light duty: 2.5 GGE/day, Medium duty: 6 GGE/day, Heavy duty: 15 GGE/day
-  const dailyGGE = 
-    (vehicleCounts.lightDutyCount * 2.5) + 
-    (vehicleCounts.mediumDutyCount * 6) + 
-    (vehicleCounts.heavyDutyCount * 15);
+  // Calculate annual GGE (Gasoline Gallon Equivalent) consumption for display
+  // Formula: (Annual Miles / (MPG × CNG Efficiency Factor)) × Vehicle Count
   
-  // Max capacity reference points 
-  const maxCapacity = stationConfig.stationType === 'fast' ? 1000 : 800; // in GGE per day
-  const capacityPercentage = Math.min(Math.round((dailyGGE / maxCapacity) * 100), 100);
+  // CNG efficiency factors (fuel economy reduction)
+  const cngEfficiencyFactors = {
+    light: 0.95,    // 95% efficiency (5% reduction)
+    medium: 0.925,  // 92.5% efficiency (7.5% reduction)  
+    heavy: 0.90     // 90% efficiency (10% reduction)
+  };
   
-  // Get capacity tier for pricing
+  // Calculate annual GGE per vehicle type
+  const lightAnnualGGE = vehicleParameters.lightDutyAnnualMiles / (vehicleParameters.lightDutyMPG * cngEfficiencyFactors.light);
+  const mediumAnnualGGE = vehicleParameters.mediumDutyAnnualMiles / (vehicleParameters.mediumDutyMPG * cngEfficiencyFactors.medium);
+  const heavyAnnualGGE = vehicleParameters.heavyDutyAnnualMiles / (vehicleParameters.heavyDutyMPG * cngEfficiencyFactors.heavy);
+  
+  // Total annual GGE consumption for the fleet
+  const annualGGE = 
+    (vehicleCounts.lightDutyCount * lightAnnualGGE) + 
+    (vehicleCounts.mediumDutyCount * mediumAnnualGGE) + 
+    (vehicleCounts.heavyDutyCount * heavyAnnualGGE);
+  
+  // Max capacity reference points for annual consumption
+  const maxCapacity = stationConfig.stationType === 'fast' ? 365000 : 292000; // in GGE per year (1000/800 daily × 365)
+  const capacityPercentage = Math.min(Math.round((annualGGE / maxCapacity) * 100), 100);
+  
+  // Get capacity tier for pricing based on annual GGE consumption
   const getCapacityTier = () => {
-    if (dailyGGE < 200) return 'small';
-    if (dailyGGE < 500) return 'medium';
-    if (dailyGGE < 800) return 'large';
-    return 'xlarge';
+    if (annualGGE < 73000) return 'small';        // < 200 GGE/day equivalent
+    if (annualGGE < 182135) return 'medium';      // 200-499 GGE/day equivalent
+    if (annualGGE < 291635) return 'large';       // 500-799 GGE/day equivalent
+    return 'xlarge';                              // 800+ GGE/day equivalent
   };
   
   // Use centralized station cost calculation
@@ -122,14 +136,14 @@ export default function StationConfiguration() {
         <div className="flex items-center justify-between">
           <Label className="block text-sm font-medium text-gray-700">Station Capacity</Label>
           <span className="text-sm font-medium text-blue-600">
-            {Math.round(dailyGGE)} GGE/day ({getCapacityTier().toUpperCase()})
+            {Math.round(annualGGE).toLocaleString()} GGE/year ({getCapacityTier().toUpperCase()})
           </span>
         </div>
         <Progress value={capacityPercentage} className="h-2 mt-2" />
         <p className="text-xs text-gray-500 mt-1">
           {stationConfig.sizingMethod === 'peak' ? 
-            `Peak year vehicles: ${vehicleCounts.lightDutyCount} Light, ${vehicleCounts.mediumDutyCount} Medium, ${vehicleCounts.heavyDutyCount} Heavy (2.5/6/15 GGE/day)` :
-            `Total vehicles: ${vehicleCounts.lightDutyCount} Light, ${vehicleCounts.mediumDutyCount} Medium, ${vehicleCounts.heavyDutyCount} Heavy (2.5/6/15 GGE/day)`
+            `Peak year vehicles: ${vehicleCounts.lightDutyCount} Light, ${vehicleCounts.mediumDutyCount} Medium, ${vehicleCounts.heavyDutyCount} Heavy (w/ CNG efficiency: 95%/92.5%/90%)` :
+            `Total vehicles: ${vehicleCounts.lightDutyCount} Light, ${vehicleCounts.mediumDutyCount} Medium, ${vehicleCounts.heavyDutyCount} Heavy (w/ CNG efficiency: 95%/92.5%/90%)`
           }
         </p>
       </div>
