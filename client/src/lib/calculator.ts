@@ -136,34 +136,46 @@ export function calculateStationCost(config: StationConfig, vehicleParams?: Vehi
     (vehicleCounts.mediumDutyCount * mediumAnnualGGE) + 
     (vehicleCounts.heavyDutyCount * heavyAnnualGGE);
   
-  // Get capacity tier for pricing based on annual GGE consumption
-  const getCapacityTier = () => {
-    if (annualGGE < 73000) return 'small';        // < 200 GGE/day equivalent
-    if (annualGGE < 182135) return 'medium';      // 200-499 GGE/day equivalent
-    if (annualGGE < 291635) return 'large';       // 500-799 GGE/day equivalent
-    return 'xlarge';                              // 800+ GGE/day equivalent
+  // Station sizing and pricing based on annual GGE consumption
+  // Each station size has a maximum capacity it can handle
+  const stationSizes = {
+    fast: [
+      { size: 1, capacity: 100, cost: 1828172 },
+      { size: 2, capacity: 72001, cost: 2150219 },
+      { size: 3, capacity: 192001, cost: 2694453 },
+      { size: 4, capacity: 384001, cost: 2869245 },
+      { size: 5, capacity: 576001, cost: 3080351 }
+    ],
+    time: [
+      { size: 6, capacity: 100, cost: 491333 },
+      { size: 1, capacity: 12961, cost: 1831219 },
+      { size: 2, capacity: 108001, cost: 2218147 },
+      { size: 3, capacity: 288001, cost: 2907603 },
+      { size: 4, capacity: 576001, cost: 3200857 },
+      { size: 5, capacity: 864001, cost: 3506651 }
+    ]
   };
   
-  const tier = getCapacityTier();
-  
-  // Tiered pricing based on capacity
-  const baseCosts = {
-    fast: {
-      small: 1800000,    // $1.8M for small fast-fill
-      medium: 2200000,   // $2.2M for medium fast-fill
-      large: 2700000,    // $2.7M for large fast-fill
-      xlarge: 3100000    // $3.1M for extra large fast-fill
-    },
-    time: {
-      small: 491000,     // $491K for small time-fill
-      medium: 1200000,   // $1.2M for medium time-fill
-      large: 2100000,    // $2.1M for large time-fill
-      xlarge: 3500000    // $3.5M for extra large time-fill
+  // Find the smallest station size that can handle the required annual GGE
+  const getStationSizeAndCost = () => {
+    const sizes = stationSizes[config.stationType];
+    
+    // Sort by capacity to find the smallest size that can accommodate the consumption
+    const sortedSizes = [...sizes].sort((a, b) => a.capacity - b.capacity);
+    
+    // Find the smallest station that can handle the required consumption
+    for (const sizeOption of sortedSizes) {
+      if (annualGGE <= sizeOption.capacity) {
+        return sizeOption;
+      }
     }
+    
+    // If consumption exceeds all capacities, use the largest station
+    return sortedSizes[sortedSizes.length - 1];
   };
   
-  // Get base cost from the pricing tiers
-  const baseCost = baseCosts[config.stationType][tier];
+  const selectedStation = getStationSizeAndCost();
+  const baseCost = selectedStation.cost;
   
   // Apply business type adjustment
   const businessMultiplier = config.businessType === 'cgc' ? 0.95 : 1.0; // CGC is 0.95, AGLC and VNG are 1.0
