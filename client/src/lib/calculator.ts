@@ -186,6 +186,77 @@ export function calculateStationCost(config: StationConfig, vehicleParams?: Vehi
   return Math.round(baseCost * businessMultiplier * turnkeyMultiplier);
 }
 
+// Get station size information
+export function getStationSizeInfo(config: StationConfig, vehicleParams?: VehicleParameters, vehicleDistribution?: VehicleDistribution[] | null): { size: number; capacity: number; annualGGE: number } | null {
+  if (!vehicleParams) return null;
+  
+  // Determine vehicle counts based on sizing method
+  let vehicleCounts: { lightDutyCount: number, mediumDutyCount: number, heavyDutyCount: number };
+  
+  if (config.sizingMethod === 'peak' && vehicleDistribution) {
+    vehicleCounts = getPeakYearVehicleCount(vehicleDistribution);
+  } else {
+    vehicleCounts = {
+      lightDutyCount: vehicleParams.lightDutyCount,
+      mediumDutyCount: vehicleParams.mediumDutyCount,
+      heavyDutyCount: vehicleParams.heavyDutyCount
+    };
+  }
+
+  // Calculate annual GGE (same logic as calculateStationCost)
+  const cngEfficiencyFactors = {
+    light: 0.95,
+    medium: 0.925,
+    heavy: 0.90
+  };
+  
+  const lightAnnualGGE = vehicleParams.lightDutyAnnualMiles / (vehicleParams.lightDutyMPG * cngEfficiencyFactors.light);
+  const mediumAnnualGGE = vehicleParams.mediumDutyAnnualMiles / (vehicleParams.mediumDutyMPG * cngEfficiencyFactors.medium);
+  const heavyAnnualGGE = vehicleParams.heavyDutyAnnualMiles / (vehicleParams.heavyDutyMPG * cngEfficiencyFactors.heavy);
+  
+  const annualGGE = 
+    (vehicleCounts.lightDutyCount * lightAnnualGGE) + 
+    (vehicleCounts.mediumDutyCount * mediumAnnualGGE) + 
+    (vehicleCounts.heavyDutyCount * heavyAnnualGGE);
+  
+  // Station sizes (same as in calculateStationCost)
+  const stationSizes = {
+    fast: [
+      { size: 1, capacity: 100, cost: 1828172 },
+      { size: 2, capacity: 72001, cost: 2150219 },
+      { size: 3, capacity: 192001, cost: 2694453 },
+      { size: 4, capacity: 384001, cost: 2869245 },
+      { size: 5, capacity: 576001, cost: 3080351 }
+    ],
+    time: [
+      { size: 6, capacity: 100, cost: 491333 },
+      { size: 1, capacity: 12961, cost: 1831219 },
+      { size: 2, capacity: 108001, cost: 2218147 },
+      { size: 3, capacity: 288001, cost: 2907603 },
+      { size: 4, capacity: 576001, cost: 3200857 },
+      { size: 5, capacity: 864001, cost: 3506651 }
+    ]
+  };
+  
+  // Find the appropriate station size
+  const sizes = stationSizes[config.stationType];
+  const sortedSizes = [...sizes].sort((a, b) => a.capacity - b.capacity);
+  
+  let selectedStation = sortedSizes[sortedSizes.length - 1]; // Default to largest
+  for (const sizeOption of sortedSizes) {
+    if (annualGGE <= sizeOption.capacity) {
+      selectedStation = sizeOption;
+      break;
+    }
+  }
+  
+  return {
+    size: selectedStation.size,
+    capacity: selectedStation.capacity,
+    annualGGE: Math.round(annualGGE)
+  };
+}
+
 // Distribute vehicles across years based on strategy
 export function distributeVehicles(
   vehicleParams: VehicleParameters,

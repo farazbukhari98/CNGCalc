@@ -3,7 +3,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { calculateStationCost } from "@/lib/calculator";
+import { calculateStationCost, getStationSizeInfo } from "@/lib/calculator";
 
 export default function StationConfiguration() {
   const { 
@@ -42,43 +42,18 @@ export default function StationConfiguration() {
     };
   }
 
-  // Calculate annual GGE (Gasoline Gallon Equivalent) consumption for display
-  // Formula: (Annual Miles / (MPG × CNG Efficiency Factor)) × Vehicle Count
-  
-  // CNG efficiency factors (fuel economy reduction)
-  const cngEfficiencyFactors = {
-    light: 0.95,    // 95% efficiency (5% reduction)
-    medium: 0.925,  // 92.5% efficiency (7.5% reduction)  
-    heavy: 0.90     // 90% efficiency (10% reduction)
-  };
-  
-  // Calculate annual GGE per vehicle type
-  const lightAnnualGGE = vehicleParameters.lightDutyAnnualMiles / (vehicleParameters.lightDutyMPG * cngEfficiencyFactors.light);
-  const mediumAnnualGGE = vehicleParameters.mediumDutyAnnualMiles / (vehicleParameters.mediumDutyMPG * cngEfficiencyFactors.medium);
-  const heavyAnnualGGE = vehicleParameters.heavyDutyAnnualMiles / (vehicleParameters.heavyDutyMPG * cngEfficiencyFactors.heavy);
-  
-  // Total annual GGE consumption for the fleet
-  const annualGGE = 
-    (vehicleCounts.lightDutyCount * lightAnnualGGE) + 
-    (vehicleCounts.mediumDutyCount * mediumAnnualGGE) + 
-    (vehicleCounts.heavyDutyCount * heavyAnnualGGE);
-  
-  // Max capacity reference points for annual consumption
-  const maxCapacity = stationConfig.stationType === 'fast' ? 365000 : 292000; // in GGE per year (1000/800 daily × 365)
-  const capacityPercentage = Math.min(Math.round((annualGGE / maxCapacity) * 100), 100);
-  
-  // Get capacity tier for pricing based on annual GGE consumption
-  const getCapacityTier = () => {
-    if (annualGGE < 73000) return 'small';        // < 200 GGE/day equivalent
-    if (annualGGE < 182135) return 'medium';      // 200-499 GGE/day equivalent
-    if (annualGGE < 291635) return 'large';       // 500-799 GGE/day equivalent
-    return 'xlarge';                              // 800+ GGE/day equivalent
-  };
+  // Get station size information
+  const stationSizeInfo = getStationSizeInfo(stationConfig, vehicleParameters, vehicleDistribution);
   
   // Use centralized station cost calculation
   const getStationCost = () => {
     return calculateStationCost(stationConfig, vehicleParameters, vehicleDistribution);
   };
+  
+  // Calculate capacity utilization for progress bar
+  const capacityPercentage = stationSizeInfo 
+    ? Math.min(Math.round((stationSizeInfo.annualGGE / stationSizeInfo.capacity) * 100), 100)
+    : 0;
 
   return (
     <div className="bg-white rounded-md p-3 space-y-3">
@@ -136,7 +111,13 @@ export default function StationConfiguration() {
         <div className="flex items-center justify-between">
           <Label className="block text-sm font-medium text-gray-700">Station Capacity</Label>
           <span className="text-sm font-medium text-blue-600">
-            {Math.round(annualGGE).toLocaleString()} GGE/year ({getCapacityTier().toUpperCase()})
+            {stationSizeInfo ? (
+              <>
+                Station Size {stationSizeInfo.size} - {stationSizeInfo.annualGGE.toLocaleString()} / {stationSizeInfo.capacity.toLocaleString()} GGE/year
+              </>
+            ) : (
+              'Calculating station size...'
+            )}
           </span>
         </div>
         <Progress value={capacityPercentage} className="h-2 mt-2" />
