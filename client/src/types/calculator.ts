@@ -39,12 +39,24 @@ export interface FuelPrices {
 // Deployment strategies
 export type DeploymentStrategy = "immediate" | "phased" | "aggressive" | "deferred" | "manual";
 
-// Vehicle distribution by year
+// Vehicle distribution by year with lifecycle tracking
 export interface VehicleDistribution {
+  // New vehicle purchases in this year
   light: number;
   medium: number;
   heavy: number;
   investment: number;
+  
+  // Replacement vehicles in this year (due to 7-year lifespan)
+  lightReplacements?: number;
+  mediumReplacements?: number;
+  heavyReplacements?: number;
+  replacementInvestment?: number;
+  
+  // Total active vehicles in this year (existing + new + replacements, avoiding double count)
+  totalActiveLight?: number;
+  totalActiveMedium?: number;
+  totalActiveHeavy?: number;
 }
 
 // Calculation results

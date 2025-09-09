@@ -47,9 +47,9 @@ export function CalculatorProvider({ children }: { children: ReactNode }) {
     mediumDutyCost: 15000,
     heavyDutyCost: 50000,
     // Default values for vehicle lifespan
-    lightDutyLifespan: 10,
-    mediumDutyLifespan: 10,
-    heavyDutyLifespan: 15,
+    lightDutyLifespan: 7,
+    mediumDutyLifespan: 7,
+    heavyDutyLifespan: 7,
     // Default values for MPG (Miles Per Gallon)
     lightDutyMPG: 12,
     mediumDutyMPG: 10,
